@@ -102,25 +102,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIO-01 | Phase 2 | Pending |
 | AUDIO-02 | Phase 2 | Pending |
 | AUDIO-03 | Phase 2 | Pending |
-| VIDEO-01 | Phase 3 | Pending |
-| VIDEO-02 | Phase 3 | Pending |
-| VIDEO-03 | Phase 3 | Pending |
-| VIDEO-04 | Phase 4 | Pending |
-| AUTO-01 | Phase 5 | Pending |
-| AUTO-02 | Phase 5 | Pending |
-| AUTO-03 | Phase 5 | Pending |
-| PLAY-01 | Phase 6 | Pending |
-| PLAY-02 | Phase 6 | Pending |
-| PLAY-03 | Phase 6 | Pending |
-| PLAY-04 | Phase 6 | Pending |
-| PLAY-05 | Phase 6 | Pending |
-| PWA-01 | Phase 7 | Pending |
+| VIDEO-01 | Phase 2 | Pending |
+| VIDEO-02 | Phase 2 | Pending |
+| VIDEO-03 | Phase 2 | Pending |
+| VIDEO-04 | Phase 2 | Pending |
+| AUTO-02 | Phase 2 | Pending |
+| AUTO-03 | Phase 2 | Pending |
+| AUTO-01 | Phase 4 | Pending |
+| PLAY-01 | Phase 3 | Pending |
+| PLAY-02 | Phase 3 | Pending |
+| PLAY-03 | Phase 3 | Pending |
+| PLAY-04 | Phase 3 | Pending |
+| PLAY-05 | Phase 3 | Pending |
+| PWA-01 | Phase 3 | Pending |
 
 **Coverage:**
-- v1 requirements: 22 total
-- Mapped to phases: 22
+- v1 requirements: 24 total
+- Mapped to phases: 24
 - Unmapped: 0 ✓
+
+**Phase 4 note:** Phase 4 (Ship) contains only AUTO-01 as a new v1 requirement. The remainder of Phase 4 validates that all requirements from Phases 1-3 work together in production (GitHub Actions automation, Vercel deployment, real device testing).
 
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-02-23 after initial definition*
+*Last updated: 2026-02-23 — traceability updated for 4-phase MVP roadmap*
