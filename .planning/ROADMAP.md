@@ -2,7 +2,9 @@
 
 ## Overview
 
-FinFeed is built in two distinct systems: a Python batch pipeline that generates 5 AI-produced financial news videos per day, and a Next.js PWA that delivers those videos in a finite vertical scroll feed. The roadmap is structured for a solo developer shipping an MVP first: foundation, then the full pipeline running locally end-to-end, then the frontend, then automation and deployment. The goal is something simple and functional before adding sophistication.
+FinFeed is built in two distinct systems: a Python batch pipeline that generates AI-produced financial news videos per day (variable count, not fixed), and a Next.js PWA that delivers those videos in a finite vertical scroll feed. The roadmap is structured for a solo developer shipping an MVP first: foundation, then the full pipeline running locally end-to-end, then the frontend, then automation and deployment. The goal is something simple and functional before adding sophistication.
+
+v1 targets financial news only. The architecture is designed from the start to support multiple categories (technology, sports, politics) in future versions without requiring a full rewrite.
 
 ## Phases
 
@@ -13,7 +15,7 @@ FinFeed is built in two distinct systems: a Python batch pipeline that generates
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Supabase schema, storage, and API contract are live and verified
-- [ ] **Phase 2: Pipeline** - Full pipeline runs locally end-to-end: RSS ingestion → scripts → TTS → Whisper alignment → FFmpeg video assembly → Supabase upload → published edition with 7-day cleanup
+- [ ] **Phase 2: Pipeline** - Full pipeline runs locally end-to-end: RSS ingestion → scripts → TTS → Whisper alignment → FFmpeg video assembly → Supabase upload → published edition with 7-day cleanup (financial news category, variable video count)
 - [ ] **Phase 3: Frontend** - Next.js PWA delivers the finite vertical video feed with muted autoplay, tap-to-unmute, preloading, end card, and PWA installability
 - [ ] **Phase 4: Ship** - GitHub Actions cron automates the pipeline, Vercel deploys the frontend, and the full user journey is validated on real devices
 
@@ -35,11 +37,11 @@ Plans:
 - [x] 01-02-PLAN.md — Apply migration to Supabase cloud, create storage bucket, verify end-to-end connectivity
 
 ### Phase 2: Pipeline
-**Goal**: Running `python -m pipeline.run` locally completes the entire pipeline — from fetching RSS articles to 5 published MP4 URLs in Supabase Storage — in a single command, with per-story error isolation and 7-day cleanup
+**Goal**: Running `python -m pipeline.run` locally completes the entire pipeline — from fetching RSS articles to a set of published MP4 URLs in Supabase Storage — in a single command, with per-story error isolation and 7-day cleanup
 **Depends on**: Phase 1
 **Requirements**: INGEST-01, INGEST-02, SCRIPT-01, SCRIPT-02, SCRIPT-03, AUDIO-01, AUDIO-02, AUDIO-03, VIDEO-01, VIDEO-02, VIDEO-03, VIDEO-04, AUTO-02, AUTO-03
 **Success Criteria** (what must be TRUE):
-  1. Running `python -m pipeline.run` locally completes without error and produces 5 publicly accessible MP4 URLs in Supabase Storage
+  1. Running `python -m pipeline.run` locally completes without error and produces a set of publicly accessible MP4 URLs in Supabase Storage (count varies by news day)
   2. Each output MP4 plays with visible subtitles synchronized to speech, is 10 MB or smaller at 720p, and has audible financial news content
   3. Re-running the pipeline on the same day does not create duplicate articles or editions (deduplication works)
   4. If one story fails during assembly, the remaining stories still upload and the edition publishes as `partial` — the pipeline does not abort

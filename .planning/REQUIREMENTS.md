@@ -1,7 +1,8 @@
 # Requirements: FinFeed
 
 **Defined:** 2026-02-23
-**Core Value:** A finite, curated daily financial briefing — users always know when they're done.
+**Last updated:** 2026-02-24
+**Core Value:** A finite, curated daily briefing in vertical video format — users always know when they're done. v1 focuses on financial news; architecture supports multiple categories in future versions.
 
 ## v1 Requirements
 
@@ -18,7 +19,7 @@
 
 ### Pipeline — Script
 
-- [ ] **SCRIPT-01**: LLM (Groq Llama 3.3) selects the 5 most important financial stories from ingested articles
+- [ ] **SCRIPT-01**: LLM (Groq Llama 3.3) selects the most important financial stories from ingested articles (variable count per edition, not fixed)
 - [ ] **SCRIPT-02**: LLM writes a 30–45 second script per story in a dynamic "financial influencer" tone
 - [ ] **SCRIPT-03**: Each script is stored in the DB with its source article reference before audio generation begins
 
@@ -58,11 +59,26 @@
 ### Quality
 
 - **QUAL-01**: Regex validator checks every number and percentage in LLM scripts against source article text (hallucination prevention)
+- **QUAL-02**: Upgrade LLM to GPT-4o or Claude Sonnet for higher script quality at scale (requires paid API tier)
+- **QUAL-03**: Upgrade TTS to OpenAI tts-1-hd or ElevenLabs for more expressive narration (requires paid API tier)
+- **QUAL-04**: Replace free Pexels b-roll with premium stock footage API for higher visual quality (requires paid tier)
 
 ### Player UX
 
-- **PLAY-06**: Progress indicator shows which video of 5 the user is currently watching
+- **PLAY-06**: Progress indicator shows which video of N the user is currently watching
 - **PLAY-07**: Share button allows user to share a story link
+
+### User Accounts
+
+- **AUTH-01**: User registration and login (email or social OAuth) — enables personalisation and history
+- **AUTH-02**: Watch history persisted per user — resume where you left off across sessions
+- **AUTH-03**: Notification preferences — users opt in to daily briefing alerts
+
+### Multi-Category
+
+- **CAT-01**: Pipeline supports multiple news categories (technology, sports, politics, science) — each with its own RSS sources, prompt tone, and daily edition
+- **CAT-02**: Frontend lets users select which categories they follow
+- **CAT-03**: Each category has its own finite daily feed, independent of others
 
 ### Infrastructure
 
@@ -71,19 +87,19 @@
 ### Distribution
 
 - **PUSH-01**: Push notifications alert subscribers when a new daily edition is published
-- **AUTH-01**: Optional user accounts to track watch history and notification preferences
 
-## Out of Scope
+## Out of Scope (v1)
 
 | Feature | Reason |
 |---------|--------|
-| User authentication (v1) | Open access required — minimize friction for validation |
+| User authentication | Open access required — minimize friction for validation; planned for v2 |
+| Multiple news categories | Financial news only for v1; multi-category is a v2 requirement (CAT-01–03) |
 | Native mobile app | PWA web-first; build native only after traction confirmed |
 | Multiple languages | English only for v1; translation adds pipeline complexity |
-| Personalized feeds | One curated feed for all users — personalization is anti-finite |
+| Personalized feeds | One curated feed per category — personalization is anti-finite in v1 |
 | Monetization / subscriptions | Validation phase; add only after product-market fit |
 | Social features (comments, likes) | Not core to the finite feed value proposition |
-| Infinite scroll / more than 5 videos | Defeats the core "finite" product promise |
+| Infinite scroll | Defeats the core "finite" product promise |
 
 ## Traceability
 
