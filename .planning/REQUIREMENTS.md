@@ -25,9 +25,9 @@
 
 ### Pipeline — Audio & Subtitles
 
-- [ ] **AUDIO-01**: OpenAI TTS (tts-1) converts each script to an MP3 audio file
-- [ ] **AUDIO-02**: faster-whisper (tiny.en) runs forced alignment on each audio file to produce word-level timestamps
-- [ ] **AUDIO-03**: Word-level timestamps are converted to a subtitle file (ASS format) for FFmpeg burning
+- [x] **AUDIO-01**: OpenAI TTS (tts-1) converts each script to an MP3 audio file
+- [x] **AUDIO-02**: faster-whisper (tiny.en) runs forced alignment on each audio file to produce word-level timestamps
+- [x] **AUDIO-03**: Word-level timestamps are converted to a subtitle file (ASS format) for FFmpeg burning
 
 ### Pipeline — Video Assembly
 
@@ -115,9 +115,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCRIPT-01 | Phase 2 | Complete |
 | SCRIPT-02 | Phase 2 | Complete |
 | SCRIPT-03 | Phase 2 | Complete |
-| AUDIO-01 | Phase 2 | Pending |
-| AUDIO-02 | Phase 2 | Pending |
-| AUDIO-03 | Phase 2 | Pending |
+| AUDIO-01 | Phase 2 | Complete |
+| AUDIO-02 | Phase 2 | Complete |
+| AUDIO-03 | Phase 2 | Complete |
 | VIDEO-01 | Phase 2 | Pending |
 | VIDEO-02 | Phase 2 | Pending |
 | VIDEO-03 | Phase 2 | Pending |
