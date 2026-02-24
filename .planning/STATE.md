@@ -10,28 +10,29 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 2 of 7 (Pipeline)
-Plan: 0 of 5 in current phase (Phase 1 complete, Phase 2 not started)
-Status: Phase 1 complete — ready for Phase 2
-Last activity: 2026-02-24 — Completed 01-02-PLAN.md (Phase 1 complete)
+Plan: 1 of 5 in current phase
+Status: In progress — Phase 2 plan 1 of 5 complete
+Last activity: 2026-02-24 — Completed 02-01-PLAN.md (pipeline models and RSS ingest)
 
-Progress: [██░░░░░░░░] 14%
+Progress: [███░░░░░░░] 21%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: ~31 min
-- Total execution time: ~1 hour
+- Total plans completed: 3
+- Average duration: ~21 min
+- Total execution time: ~63 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 2 | ~62 min | ~31 min |
+| 02-pipeline | 1 | ~1 min | ~1 min |
 
 **Recent Trend:**
-- Last 5 plans: ~31 min avg
-- Trend: baseline
+- Last 5 plans: ~21 min avg
+- Trend: fast execution for well-specified plans
 
 *Updated after each plan completion*
 
@@ -57,6 +58,10 @@ Recent decisions affecting current work:
 - [01-02]: 15 MB bucket-level file size limit — belt-and-suspenders on top of pipeline code limit
 - [01-02]: video/mp4 MIME restriction at bucket level — prevents wrong-type uploads breaking <video> element
 - [01-02]: frontend/.env.local for Next.js (NEXT_PUBLIC_ vars), .env at repo root for Python — matches each system's loading conventions
+- [02-01]: Yahoo Finance + CNBC RSS only (Reuters dead since 2020) — no broken feeds in FEEDS list
+- [02-01]: stdlib dataclasses only in pipeline/models.py — pydantic overkill for local inter-module contracts
+- [02-01]: DB dedup with gte(created_at, today) — catches same-day pipeline re-runs without full history scan
+- [02-01]: requirements.txt created once in plan 02-01 — no subsequent pipeline plan modifies it
 
 ### Pending Todos
 
@@ -71,5 +76,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 01-02-PLAN.md — Supabase migration applied, storage bucket created, all 7 infra checks pass. Phase 1 complete.
+Stopped at: Completed 02-01-PLAN.md — pipeline/models.py and pipeline/ingest.py created, requirements.txt with all pipeline deps, all imports verified.
 Resume file: None

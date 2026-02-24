@@ -14,8 +14,8 @@
 
 ### Pipeline — Ingestion
 
-- [ ] **INGEST-01**: Pipeline fetches articles from Yahoo Finance and Reuters RSS feeds
-- [ ] **INGEST-02**: Pipeline deduplicates articles across runs (same story not reprocessed)
+- [x] **INGEST-01**: Pipeline fetches articles from Yahoo Finance and Reuters RSS feeds
+- [x] **INGEST-02**: Pipeline deduplicates articles across runs (same story not reprocessed)
 
 ### Pipeline — Script
 
@@ -110,8 +110,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
-| INGEST-01 | Phase 2 | Pending |
-| INGEST-02 | Phase 2 | Pending |
+| INGEST-01 | Phase 2 | Complete |
+| INGEST-02 | Phase 2 | Complete |
 | SCRIPT-01 | Phase 2 | Pending |
 | SCRIPT-02 | Phase 2 | Pending |
 | SCRIPT-03 | Phase 2 | Pending |
