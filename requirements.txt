@@ -1,0 +1,11 @@
+# Pipeline dependencies
+# Note: FFmpeg is a system binary, not a pip package.
+# Install with: brew install ffmpeg (macOS) or apt install ffmpeg (Linux)
+
+feedparser==6.0.12
+groq>=0.9.0
+openai>=1.0.0
+faster-whisper>=1.0.0
+requests>=2.31.0
+supabase>=2.0.0
+python-dotenv>=1.0.0
