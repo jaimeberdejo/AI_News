@@ -19,9 +19,9 @@ Progress: [██████░░░░] 43%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: ~16 min
-- Total execution time: ~65 min
+- Total plans completed: 6
+- Average duration: ~11 min
+- Total execution time: ~66 min
 
 **By Phase:**
 
@@ -65,6 +65,13 @@ Recent decisions affecting current work:
 - [02-02]: Edition deduplication via SELECT-then-INSERT raises RuntimeError on published re-run — prevents duplicate video rows
 - [02-02]: Groq story index clamped to [:5] in code — belt-and-suspenders on top of videos.position BETWEEN 1 AND 5 DB constraint
 - [02-02]: Out-of-range Groq index logged as warning and skipped (not raised) — partial results better than full failure
+- [02-04]: subprocess.run for FFmpeg (not ffmpeg-python) — plan pre-decided; avoids known ASS filter bug on macOS
+- [02-04]: scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280 — plain scale distorts non-9:16 portrait clips
+- [02-04]: Warn-and-continue (not hard-error) if still >10 MB after CRF 32 — high-motion b-roll cannot always hit 10 MB
+- [Phase 02-pipeline]: [02-03]: voice=onyx for TTS — deep male voice suits financial news tone
+- [Phase 02-pipeline]: [02-03]: faster-whisper tiny.en device=cpu compute_type=int8 — CPU-only, quantized for speed on GitHub Actions
+- [Phase 02-pipeline]: [02-03]: 3-word subtitle chunks — balances readability with synchronization timing
+- [Phase 02-pipeline]: [02-03]: Module-level _whisper singleton — avoids 75 MB re-download on every story; one download per process
 
 ### Pending Todos
 
@@ -79,5 +86,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 02-02-PLAN.md — pipeline/script.py created with select_and_write(), Groq Llama 3.3 story selection and script writing, DB video rows inserted with status='generating' before TTS.
+Stopped at: Completed 02-04-PLAN.md — pipeline/video.py created with download_broll() and assemble(); Pexels portrait HD b-roll download with stock market fallback; FFmpeg 720x1280 assembly with burned-in ASS subtitles; 10 MB CRF 32 re-encode fallback. User setup pending: PEXELS_API_KEY and brew install ffmpeg.
 Resume file: None

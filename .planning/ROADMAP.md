@@ -49,10 +49,10 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Data models (Article, Story, VideoResult) and RSS ingestion with deduplication
-- [ ] 02-02-PLAN.md — Groq story selection and script writing with DB video row persistence (SCRIPT-03)
-- [ ] 02-03-PLAN.md — OpenAI TTS audio generation, faster-whisper alignment, and ASS subtitle file
-- [ ] 02-04-PLAN.md — Pexels b-roll download with 'stock market' fallback and FFmpeg video assembly
+- [x] 02-01-PLAN.md — Data models (Article, Story, VideoResult) and RSS ingestion with deduplication
+- [x] 02-02-PLAN.md — Groq story selection and script writing with DB video row persistence (SCRIPT-03)
+- [x] 02-03-PLAN.md — OpenAI TTS audio generation, faster-whisper alignment, and ASS subtitle file
+- [x] 02-04-PLAN.md — Pexels b-roll download with 'stock market' fallback and FFmpeg video assembly
 - [ ] 02-05-PLAN.md — Supabase upload, edition publish, 7-day cleanup, pipeline orchestrator, end-to-end verification
 
 ### Phase 3: Frontend
