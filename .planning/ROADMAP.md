@@ -12,7 +12,7 @@ FinFeed is built in two distinct systems: a Python batch pipeline that generates
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Supabase schema, storage, and API contract are live and verified
+- [x] **Phase 1: Foundation** - Supabase schema, storage, and API contract are live and verified
 - [ ] **Phase 2: Pipeline** - Full pipeline runs locally end-to-end: RSS ingestion → scripts → TTS → Whisper alignment → FFmpeg video assembly → Supabase upload → published edition with 7-day cleanup
 - [ ] **Phase 3: Frontend** - Next.js PWA delivers the finite vertical video feed with muted autoplay, tap-to-unmute, preloading, end card, and PWA installability
 - [ ] **Phase 4: Ship** - GitHub Actions cron automates the pipeline, Vercel deploys the frontend, and the full user journey is validated on real devices
@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Monorepo scaffold: migration SQL, pipeline DB client, Next.js frontend, /api/today route, .env.example
-- [ ] 01-02-PLAN.md — Apply migration to Supabase cloud, create storage bucket, verify end-to-end connectivity
+- [x] 01-02-PLAN.md — Apply migration to Supabase cloud, create storage bucket, verify end-to-end connectivity
 
 ### Phase 2: Pipeline
 **Goal**: Running `python -m pipeline.run` locally completes the entire pipeline — from fetching RSS articles to 5 published MP4 URLs in Supabase Storage — in a single command, with per-story error isolation and 7-day cleanup
@@ -94,7 +94,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 1/2 | In Progress|  |
+| 1. Foundation | 2/2 | Complete | 2026-02-24 |
 | 2. Pipeline | 0/5 | Not started | - |
 | 3. Frontend | 0/4 | Not started | - |
 | 4. Ship | 0/3 | Not started | - |
