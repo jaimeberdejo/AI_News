@@ -19,9 +19,9 @@
 
 ### Pipeline — Script
 
-- [ ] **SCRIPT-01**: LLM (Groq Llama 3.3) selects the most important financial stories from ingested articles (variable count per edition, not fixed)
-- [ ] **SCRIPT-02**: LLM writes a 30–45 second script per story in a dynamic "financial influencer" tone
-- [ ] **SCRIPT-03**: Each script is stored in the DB with its source article reference before audio generation begins
+- [x] **SCRIPT-01**: LLM (Groq Llama 3.3) selects the most important financial stories from ingested articles (variable count per edition, not fixed)
+- [x] **SCRIPT-02**: LLM writes a 30–45 second script per story in a dynamic "financial influencer" tone
+- [x] **SCRIPT-03**: Each script is stored in the DB with its source article reference before audio generation begins
 
 ### Pipeline — Audio & Subtitles
 
@@ -112,9 +112,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-03 | Phase 1 | Complete |
 | INGEST-01 | Phase 2 | Complete |
 | INGEST-02 | Phase 2 | Complete |
-| SCRIPT-01 | Phase 2 | Pending |
-| SCRIPT-02 | Phase 2 | Pending |
-| SCRIPT-03 | Phase 2 | Pending |
+| SCRIPT-01 | Phase 2 | Complete |
+| SCRIPT-02 | Phase 2 | Complete |
+| SCRIPT-03 | Phase 2 | Complete |
 | AUDIO-01 | Phase 2 | Pending |
 | AUDIO-02 | Phase 2 | Pending |
 | AUDIO-03 | Phase 2 | Pending |

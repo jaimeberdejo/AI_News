@@ -97,6 +97,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-24 |
-| 2. Pipeline | 1/5 | In Progress|  |
+| 2. Pipeline | 4/5 | In Progress|  |
 | 3. Frontend | 0/4 | Not started | - |
 | 4. Ship | 0/3 | Not started | - |

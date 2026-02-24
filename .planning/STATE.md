@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 2 of 7 (Pipeline)
-Plan: 1 of 5 in current phase
-Status: In progress — Phase 2 plan 1 of 5 complete
-Last activity: 2026-02-24 — Completed 02-01-PLAN.md (pipeline models and RSS ingest)
+Plan: 4 of 5 in current phase
+Status: In progress — Phase 2 plan 4 of 5 complete
+Last activity: 2026-02-24 — Completed 02-04-PLAN.md (Pexels b-roll download and FFmpeg video assembly)
 
-Progress: [███░░░░░░░] 21%
+Progress: [██████░░░░] 43%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: ~21 min
-- Total execution time: ~63 min
+- Total plans completed: 4
+- Average duration: ~16 min
+- Total execution time: ~65 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 2 | ~62 min | ~31 min |
-| 02-pipeline | 1 | ~1 min | ~1 min |
+| 02-pipeline | 4 | ~4 min | ~1 min |
 
 **Recent Trend:**
-- Last 5 plans: ~21 min avg
+- Last 5 plans: ~16 min avg
 - Trend: fast execution for well-specified plans
 
 *Updated after each plan completion*
@@ -62,6 +62,9 @@ Recent decisions affecting current work:
 - [02-01]: stdlib dataclasses only in pipeline/models.py — pydantic overkill for local inter-module contracts
 - [02-01]: DB dedup with gte(created_at, today) — catches same-day pipeline re-runs without full history scan
 - [02-01]: requirements.txt created once in plan 02-01 — no subsequent pipeline plan modifies it
+- [02-02]: Edition deduplication via SELECT-then-INSERT raises RuntimeError on published re-run — prevents duplicate video rows
+- [02-02]: Groq story index clamped to [:5] in code — belt-and-suspenders on top of videos.position BETWEEN 1 AND 5 DB constraint
+- [02-02]: Out-of-range Groq index logged as warning and skipped (not raised) — partial results better than full failure
 
 ### Pending Todos
 
@@ -76,5 +79,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 02-01-PLAN.md — pipeline/models.py and pipeline/ingest.py created, requirements.txt with all pipeline deps, all imports verified.
+Stopped at: Completed 02-02-PLAN.md — pipeline/script.py created with select_and_write(), Groq Llama 3.3 story selection and script writing, DB video rows inserted with status='generating' before TTS.
 Resume file: None
