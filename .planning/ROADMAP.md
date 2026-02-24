@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Monorepo scaffold: migration SQL, pipeline DB client, Next.js frontend, /api/today route, .env.example
+- [x] 01-01-PLAN.md — Monorepo scaffold: migration SQL, pipeline DB client, Next.js frontend, /api/today route, .env.example
 - [ ] 01-02-PLAN.md — Apply migration to Supabase cloud, create storage bucket, verify end-to-end connectivity
 
 ### Phase 2: Pipeline
@@ -94,7 +94,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/2 | Not started | - |
+| 1. Foundation | 1/2 | In Progress|  |
 | 2. Pipeline | 0/5 | Not started | - |
 | 3. Frontend | 0/4 | Not started | - |
 | 4. Ship | 0/3 | Not started | - |

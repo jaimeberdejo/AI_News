@@ -7,9 +7,9 @@
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: Supabase Postgres schema exists with tables for editions, videos, and pipeline_runs
-- [ ] **INFRA-02**: Supabase Storage bucket configured with public read access and CORS headers allowing the frontend domain
-- [ ] **INFRA-03**: API endpoint returns today's edition with video metadata (URL, title, duration, order) as JSON
+- [x] **INFRA-01**: Supabase Postgres schema exists with tables for editions, videos, and pipeline_runs
+- [x] **INFRA-02**: Supabase Storage bucket configured with public read access and CORS headers allowing the frontend domain
+- [x] **INFRA-03**: API endpoint returns today's edition with video metadata (URL, title, duration, order) as JSON
 
 ### Pipeline — Ingestion
 
@@ -91,9 +91,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
 | INGEST-01 | Phase 2 | Pending |
 | INGEST-02 | Phase 2 | Pending |
 | SCRIPT-01 | Phase 2 | Pending |
