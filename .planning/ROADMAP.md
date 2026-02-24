@@ -28,11 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A test MP4 uploaded via the service key is publicly accessible via its Supabase Storage CDN URL in a browser
   3. CORS headers on the storage bucket allow the frontend domain to fetch video files with range requests (206 Partial Content)
   4. The `/api/today` endpoint returns a valid JSON response (empty or with mock data) without a 4xx or 5xx error
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Supabase schema, RLS, and storage bucket setup
-- [ ] 01-02: API endpoint scaffold and connectivity verification
+- [ ] 01-01-PLAN.md — Monorepo scaffold: migration SQL, pipeline DB client, Next.js frontend, /api/today route, .env.example
+- [ ] 01-02-PLAN.md — Apply migration to Supabase cloud, create storage bucket, verify end-to-end connectivity
 
 ### Phase 2: Pipeline
 **Goal**: Running `python -m pipeline.run` locally completes the entire pipeline — from fetching RSS articles to 5 published MP4 URLs in Supabase Storage — in a single command, with per-story error isolation and 7-day cleanup
