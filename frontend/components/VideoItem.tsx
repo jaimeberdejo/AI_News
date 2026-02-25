@@ -1,16 +1,12 @@
 'use client'
 
 import React from 'react'
-import { useVideoPlayer } from '../hooks/useVideoPlayer'
 import type { Video } from '../hooks/useEdition'
 
 interface VideoItemProps {
   video: Video
-  isMuted: boolean
-  isActive?: boolean
   onEnded?: () => void
-  onBecomeActive?: () => void
-  videoRefOverride?: React.RefObject<HTMLVideoElement | null>
+  videoRef?: React.RefObject<HTMLVideoElement | null>
   editionPublishedAt?: string | null
 }
 
@@ -33,32 +29,19 @@ function formatDateTime(publishedAt: string | null | undefined): string {
   )
 }
 
-export function VideoItem({
-  video,
-  isMuted,
-  isActive,
-  onEnded,
-  onBecomeActive,
-  videoRefOverride,
-  editionPublishedAt,
-}: VideoItemProps) {
-  const { containerRef, videoRef: internalRef } = useVideoPlayer(isMuted, onBecomeActive, videoRefOverride)
-  const videoRef = videoRefOverride ?? internalRef
-
+// Pure layout component. Play/pause and activeIndex tracking are handled
+// entirely in VideoFeed (scroll event + useEffect). This keeps VideoItem
+// free of hooks and avoids stale-closure issues with IntersectionObserver.
+export function VideoItem({ video, onEnded, videoRef, editionPublishedAt }: VideoItemProps) {
   const dateLabel = formatDateTime(editionPublishedAt)
 
-  // All items render as full feed-item elements in the scroll flow.
-  // preload="auto" on every video element lets the browser buffer ahead natively.
-  // The previous "preloadOnly" trick (position:fixed 1px) was removing items from
-  // the scroll flow, breaking snap scrolling (items 1+2 were skipped entirely).
   return (
-    <div ref={containerRef} className="feed-item">
-      {/* Video section — fills all height above the info panel */}
+    <div className="feed-item">
+      {/* Video — fills all height above the info panel */}
       <div style={{ flex: '1 1 0', overflow: 'hidden', position: 'relative', minHeight: 0 }}>
         <video
           ref={videoRef}
           src={`${video.video_url}#t=0.001`}
-          autoPlay={isActive}
           muted
           playsInline
           preload="auto"

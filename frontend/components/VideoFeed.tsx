@@ -1,8 +1,8 @@
 'use client'
 
-// Module-level flag: read synchronously in IntersectionObserver callbacks.
-// DO NOT store this in React state — IntersectionObserver callbacks run outside
-// React's render cycle and cannot read stale closure state reliably.
+// Module-level muted flag — read synchronously in play() calls.
+// Must NOT be React state: we need to read it inside useEffect callbacks
+// without stale closure issues.
 let globalMuted = true
 
 import { useState, useRef, useEffect, useCallback } from 'react'
@@ -33,7 +33,7 @@ function formatEditionLabel(meta: EditionMeta): string {
 
 export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   const [currentEdition, setCurrentEdition] = useState<Edition | null>(initialEdition)
-  const [editionIndex, setEditionIndex] = useState(0) // 0 = latest (allEditions[0])
+  const [editionIndex, setEditionIndex] = useState(0)
   const [isLoadingEdition, setIsLoadingEdition] = useState(false)
 
   const [isMuted, setIsMuted] = useState(true)
@@ -43,12 +43,49 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
 
   const videos: Video[] = currentEdition?.videos ?? []
 
+  // One ref per video element — used for play/pause and synchronous mute toggle
   const videoRefs = useRef<Array<React.RefObject<HTMLVideoElement | null>>>([])
   if (videoRefs.current.length !== videos.length) {
     videoRefs.current = videos.map(() => React.createRef<HTMLVideoElement>())
   }
 
-  // Switch to a different edition by index in allEditions (0 = latest)
+  // Ref to the scroll container for scroll-event index tracking
+  const feedRef = useRef<HTMLDivElement>(null)
+
+  // ── Index tracking via scroll ────────────────────────────────────────────
+  // More reliable than IntersectionObserver for scroll-snap feeds:
+  // each item is exactly clientHeight tall, so Math.round(scrollTop/clientHeight)
+  // gives the correct index. This drives progress dots AND play/pause.
+  useEffect(() => {
+    const feed = feedRef.current
+    if (!feed) return
+
+    const handleScroll = () => {
+      const index = Math.round(feed.scrollTop / feed.clientHeight)
+      setActiveIndex(index)
+    }
+
+    feed.addEventListener('scroll', handleScroll, { passive: true })
+    return () => feed.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // ── Play / pause driven by activeIndex ───────────────────────────────────
+  // When activeIndex changes (user scrolled), pause all other videos and
+  // play the current one. Uses the module-level globalMuted flag so this
+  // effect doesn't need isMuted in its deps (avoids re-creating on every toggle).
+  useEffect(() => {
+    videoRefs.current.forEach((ref, idx) => {
+      if (!ref.current) return
+      if (idx === activeIndex) {
+        ref.current.muted = globalMuted
+        ref.current.play().catch(() => {})
+      } else {
+        ref.current.pause()
+      }
+    })
+  }, [activeIndex])
+
+  // ── Edition switching ────────────────────────────────────────────────────
   const switchEdition = useCallback(async (newIndex: number) => {
     const target = allEditions[newIndex]
     if (!target) return
@@ -61,12 +98,10 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         setCurrentEdition(data.edition)
         setActiveIndex(0)
         setShowEndCard(false)
-        // Scroll feed back to top
-        const feed = document.querySelector('.feed-container')
-        if (feed) feed.scrollTop = 0
+        if (feedRef.current) feedRef.current.scrollTop = 0
       }
     } catch {
-      // silently fail — stay on current edition
+      // stay on current edition
     } finally {
       setIsLoadingEdition(false)
     }
@@ -83,6 +118,8 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
     )
   }
 
+  // CRITICAL: fully synchronous, no async. iOS requires .muted inside the
+  // user-gesture call stack or the browser ignores it.
   function handleMuteToggle() {
     const newMuted = !isMuted
     globalMuted = newMuted
@@ -93,11 +130,10 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   }
 
   function handleVideoEnded() {
-    if (activeIndex < videos.length - 1) {
-      setActiveIndex(prev => prev + 1)
-    } else {
+    if (activeIndex === videos.length - 1) {
       setShowEndCard(true)
     }
+    // Non-last video: do nothing — user scrolls to the next one manually
   }
 
   function handleScreenTap(e: React.MouseEvent) {
@@ -115,8 +151,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         ref.current.pause()
       }
     })
-    const feedContainer = document.querySelector('.feed-container')
-    if (feedContainer) feedContainer.scrollTop = 0
+    if (feedRef.current) feedRef.current.scrollTop = 0
   }
 
   function handleNewEdition() {
@@ -139,7 +174,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
       }}
       onClick={handleScreenTap}
     >
-      {/* Edition navigation bar — shown only when multiple editions exist */}
+      {/* Edition navigation bar */}
       {hasMultipleEditions && (
         <div
           style={{
@@ -172,29 +207,13 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
               fontSize: '0.78rem',
               fontFamily: 'system-ui, -apple-system, sans-serif',
               cursor: isOldest ? 'default' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
             }}
           >
             ← Anterior
           </button>
-
-          <span
-            style={{
-              color: 'rgba(255,255,255,0.8)',
-              fontSize: '0.78rem',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              letterSpacing: '0.02em',
-            }}
-          >
-            {isLoadingEdition
-              ? 'Cargando…'
-              : allEditions[editionIndex]
-              ? formatEditionLabel(allEditions[editionIndex])
-              : ''}
+          <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.78rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+            {isLoadingEdition ? 'Cargando…' : allEditions[editionIndex] ? formatEditionLabel(allEditions[editionIndex]) : ''}
           </span>
-
           <button
             onClick={e => { e.stopPropagation(); switchEdition(editionIndex - 1) }}
             disabled={isLatest || isLoadingEdition}
@@ -208,9 +227,6 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
               fontSize: '0.78rem',
               fontFamily: 'system-ui, -apple-system, sans-serif',
               cursor: isLatest ? 'default' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
             }}
           >
             Siguiente →
@@ -242,8 +258,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
                 width: idx === activeIndex ? '20px' : '6px',
                 height: '3px',
                 borderRadius: '2px',
-                background:
-                  idx === activeIndex ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.35)',
+                background: idx === activeIndex ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.35)',
                 transition: 'width 0.25s ease, background 0.25s ease',
               }}
             />
@@ -266,26 +281,19 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
       </div>
 
       {/* Scroll container */}
-      <div className="feed-container">
-        {videos.map((video, idx) => {
-          const isActive = idx === activeIndex
-
-          return (
-            <VideoItem
-              key={video.id}
-              video={video}
-              isMuted={isMuted}
-              isActive={isActive}
-              onEnded={isActive ? handleVideoEnded : undefined}
-              onBecomeActive={() => setActiveIndex(idx)}
-              videoRefOverride={videoRefs.current[idx]}
-              editionPublishedAt={currentEdition?.published_at}
-            />
-          )
-        })}
+      <div ref={feedRef} className="feed-container">
+        {videos.map((video, idx) => (
+          <VideoItem
+            key={video.id}
+            video={video}
+            onEnded={handleVideoEnded}
+            videoRef={videoRefs.current[idx]}
+            editionPublishedAt={currentEdition?.published_at}
+          />
+        ))}
       </div>
 
-      {/* End card — position absolute so it stays within the 430px column */}
+      {/* End card */}
       {showEndCard && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 60 }}>
           <EndCard
