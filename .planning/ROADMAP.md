@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Supabase schema, storage, and API contract are live and verified
 - [x] **Phase 2: Pipeline** - Full pipeline runs locally end-to-end: RSS ingestion → scripts → TTS → Whisper alignment → FFmpeg video assembly → Supabase upload → published edition with 7-day cleanup (financial news category, variable video count) (completed 2026-02-25)
-- [ ] **Phase 3: Frontend** - Next.js PWA delivers the finite vertical video feed with muted autoplay, tap-to-unmute, preloading, end card, and PWA installability
+- [x] **Phase 3: Frontend** - Next.js PWA delivers the vertical video feed with muted autoplay, tap-to-unmute, preloading, info panel (date/time/headline/source link), edition navigation, end card, and PWA installability (completed 2026-02-25)
 - [ ] **Phase 4: Ship** - GitHub Actions cron automates the pipeline, Vercel deploys the frontend, and the full user journey is validated on real devices
 
 ## Phase Details
@@ -69,9 +69,16 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — Tailwind v4 foundation, globals.css scroll-snap CSS, layout.tsx viewport, useEdition hook, page.tsx server component
-- [ ] 03-02-PLAN.md — VideoFeed scroll container, VideoItem (all iOS video attrs), useVideoPlayer IntersectionObserver hook, MuteButton corner icon
-- [ ] 03-03-PLAN.md — iOS-safe synchronous unmute, preloading next 2 videos, progress dots overlay, EndCard with time estimate + Watch again + silent edition refresh
-- [ ] 03-04-PLAN.md — PWA manifest.ts, placeholder icons, appleWebApp layout.tsx metadata, human verification checkpoint
+- [x] 03-02-PLAN.md — VideoFeed scroll container, VideoItem (all iOS video attrs), useVideoPlayer IntersectionObserver hook, MuteButton corner icon
+- [x] 03-03-PLAN.md — iOS-safe synchronous unmute, preloading next 2 videos, progress dots overlay, EndCard with time estimate + Watch again + silent edition refresh
+- [x] 03-04-PLAN.md — PWA manifest.ts, placeholder icons, appleWebApp layout.tsx metadata, human verification checkpoint
+
+Post-plan enhancements (2026-02-25):
+- [x] Fix: IntersectionObserver ref bug — videoRefOverride passed into useVideoPlayer so play/pause target the actual mounted element (only first video was autoplaying)
+- [x] Fix: Tailwind classes replaced with inline styles on video element for guaranteed rendering
+- [x] UX: Video layout changed to flex column — video section (flex:1) + info panel with date/time/headline/source link
+- [x] UX: Edition navigation bar — ← Anterior / timestamp / Siguiente →; client-side edition switching via /api/editions/[id]
+- [x] API: /api/today returns all_editions metadata; new /api/editions/[id] endpoint added
 
 ### Phase 4: Ship
 **Goal**: FinFeed is live at a public URL, the pipeline runs automatically via GitHub Actions twice daily, and the full user journey works on real iOS and Android devices without developer intervention
@@ -98,5 +105,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-24 |
 | 2. Pipeline | 5/5 | Complete   | 2026-02-25 |
-| 3. Frontend | 3/4 | In Progress|  |
+| 3. Frontend | 4/4 | Complete   | 2026-02-25 |
 | 4. Ship | 0/3 | Not started | - |

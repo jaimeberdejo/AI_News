@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** A finite, curated daily financial briefing — users always know when they're done.
-**Current focus:** Phase 3 - Frontend (Plan 3 complete)
+**Current focus:** Phase 4 - Ship
 
 ## Current Position
 
-Phase: 3 of 7 (Frontend) — IN PROGRESS
-Plan: 3 of 4 complete
-Status: Plan 03-03 complete — iOS-safe synchronous unmute, next-2-video preloading, progress dots, EndCard with time estimate + Watch again + silent edition refresh
-Last activity: 2026-02-25 — Completed 03-03-PLAN.md (globalMuted module-level flag, isMutedRef pattern, preload via 1px visibility:hidden, progress dots, EndCard component)
+Phase: 3 of 7 (Frontend) — COMPLETE
+Plan: 4 of 4 complete
+Status: All 03 plans executed + post-build fixes + info panel + edition navigation added
+Last activity: 2026-02-25 — Phase 03 complete. Post-execution: fixed IntersectionObserver ref bug (scroll-play), added info panel (date/time/headline/source link), added edition navigation bar (← Anterior / timestamp / Siguiente →), new /api/editions/[id] endpoint
 
-Progress: [█████████░] 65%
+Progress: [███████████] 75%
 
 ## Performance Metrics
 
@@ -29,7 +29,7 @@ Progress: [█████████░] 65%
 |-------|-------|-------|----------|
 | 01-foundation | 2 | ~62 min | ~31 min |
 | 02-pipeline | 5 | ~49 min | ~10 min |
-| 03-frontend | 3 | ~7 min | ~2 min |
+| 03-frontend | 4 | ~10 min | ~2.5 min |
 
 **Recent Trend:**
 - Last 5 plans: ~10 min avg (pipeline plans well-specified)
@@ -95,6 +95,17 @@ Recent decisions affecting current work:
 - [03-03]: getNextEditionMessage uses hour-of-day buckets (morning/afternoon/tonight/tomorrow morning) not countdown timer
 - [Phase 03-04]: Next.js MetadataRoute.Manifest (native App Router) used for PWA manifest — no plugin needed, /manifest.webmanifest auto-generated
 - [Phase 03-04]: appleWebApp.statusBarStyle: black-translucent — status bar overlays content for full-screen dark video UI
+- [03-fix]: videoRefOverride must be passed into useVideoPlayer hook as externalVideoRef — IntersectionObserver must reference the same element as the <video> ref; without this, play/pause calls fire on null and only the first video autoplays
+- [03-fix]: Tailwind utility classes (absolute, inset-0, object-cover) replaced with inline styles on video element — guarantees rendering regardless of Tailwind v4 content scanning
+- [03-fix]: feed-container max-width: 430px + margin: 0 auto moved to outer VideoFeed wrapper (position: relative) — allows MuteButton and overlays to use position: absolute within the column instead of position: fixed (which was viewport-relative and leaked outside the column on desktop)
+- [03-UX]: Video layout changed from full-screen to flex column: video section (flex: 1, object-cover) + info panel (auto height, bg #111) — info panel shows date/time, headline (2-line clamp), "Leer artículo completo →" link
+- [03-UX]: formatDateTime in VideoItem outputs "Hoy · HH:MM" / "Ayer · HH:MM" / full date — uses es-ES locale, derived from edition.published_at
+- [03-UX]: Edition navigation bar added to VideoFeed top — only rendered when allEditions.length > 1; shows ← Anterior / [timestamp] / Siguiente → buttons; disabled at boundaries
+- [03-UX]: Edition switching fetches /api/editions/{id} client-side, resets activeIndex and scroll to top — no page reload needed
+- [03-API]: /api/today now returns all_editions metadata (id, published_at, edition_date) alongside the full latest edition — single request at page load provides everything needed for the nav bar
+- [03-API]: New /api/editions/[id] endpoint — returns specific published edition with sorted videos; 404 if not found or not published
+- [03-schema]: editions table UNIQUE constraint on edition_date was dropped (migration 20260225) — allows multiple pipeline runs per day, each creating its own edition row identified by UUID
+- [03-UX]: MuteButton uses no positional CSS itself — positioned by absolute wrapper in VideoFeed; removes viewport-relative drift on desktop
 
 ### Pending Todos
 
@@ -109,5 +120,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Completed 03-03-PLAN.md — iOS-safe synchronous unmute (globalMuted module-level flag, isMutedRef, handleMuteToggle synchronous forEach), preloading next 2 videos (1px fixed visibility:hidden), progress dots overlay, EndCard with Watch again + silent edition refresh.
+Stopped at: Phase 03 fully complete. Post-execution fixes and UX enhancements shipped: scroll-play IntersectionObserver bug fixed, portrait layout constrained to 430px, video info panel (date/time/headline/source link), edition navigation bar with client-side edition switching, /api/editions/[id] endpoint added. Ready for Phase 04 (Ship).
 Resume file: None
