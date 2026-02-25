@@ -17,10 +17,11 @@ async function getEditionData() {
 export default async function Home() {
   const { edition } = await getEditionData()
   const videos: Video[] = edition?.videos ?? []
+  const editionId: string | null = edition?.id ?? null
 
   return (
     <main>
-      <VideoFeed videos={videos} />
+      <VideoFeed videos={videos} editionId={editionId} />
     </main>
   )
 }
