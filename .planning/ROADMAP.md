@@ -65,13 +65,13 @@ Plans:
   3. Swiping to the next video plays it immediately without a buffering pause (next 2 videos preloaded)
   4. After swiping past the 5th video, the "You're up to date" screen appears with a countdown timer to the next edition
   5. The app can be added to the iOS home screen and launches in standalone mode with the correct icon and splash screen
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: Next.js App Router scaffold with Supabase data fetching and mock video data
-- [ ] 03-02: SwipeableFeed component — vertical snap scroll, muted autoplay, playsinline
-- [ ] 03-03: Tap-to-unmute (iOS-safe synchronous handler), preloading, and end card
-- [ ] 03-04: PWA manifest, service worker (app shell only, video bypass), icons
+- [ ] 03-01-PLAN.md — Tailwind v4 foundation, globals.css scroll-snap CSS, layout.tsx viewport, useEdition hook, page.tsx server component
+- [ ] 03-02-PLAN.md — VideoFeed scroll container, VideoItem (all iOS video attrs), useVideoPlayer IntersectionObserver hook, MuteButton corner icon
+- [ ] 03-03-PLAN.md — iOS-safe synchronous unmute, preloading next 2 videos, progress dots overlay, EndCard with time estimate + Watch again + silent edition refresh
+- [ ] 03-04-PLAN.md — PWA manifest.ts, placeholder icons, appleWebApp layout.tsx metadata, human verification checkpoint
 
 ### Phase 4: Ship
 **Goal**: FinFeed is live at a public URL, the pipeline runs automatically via GitHub Actions twice daily, and the full user journey works on real iOS and Android devices without developer intervention
