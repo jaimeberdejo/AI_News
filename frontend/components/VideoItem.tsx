@@ -8,7 +8,6 @@ interface VideoItemProps {
   video: Video
   isMuted: boolean
   isActive?: boolean
-  preloadOnly?: boolean
   onEnded?: () => void
   onBecomeActive?: () => void
   videoRefOverride?: React.RefObject<HTMLVideoElement | null>
@@ -38,50 +37,23 @@ export function VideoItem({
   video,
   isMuted,
   isActive,
-  preloadOnly,
   onEnded,
   onBecomeActive,
   videoRefOverride,
   editionPublishedAt,
 }: VideoItemProps) {
-  // Pass videoRefOverride into the hook so the IntersectionObserver targets the
-  // same element the <video> tag is attached to.
   const { containerRef, videoRef: internalRef } = useVideoPlayer(isMuted, onBecomeActive, videoRefOverride)
   const videoRef = videoRefOverride ?? internalRef
 
-  // Preload-only: keep video in DOM for iOS buffering, invisible and out of flow
-  if (preloadOnly) {
-    return (
-      <div
-        ref={containerRef}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '1px',
-          height: '1px',
-          visibility: 'hidden',
-          pointerEvents: 'none',
-          overflow: 'hidden',
-        }}
-      >
-        <video
-          ref={videoRef}
-          src={`${video.video_url}#t=0.001`}
-          muted
-          playsInline
-          preload="auto"
-          style={{ width: '1px', height: '1px' }}
-        />
-      </div>
-    )
-  }
-
   const dateLabel = formatDateTime(editionPublishedAt)
 
+  // All items render as full feed-item elements in the scroll flow.
+  // preload="auto" on every video element lets the browser buffer ahead natively.
+  // The previous "preloadOnly" trick (position:fixed 1px) was removing items from
+  // the scroll flow, breaking snap scrolling (items 1+2 were skipped entirely).
   return (
     <div ref={containerRef} className="feed-item">
-      {/* Video section — fills remaining height above the info panel */}
+      {/* Video section — fills all height above the info panel */}
       <div style={{ flex: '1 1 0', overflow: 'hidden', position: 'relative', minHeight: 0 }}>
         <video
           ref={videoRef}
@@ -103,7 +75,7 @@ export function VideoItem({
         />
       </div>
 
-      {/* Info panel — date, time, headline, source link */}
+      {/* Info panel — date/time, headline, link to original article */}
       <div
         style={{
           flex: '0 0 auto',

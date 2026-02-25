@@ -49,7 +49,7 @@ export function EndCard({ onReplay, currentEditionId, onNewEdition }: EndCardPro
   return (
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
         background: '#000',
         display: 'flex',

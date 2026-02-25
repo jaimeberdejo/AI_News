@@ -269,7 +269,6 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
       <div className="feed-container">
         {videos.map((video, idx) => {
           const isActive = idx === activeIndex
-          const isPreload = idx === activeIndex + 1 || idx === activeIndex + 2
 
           return (
             <VideoItem
@@ -277,7 +276,6 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
               video={video}
               isMuted={isMuted}
               isActive={isActive}
-              preloadOnly={isPreload && !isActive}
               onEnded={isActive ? handleVideoEnded : undefined}
               onBecomeActive={() => setActiveIndex(idx)}
               videoRefOverride={videoRefs.current[idx]}
@@ -287,13 +285,15 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         })}
       </div>
 
-      {/* End card */}
+      {/* End card — position absolute so it stays within the 430px column */}
       {showEndCard && (
-        <EndCard
-          onReplay={handleReplay}
-          currentEditionId={currentEdition?.id ?? null}
-          onNewEdition={handleNewEdition}
-        />
+        <div style={{ position: 'absolute', inset: 0, zIndex: 60 }}>
+          <EndCard
+            onReplay={handleReplay}
+            currentEditionId={currentEdition?.id ?? null}
+            onNewEdition={handleNewEdition}
+          />
+        </div>
       )}
     </div>
   )
