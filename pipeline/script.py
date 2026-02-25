@@ -101,9 +101,10 @@ def _write_script(article: Article) -> str:
             {
                 "role": "system",
                 "content": (
-                    "You are a dynamic financial news narrator. Write a script for a 30-45 second "
+                    "You are a dynamic financial news narrator. Write a script for a 45-60 second "
                     "short-form video in an energetic, direct 'financial influencer' tone. "
-                    "Target 75-115 words. Lead with the key fact. Use short sentences. "
+                    "You MUST write between 150 and 170 words — count carefully before responding. "
+                    "Lead with the key fact. Use short sentences. Build tension, then resolve. "
                     "No hashtags, no emojis, no calls-to-action. Return ONLY the script text."
                 ),
             },
@@ -113,7 +114,7 @@ def _write_script(article: Article) -> str:
             },
         ],
         temperature=0.7,
-        max_tokens=200,
+        max_tokens=300,
     )
     return response.choices[0].message.content.strip()
 

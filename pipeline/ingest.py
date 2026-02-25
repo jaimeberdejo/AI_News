@@ -43,7 +43,7 @@ def fetch_and_deduplicate() -> list[Article]:
             # Truncate summary to 500 chars to keep Groq prompt tokens manageable
             article = Article(
                 title=entry.get("title", "").strip(),
-                summary=entry.get("summary", entry.get("description", ""))[:500].strip(),
+                summary=entry.get("summary", entry.get("description", ""))[:1000].strip(),
                 url=url,
                 published=entry.get("published", ""),
             )

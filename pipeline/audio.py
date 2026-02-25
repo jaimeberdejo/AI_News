@@ -19,6 +19,9 @@ from pipeline.models import Story
 
 logger = logging.getLogger(__name__)
 
+# Rotating cast of voices — one per position slot (cycles if > 5 stories)
+VOICES = ["onyx", "nova", "echo", "shimmer", "fable"]
+
 # Module-level singletons — models downloaded/loaded once per process
 _openai: OpenAI | None = None
 _whisper: WhisperModel | None = None
@@ -115,11 +118,12 @@ def generate(story: Story, tmp_dir: Path) -> tuple[Path, Path]:
     ass_path = tmp_dir / f"story_{story.position}.ass"
 
     # AUDIO-01: TTS via OpenAI tts-1 streamed to file (no memory buffering)
-    logger.info("Generating TTS audio for position %d", story.position)
+    voice = VOICES[(story.position - 1) % len(VOICES)]
+    logger.info("Generating TTS audio for position %d (voice=%s)", story.position, voice)
     client = _get_openai()
     with client.audio.speech.with_streaming_response.create(
         model="tts-1",
-        voice="onyx",           # deep male voice suits financial news
+        voice=voice,
         input=story.script_text,
         response_format="mp3",
     ) as response:

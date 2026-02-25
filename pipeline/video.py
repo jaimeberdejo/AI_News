@@ -125,6 +125,8 @@ def assemble(
             "-i", str(broll_path),
             "-i", str(audio_path),
             "-t", str(audio_duration),
+            "-map", "0:v:0",   # always use video from b-roll (ignore b-roll audio if present)
+            "-map", "1:a:0",   # always use narration MP3
             "-vf", (
                 f"scale=720:1280:force_original_aspect_ratio=increase,"
                 f"crop=720:1280,"

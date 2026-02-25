@@ -18,14 +18,15 @@ logger = logging.getLogger(__name__)
 BUCKET = "videos"    # created in Phase 1 as 'videos' bucket
 
 
-def upload_video(local_path: Path, edition_id: str, position: int) -> str:
+def upload_video(local_path: Path, edition_id: str, position: int, edition_date: str) -> str:
     """
-    Upload MP4 to Supabase Storage at editions/{edition_id}/{position}.mp4.
+    Upload MP4 to Supabase Storage at editions/{date}-{short_id}/{position}.mp4.
     Returns the public CDN URL.
     Uses upsert=true to handle re-uploads on partial re-runs.
     """
     db = get_db()
-    storage_path = f"editions/{edition_id}/{position}.mp4"
+    folder = f"{edition_date}-{edition_id[:8]}"
+    storage_path = f"editions/{folder}/{position}.mp4"
     with open(local_path, "rb") as f:
         db.storage.from_(BUCKET).upload(
             storage_path,
@@ -97,7 +98,7 @@ def cleanup_old_editions(days: int = 7) -> None:
         return
 
     for edition in old_editions:
-        storage_prefix = f"editions/{edition['id']}"
+        storage_prefix = f"editions/{edition['edition_date']}-{edition['id'][:8]}"
         try:
             files = db.storage.from_(BUCKET).list(path=storage_prefix)
             if files:
