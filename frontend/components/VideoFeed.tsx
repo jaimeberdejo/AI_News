@@ -286,7 +286,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
           <VideoItem
             key={video.id}
             video={video}
-            onEnded={handleVideoEnded}
+            onEnded={idx === videos.length - 1 ? () => setShowEndCard(true) : undefined}
             videoRef={videoRefs.current[idx]}
             editionPublishedAt={currentEdition?.published_at}
           />
