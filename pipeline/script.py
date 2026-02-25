@@ -31,23 +31,13 @@ def _get_groq() -> Groq:
     return _groq
 
 
-def _get_or_create_edition(db) -> str:
-    """Upsert today's edition row and return its UUID.
+def _create_edition(db) -> str:
+    """Create a new edition row for today and return its UUID.
 
-    Raises RuntimeError if today's edition is already 'published' — prevents
-    re-running the pipeline and creating duplicate video rows.
+    Each pipeline run creates its own edition — multiple editions per day
+    are supported (e.g. morning + evening runs).
     """
     today = str(date.today())
-    existing = db.table("editions").select("id, status").eq("edition_date", today).execute()
-    if existing.data:
-        row = existing.data[0]
-        if row["status"] == "published":
-            raise RuntimeError(
-                f"Edition for {today} already published. Skipping re-run."
-            )
-        logger.info("Reusing existing edition %s (status=%s)", row["id"], row["status"])
-        return row["id"]
-
     result = db.table("editions").insert({
         "edition_date": today,
         "status": "pending",
@@ -154,7 +144,7 @@ def select_and_write(articles: list[Article]) -> tuple[str, list[Story]]:
         raise RuntimeError("No articles to select from — ingest returned empty list.")
 
     db = get_db()
-    edition_id = _get_or_create_edition(db)
+    edition_id = _create_edition(db)
     logger.info("Edition ID: %s", edition_id)
 
     selected = _select_stories(articles)

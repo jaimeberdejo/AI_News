@@ -65,20 +65,7 @@ def run() -> None:
 
         # Stage 2: Story selection + script writing + DB video row inserts
         logger.info("=== Stage 2: Story Selection + Script Writing ===")
-        try:
-            edition_id, stories = script.select_and_write(articles)
-        except RuntimeError as e:
-            # Deduplication guard: today's edition already published — skip cleanly
-            if "already published" in str(e):
-                logger.info(str(e))
-                db.table("pipeline_runs").update({
-                    "status": "complete",
-                    "finished_at": "now()",
-                    "steps_log": steps_log,
-                    "error_log": [],
-                }).eq("id", run_id).execute()
-                return
-            raise
+        edition_id, stories = script.select_and_write(articles)
 
         db.table("pipeline_runs").update({"edition_id": edition_id}).eq("id", run_id).execute()
         steps_log.append({"step": "script", "story_count": len(stories), "edition_id": edition_id})
@@ -103,7 +90,7 @@ def run() -> None:
                 mp4_path = video.assemble(broll_path, mp3_path, ass_path, tmp_dir, story.position)
 
                 # Upload to Supabase Storage
-                url = storage.upload_video(mp4_path, edition_date, story.position)
+                url = storage.upload_video(mp4_path, edition_id, story.position)
 
                 results.append(VideoResult(
                     story_id=story.db_video_id,
