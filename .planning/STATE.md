@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** A finite, curated daily financial briefing — users always know when they're done.
-**Current focus:** Phase 3 - API (Phase 2 complete)
+**Current focus:** Phase 3 - Frontend (Plan 1 complete)
 
 ## Current Position
 
-Phase: 2 of 7 (Pipeline) — COMPLETE
-Plan: 5 of 5 complete
-Status: Phase 2 complete — all 5 pipeline plans executed and verified end-to-end
-Last activity: 2026-02-25 — Completed 02-05-PLAN.md (full pipeline integration: storage, run orchestrator, end-to-end verified)
+Phase: 3 of 7 (Frontend) — IN PROGRESS
+Plan: 1 of 5 complete
+Status: Plan 03-01 complete — Tailwind v4 CSS foundation, useEdition hook, Server Component page.tsx
+Last activity: 2026-02-25 — Completed 03-01-PLAN.md (Tailwind v4 installed, scroll-snap CSS foundation, viewport metadata, useEdition hook, Server Component data flow)
 
-Progress: [████████░░] 57%
+Progress: [████████░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: ~16 min
-- Total execution time: ~111 min
+- Total plans completed: 8
+- Average duration: ~14 min
+- Total execution time: ~113 min
 
 **By Phase:**
 
@@ -29,6 +29,7 @@ Progress: [████████░░] 57%
 |-------|-------|-------|----------|
 | 01-foundation | 2 | ~62 min | ~31 min |
 | 02-pipeline | 5 | ~49 min | ~10 min |
+| 03-frontend | 1 | ~2 min | ~2 min |
 
 **Recent Trend:**
 - Last 5 plans: ~10 min avg (pipeline plans well-specified)
@@ -76,6 +77,11 @@ Recent decisions affecting current work:
 - [02-05]: subtitles= filter instead of ass= — ffmpeg-full libass requires subtitles= filter name
 - [02-05]: ffprobe probe + -t flag instead of -shortest — -shortest hangs indefinitely with MP3 in ffmpeg-full
 - [02-05]: Edition published as 'partial' if any story fails — frontend can still serve successful stories
+- [03-01]: Tailwind v4 uses @tailwindcss/postcss plugin (not tailwindcss) — v4 changed postcss integration
+- [03-01]: useEdition hook marked 'use client'; page.tsx is Server Component (no 'use client') — correct SSR/client boundary
+- [03-01]: page.tsx fetches /api/today via NEXT_PUBLIC_APP_URL absolute URL — required for server-side fetch in Next.js
+- [03-01]: scroll-snap-stop: always on .feed-item — prevents fast-swipe skipping items (Safari 15+)
+- [03-01]: No Geist fonts in layout.tsx — unnecessary weight for full-screen video PWA
 
 ### Pending Todos
 
@@ -90,5 +96,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Completed 02-05-PLAN.md — pipeline/storage.py and pipeline/run.py created; end-to-end pipeline verified (5 stories, 5 MP4s, edition published); deduplication confirmed; Phase 2 complete.
+Stopped at: Completed 03-01-PLAN.md — Tailwind v4 installed, scroll-snap CSS foundation (.feed-container/.feed-item), layout.tsx viewport with viewportFit cover, useEdition hook with Video/Edition types, page.tsx Server Component fetching /api/today.
 Resume file: None

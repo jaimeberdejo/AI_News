@@ -53,7 +53,7 @@ Plans:
 - [x] 02-02-PLAN.md — Groq story selection and script writing with DB video row persistence (SCRIPT-03)
 - [x] 02-03-PLAN.md — OpenAI TTS audio generation, faster-whisper alignment, and ASS subtitle file
 - [x] 02-04-PLAN.md — Pexels b-roll download with 'stock market' fallback and FFmpeg video assembly
-- [ ] 02-05-PLAN.md — Supabase upload, edition publish, 7-day cleanup, pipeline orchestrator, end-to-end verification
+- [x] 02-05-PLAN.md — Supabase upload, edition publish, 7-day cleanup, pipeline orchestrator, end-to-end verification
 
 ### Phase 3: Frontend
 **Goal**: The Next.js PWA delivers today's 5 videos in a finite vertical scroll feed — muted autoplay, tap-to-unmute that persists across videos, preloading, "You're up to date" end card, and PWA installability from a real device
@@ -68,7 +68,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Tailwind v4 foundation, globals.css scroll-snap CSS, layout.tsx viewport, useEdition hook, page.tsx server component
+- [x] 03-01-PLAN.md — Tailwind v4 foundation, globals.css scroll-snap CSS, layout.tsx viewport, useEdition hook, page.tsx server component
 - [ ] 03-02-PLAN.md — VideoFeed scroll container, VideoItem (all iOS video attrs), useVideoPlayer IntersectionObserver hook, MuteButton corner icon
 - [ ] 03-03-PLAN.md — iOS-safe synchronous unmute, preloading next 2 videos, progress dots overlay, EndCard with time estimate + Watch again + silent edition refresh
 - [ ] 03-04-PLAN.md — PWA manifest.ts, placeholder icons, appleWebApp layout.tsx metadata, human verification checkpoint
@@ -98,5 +98,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-24 |
 | 2. Pipeline | 5/5 | Complete   | 2026-02-25 |
-| 3. Frontend | 0/4 | Not started | - |
+| 3. Frontend | 1/4 | In progress | - |
 | 4. Ship | 0/3 | Not started | - |
