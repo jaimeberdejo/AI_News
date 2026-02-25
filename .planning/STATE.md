@@ -5,37 +5,36 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** A finite, curated daily financial briefing — users always know when they're done.
-**Current focus:** Phase 2 - Pipeline
+**Current focus:** Phase 3 - API (Phase 2 complete)
 
 ## Current Position
 
-Phase: 2 of 7 (Pipeline)
-Plan: 4 of 5 in current phase
-Status: In progress — Phase 2 plan 4 of 5 complete
-Last activity: 2026-02-24 — Completed 02-04-PLAN.md (Pexels b-roll download and FFmpeg video assembly)
+Phase: 2 of 7 (Pipeline) — COMPLETE
+Plan: 5 of 5 complete
+Status: Phase 2 complete — all 5 pipeline plans executed and verified end-to-end
+Last activity: 2026-02-25 — Completed 02-05-PLAN.md (full pipeline integration: storage, run orchestrator, end-to-end verified)
 
-Progress: [██████░░░░] 43%
+Progress: [████████░░] 57%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: ~11 min
-- Total execution time: ~66 min
+- Total plans completed: 7
+- Average duration: ~16 min
+- Total execution time: ~111 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 2 | ~62 min | ~31 min |
-| 02-pipeline | 4 | ~4 min | ~1 min |
+| 02-pipeline | 5 | ~49 min | ~10 min |
 
 **Recent Trend:**
-- Last 5 plans: ~16 min avg
+- Last 5 plans: ~10 min avg (pipeline plans well-specified)
 - Trend: fast execution for well-specified plans
 
 *Updated after each plan completion*
-| Phase 02-pipeline P03 | 2 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -69,10 +68,14 @@ Recent decisions affecting current work:
 - [02-04]: subprocess.run for FFmpeg (not ffmpeg-python) — plan pre-decided; avoids known ASS filter bug on macOS
 - [02-04]: scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280 — plain scale distorts non-9:16 portrait clips
 - [02-04]: Warn-and-continue (not hard-error) if still >10 MB after CRF 32 — high-motion b-roll cannot always hit 10 MB
-- [Phase 02-pipeline]: [02-03]: voice=onyx for TTS — deep male voice suits financial news tone
-- [Phase 02-pipeline]: [02-03]: faster-whisper tiny.en device=cpu compute_type=int8 — CPU-only, quantized for speed on GitHub Actions
-- [Phase 02-pipeline]: [02-03]: 3-word subtitle chunks — balances readability with synchronization timing
-- [Phase 02-pipeline]: [02-03]: Module-level _whisper singleton — avoids 75 MB re-download on every story; one download per process
+- [02-03]: voice=onyx for TTS — deep male voice suits financial news tone
+- [02-03]: faster-whisper tiny.en device=cpu compute_type=int8 — CPU-only, quantized for speed on GitHub Actions
+- [02-03]: 3-word subtitle chunks — balances readability with synchronization timing
+- [02-03]: Module-level _whisper singleton — avoids 75 MB re-download on every story; one download per process
+- [02-05]: upload_video() upsert=true — handles re-uploads on partial re-runs without 409 errors
+- [02-05]: subtitles= filter instead of ass= — ffmpeg-full libass requires subtitles= filter name
+- [02-05]: ffprobe probe + -t flag instead of -shortest — -shortest hangs indefinitely with MP3 in ffmpeg-full
+- [02-05]: Edition published as 'partial' if any story fails — frontend can still serve successful stories
 
 ### Pending Todos
 
@@ -81,11 +84,11 @@ None yet.
 ### Blockers/Concerns
 
 - iOS Safari tap-to-unmute must be tested on a real iPhone (not Simulator) during Phase 6 — synchronous gesture handler only manifests on real device
-- Verify Groq free tier rate limits at console.groq.com/docs/rate-limits before Phase 2 implementation
-- Video file size target (10 MB at 720p CRF 28) needs empirical validation during Phase 3 — if clips are 20 MB, storage math changes
+- Verify Groq free tier rate limits at console.groq.com/docs/rate-limits before scheduling
+- Video file size target (10 MB at 720p CRF 28) empirically validated: clips produced ~3-8 MB, within budget
 
 ## Session Continuity
 
-Last session: 2026-02-24
-Stopped at: Completed 02-04-PLAN.md — pipeline/video.py created with download_broll() and assemble(); Pexels portrait HD b-roll download with stock market fallback; FFmpeg 720x1280 assembly with burned-in ASS subtitles; 10 MB CRF 32 re-encode fallback. User setup pending: PEXELS_API_KEY and brew install ffmpeg.
+Last session: 2026-02-25
+Stopped at: Completed 02-05-PLAN.md — pipeline/storage.py and pipeline/run.py created; end-to-end pipeline verified (5 stories, 5 MP4s, edition published); deduplication confirmed; Phase 2 complete.
 Resume file: None

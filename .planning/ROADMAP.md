@@ -15,7 +15,7 @@ v1 targets financial news only. The architecture is designed from the start to s
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Supabase schema, storage, and API contract are live and verified
-- [ ] **Phase 2: Pipeline** - Full pipeline runs locally end-to-end: RSS ingestion → scripts → TTS → Whisper alignment → FFmpeg video assembly → Supabase upload → published edition with 7-day cleanup (financial news category, variable video count)
+- [x] **Phase 2: Pipeline** - Full pipeline runs locally end-to-end: RSS ingestion → scripts → TTS → Whisper alignment → FFmpeg video assembly → Supabase upload → published edition with 7-day cleanup (financial news category, variable video count) (completed 2026-02-25)
 - [ ] **Phase 3: Frontend** - Next.js PWA delivers the finite vertical video feed with muted autoplay, tap-to-unmute, preloading, end card, and PWA installability
 - [ ] **Phase 4: Ship** - GitHub Actions cron automates the pipeline, Vercel deploys the frontend, and the full user journey is validated on real devices
 
@@ -97,6 +97,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-24 |
-| 2. Pipeline | 4/5 | In Progress|  |
+| 2. Pipeline | 5/5 | Complete   | 2026-02-25 |
 | 3. Frontend | 0/4 | Not started | - |
 | 4. Ship | 0/3 | Not started | - |

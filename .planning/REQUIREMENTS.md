@@ -34,13 +34,13 @@
 - [ ] **VIDEO-01**: Pipeline downloads a relevant stock b-roll clip from Pexels API for each story
 - [ ] **VIDEO-02**: FFmpeg assembles each video: b-roll background + audio track + burned-in subtitles → MP4
 - [ ] **VIDEO-03**: Output video targets ≤10MB file size (720p, CRF 28) to stay within Supabase bandwidth limits
-- [ ] **VIDEO-04**: Videos older than 7 days are automatically deleted from Supabase Storage on each pipeline run
+- [x] **VIDEO-04**: Videos older than 7 days are automatically deleted from Supabase Storage on each pipeline run
 
 ### Pipeline — Automation
 
 - [ ] **AUTO-01**: GitHub Actions cron job runs the pipeline automatically 1–2x per day
-- [ ] **AUTO-02**: Each story is processed in isolation — if 1 story fails, the remaining stories still complete and publish
-- [ ] **AUTO-03**: Each pipeline run records its status (running / complete / partial / failed) in the DB
+- [x] **AUTO-02**: Each story is processed in isolation — if 1 story fails, the remaining stories still complete and publish
+- [x] **AUTO-03**: Each pipeline run records its status (running / complete / partial / failed) in the DB
 
 ### Frontend — Player
 
@@ -121,9 +121,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VIDEO-01 | Phase 2 | Pending |
 | VIDEO-02 | Phase 2 | Pending |
 | VIDEO-03 | Phase 2 | Pending |
-| VIDEO-04 | Phase 2 | Pending |
-| AUTO-02 | Phase 2 | Pending |
-| AUTO-03 | Phase 2 | Pending |
+| VIDEO-04 | Phase 2 | Complete |
+| AUTO-02 | Phase 2 | Complete |
+| AUTO-03 | Phase 2 | Complete |
 | AUTO-01 | Phase 4 | Pending |
 | PLAY-01 | Phase 3 | Pending |
 | PLAY-02 | Phase 3 | Pending |
