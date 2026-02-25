@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** A finite, curated daily financial briefing — users always know when they're done.
-**Current focus:** Phase 3 - Frontend (Plan 2 complete)
+**Current focus:** Phase 3 - Frontend (Plan 3 complete)
 
 ## Current Position
 
 Phase: 3 of 7 (Frontend) — IN PROGRESS
-Plan: 2 of 4 complete
-Status: Plan 03-02 complete — VideoFeed/VideoItem scaffold, useVideoPlayer IntersectionObserver hook, MuteButton corner icon
-Last activity: 2026-02-25 — Completed 03-02-PLAN.md (VideoFeed scroll container, VideoItem with iOS attrs + #t=0.001, useVideoPlayer at 0.7 threshold, MuteButton with safe-area + opacity transition)
+Plan: 3 of 4 complete
+Status: Plan 03-03 complete — iOS-safe synchronous unmute, next-2-video preloading, progress dots, EndCard with time estimate + Watch again + silent edition refresh
+Last activity: 2026-02-25 — Completed 03-03-PLAN.md (globalMuted module-level flag, isMutedRef pattern, preload via 1px visibility:hidden, progress dots, EndCard component)
 
-Progress: [████████░░] 60%
+Progress: [█████████░] 65%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: ~14 min
-- Total execution time: ~113 min
+- Total plans completed: 10
+- Average duration: ~12 min
+- Total execution time: ~116 min
 
 **By Phase:**
 
@@ -29,7 +29,7 @@ Progress: [████████░░] 60%
 |-------|-------|-------|----------|
 | 01-foundation | 2 | ~62 min | ~31 min |
 | 02-pipeline | 5 | ~49 min | ~10 min |
-| 03-frontend | 2 | ~4 min | ~2 min |
+| 03-frontend | 3 | ~7 min | ~2 min |
 
 **Recent Trend:**
 - Last 5 plans: ~10 min avg (pipeline plans well-specified)
@@ -87,6 +87,12 @@ Recent decisions affecting current work:
 - [03-02]: threshold: 0.7 on IntersectionObserver — 70% visibility before play, standard for vertical feed
 - [03-02]: MuteButton uses inline styles for fixed positioning — avoids Tailwind purge risks with dynamic z-index
 - [03-02]: showEndCard placeholder in VideoFeed — minimal end state, replaced in Plan 03
+- [03-03]: globalMuted as module-level let (not React state) — IntersectionObserver callbacks run outside React's render cycle; stale closures unreliable
+- [03-03]: isMutedRef pattern in useVideoPlayer with empty deps — observer created once, reads ref dynamically instead of re-attaching on every mute toggle
+- [03-03]: Preload via 1px fixed visibility:hidden (not display:none) — iOS buffers elements it considers on-screen; display:none prevents buffering
+- [03-03]: Progress dots use pill-shaped bars (6px → 20px active) — Instagram Stories style per CONTEXT.md
+- [03-03]: EndCard new-edition detection triggers window.location.reload() — user on end card won't notice; cleanest way to get fresh SSR data
+- [03-03]: getNextEditionMessage uses hour-of-day buckets (morning/afternoon/tonight/tomorrow morning) not countdown timer
 
 ### Pending Todos
 
@@ -101,5 +107,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Completed 03-02-PLAN.md — VideoFeed/VideoItem scaffold, useVideoPlayer IntersectionObserver hook (0.7 threshold), MuteButton with safe-area-inset-top and opacity transition, page.tsx updated to render VideoFeed.
+Stopped at: Completed 03-03-PLAN.md — iOS-safe synchronous unmute (globalMuted module-level flag, isMutedRef, handleMuteToggle synchronous forEach), preloading next 2 videos (1px fixed visibility:hidden), progress dots overlay, EndCard with Watch again + silent edition refresh.
 Resume file: None

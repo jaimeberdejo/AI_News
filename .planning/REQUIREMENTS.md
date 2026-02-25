@@ -46,9 +46,9 @@
 
 - [x] **PLAY-01**: PWA displays today's 5 videos in a vertical snap-scroll feed (one video per screen)
 - [x] **PLAY-02**: First video autoplays muted on page load; a visible "Tap to listen" prompt is shown
-- [ ] **PLAY-03**: Tapping the unmute prompt unmutes audio inside a synchronous event handler (iOS Safari compliant); audio stays unmuted for all subsequent videos in the session
-- [ ] **PLAY-04**: Player preloads the next 2 videos in the background while current video plays
-- [ ] **PLAY-05**: After the last video ends, a "You're up to date" end card is displayed with a countdown timer to the next edition
+- [x] **PLAY-03**: Tapping the unmute prompt unmutes audio inside a synchronous event handler (iOS Safari compliant); audio stays unmuted for all subsequent videos in the session
+- [x] **PLAY-04**: Player preloads the next 2 videos in the background while current video plays
+- [x] **PLAY-05**: After the last video ends, a "You're up to date" end card is displayed with a countdown timer to the next edition
 
 ### Frontend — PWA
 
@@ -127,9 +127,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTO-01 | Phase 4 | Pending |
 | PLAY-01 | Phase 3 | Complete |
 | PLAY-02 | Phase 3 | Complete |
-| PLAY-03 | Phase 3 | Pending |
-| PLAY-04 | Phase 3 | Pending |
-| PLAY-05 | Phase 3 | Pending |
+| PLAY-03 | Phase 3 | Complete |
+| PLAY-04 | Phase 3 | Complete |
+| PLAY-05 | Phase 3 | Complete |
 | PWA-01 | Phase 3 | Pending |
 
 **Coverage:**
