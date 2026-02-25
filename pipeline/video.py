@@ -104,6 +104,18 @@ def assemble(
     _check_ffmpeg()
     output_path = tmp_dir / f"story_{position}.mp4"
 
+    # Probe exact audio duration — MP3 duration estimation is unreliable with -shortest
+    probe = subprocess.run(
+        [
+            "ffprobe", "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            str(audio_path),
+        ],
+        capture_output=True, text=True,
+    )
+    audio_duration = float(probe.stdout.strip())
+
     def _run_ffmpeg(crf: int) -> None:
         # ASS path: use forward slashes, ensure no spaces (tmp_dir from mkdtemp is safe)
         ass_str = str(ass_path).replace("\\", "/")
@@ -112,10 +124,11 @@ def assemble(
             "-stream_loop", "-1",
             "-i", str(broll_path),
             "-i", str(audio_path),
+            "-t", str(audio_duration),
             "-vf", (
                 f"scale=720:1280:force_original_aspect_ratio=increase,"
                 f"crop=720:1280,"
-                f"ass={ass_str}"
+                f"subtitles={ass_str}"
             ),
             "-c:v", "libx264",
             "-crf", str(crf),
@@ -123,7 +136,6 @@ def assemble(
             "-c:a", "aac",
             "-b:a", "128k",
             "-movflags", "+faststart",
-            "-shortest",
             str(output_path),
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
