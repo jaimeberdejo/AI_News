@@ -4,6 +4,12 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'FinFeed',
   description: 'Your daily financial briefing',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'FinFeed',
+    statusBarStyle: 'black-translucent',
+  },
 }
 
 export const viewport: Viewport = {
