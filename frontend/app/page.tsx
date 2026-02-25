@@ -1,66 +1,33 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import type { Video } from '../hooks/useEdition'
 
-export default function Home() {
+async function getEditionData(): Promise<{ edition: { id: string; edition_date: string; videos: Video[] } | null }> {
+  // Use absolute URL with NEXT_PUBLIC_APP_URL env var for server-side fetch,
+  // or directly query Supabase. Use internal fetch for simplicity since
+  // /api/today already exists and handles all logic.
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const res = await fetch(`${baseUrl}/api/today`, {
+      cache: 'no-store',
+      next: { revalidate: 0 },
+    })
+    return res.json()
+  } catch {
+    return { edition: null }
+  }
+}
+
+export default async function Home() {
+  const { edition } = await getEditionData()
+  const videos: Video[] = edition?.videos ?? []
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    <main style={{ background: '#000', minHeight: '100dvh' }}>
+      {/* VideoFeed will be added in Plan 02 */}
+      {/* Placeholder confirms data flow works */}
+      <div style={{ color: 'white', padding: '1rem', fontFamily: 'monospace', fontSize: '0.75rem' }}>
+        <p>Edition: {edition ? edition.edition_date : 'none'}</p>
+        <p>Videos: {videos.length}</p>
+      </div>
+    </main>
+  )
 }
