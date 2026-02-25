@@ -20,10 +20,6 @@ export function MuteButton({ isMuted, onToggle, prominent }: MuteButtonProps) {
       onClick={onToggle}
       aria-label={isMuted ? 'Unmute' : 'Mute'}
       style={{
-        position: 'fixed',
-        top: 'calc(env(safe-area-inset-top) + 12px)',
-        right: '12px',
-        zIndex: 40,
         background: 'rgba(0,0,0,0.4)',
         border: 'none',
         borderRadius: '50%',

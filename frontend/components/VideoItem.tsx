@@ -12,6 +12,26 @@ interface VideoItemProps {
   onEnded?: () => void
   onBecomeActive?: () => void
   videoRefOverride?: React.RefObject<HTMLVideoElement | null>
+  editionPublishedAt?: string | null
+}
+
+function formatDateTime(publishedAt: string | null | undefined): string {
+  if (!publishedAt) return ''
+  const date = new Date(publishedAt)
+  const now = new Date()
+  const isToday = date.toDateString() === now.toDateString()
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const isYesterday = date.toDateString() === yesterday.toDateString()
+
+  const time = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+
+  if (isToday) return `Hoy · ${time}`
+  if (isYesterday) return `Ayer · ${time}`
+  return (
+    date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) +
+    ` · ${time}`
+  )
 }
 
 export function VideoItem({
@@ -22,66 +42,133 @@ export function VideoItem({
   onEnded,
   onBecomeActive,
   videoRefOverride,
+  editionPublishedAt,
 }: VideoItemProps) {
   // Pass videoRefOverride into the hook so the IntersectionObserver targets the
-  // same element the <video> tag is attached to. Without this, play/pause calls
-  // inside the observer fire on the hook's internal ref (null) while the actual
-  // element is attached to videoRefOverride — causing second+ videos to never play.
+  // same element the <video> tag is attached to.
   const { containerRef, videoRef: internalRef } = useVideoPlayer(isMuted, onBecomeActive, videoRefOverride)
   const videoRef = videoRefOverride ?? internalRef
 
-  return (
-    <div
-      ref={containerRef}
-      className="feed-item"
-      style={
-        preloadOnly
-          ? {
-              // Keep in DOM for iOS buffering. visibility:hidden (not display:none)
-              // so iOS layout engine considers the element on-screen and buffers it.
-              // Position it as a 1px fixed element so it doesn't affect scroll snap.
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '1px',
-              height: '1px',
-              visibility: 'hidden',
-              pointerEvents: 'none',
-              overflow: 'hidden',
-            }
-          : undefined
-      }
-    >
-      <video
-        ref={videoRef}
-        src={`${video.video_url}#t=0.001`}
-        autoPlay={isActive}
-        muted // HTML attribute default; JS sets .muted dynamically on intersect
-        playsInline
-        preload="auto"
-        loop={false}
-        onEnded={onEnded}
-        style={
-          preloadOnly
-            ? { display: 'block' }
-            : { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }
-        }
-      />
+  // Preload-only: keep video in DOM for iOS buffering, invisible and out of flow
+  if (preloadOnly) {
+    return (
+      <div
+        ref={containerRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '1px',
+          height: '1px',
+          visibility: 'hidden',
+          pointerEvents: 'none',
+          overflow: 'hidden',
+        }}
+      >
+        <video
+          ref={videoRef}
+          src={`${video.video_url}#t=0.001`}
+          muted
+          playsInline
+          preload="auto"
+          style={{ width: '1px', height: '1px' }}
+        />
+      </div>
+    )
+  }
 
-      {!preloadOnly && (
-        /* Headline overlay — only shown for active/scrollable items */
-        <div
-          className="absolute bottom-0 left-0 right-0 px-4 text-white"
+  const dateLabel = formatDateTime(editionPublishedAt)
+
+  return (
+    <div ref={containerRef} className="feed-item">
+      {/* Video section — fills remaining height above the info panel */}
+      <div style={{ flex: '1 1 0', overflow: 'hidden', position: 'relative', minHeight: 0 }}>
+        <video
+          ref={videoRef}
+          src={`${video.video_url}#t=0.001`}
+          autoPlay={isActive}
+          muted
+          playsInline
+          preload="auto"
+          loop={false}
+          onEnded={onEnded}
           style={{
-            paddingBottom: 'calc(env(safe-area-inset-bottom) + 48px)',
-            paddingTop: '48px',
-            background:
-              'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 60%, transparent 100%)',
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+          }}
+        />
+      </div>
+
+      {/* Info panel — date, time, headline, source link */}
+      <div
+        style={{
+          flex: '0 0 auto',
+          background: '#111',
+          padding: '14px 18px',
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 14px)',
+          borderTop: '1px solid rgba(255,255,255,0.07)',
+        }}
+      >
+        {dateLabel && (
+          <p
+            style={{
+              color: 'rgba(255,255,255,0.45)',
+              fontSize: '0.72rem',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              marginBottom: '6px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            {dateLabel}
+          </p>
+        )}
+
+        <p
+          style={{
+            color: 'white',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            lineHeight: 1.35,
+            marginBottom: '10px',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
           }}
         >
-          <p className="text-sm font-semibold leading-snug line-clamp-2">{video.headline}</p>
-        </div>
-      )}
+          {video.headline}
+        </p>
+
+        {video.source_url && (
+          <a
+            href={video.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: 'rgba(255,255,255,0.55)',
+              fontSize: '0.8rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            Leer artículo completo
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          </a>
+        )}
+      </div>
     </div>
   )
 }

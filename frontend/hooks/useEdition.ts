@@ -19,6 +19,13 @@ export interface Edition {
   videos: Video[]
 }
 
+// Lightweight edition metadata — used for the edition navigation bar
+export interface EditionMeta {
+  id: string
+  published_at: string | null
+  edition_date: string
+}
+
 interface EditionState {
   edition: Edition | null
   videos: Video[]

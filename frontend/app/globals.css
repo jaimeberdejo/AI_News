@@ -15,8 +15,6 @@ body {
 
 .feed-container {
   width: 100%;
-  max-width: 430px;
-  margin: 0 auto;
   height: 100dvh;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
@@ -29,7 +27,8 @@ body {
   height: 100dvh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  position: relative;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   background: #000;
 }

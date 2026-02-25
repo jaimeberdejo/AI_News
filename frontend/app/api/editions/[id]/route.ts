@@ -1,8 +1,7 @@
 /**
- * GET /api/today
- * Returns the most recent published edition with its videos, plus metadata
- * for all published editions (for the edition navigation bar).
- * Always returns 200 — { edition: null, all_editions: [] } if nothing published yet.
+ * GET /api/editions/[id]
+ * Returns a specific published edition with its videos.
+ * Used when the user navigates to a previous edition.
  */
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
@@ -14,10 +13,13 @@ function getSupabase() {
   )
 }
 
-export async function GET() {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
   const supabase = getSupabase()
 
-  // Latest edition with full video data
   const { data: edition, error } = await supabase
     .from('editions')
     .select(`
@@ -34,20 +36,12 @@ export async function GET() {
         duration
       )
     `)
+    .eq('id', id)
     .eq('status', 'published')
-    .order('published_at', { ascending: false })
-    .limit(1)
     .single()
 
-  // All published editions — metadata only (for the edition picker)
-  const { data: allEditions } = await supabase
-    .from('editions')
-    .select('id, published_at, edition_date')
-    .eq('status', 'published')
-    .order('published_at', { ascending: false })
-
   if (error || !edition) {
-    return NextResponse.json({ edition: null, all_editions: [] })
+    return NextResponse.json({ edition: null }, { status: 404 })
   }
 
   if (edition.videos) {
@@ -56,5 +50,5 @@ export async function GET() {
     )
   }
 
-  return NextResponse.json({ edition, all_editions: allEditions ?? [] })
+  return NextResponse.json({ edition })
 }

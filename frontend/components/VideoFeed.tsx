@@ -3,58 +3,92 @@
 // Module-level flag: read synchronously in IntersectionObserver callbacks.
 // DO NOT store this in React state — IntersectionObserver callbacks run outside
 // React's render cycle and cannot read stale closure state reliably.
-// This is also read by the synchronous mute toggle handler for iOS compatibility.
 let globalMuted = true
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import React from 'react'
-import type { Video } from '../hooks/useEdition'
+import type { Video, Edition, EditionMeta } from '../hooks/useEdition'
 import { VideoItem } from './VideoItem'
 import { MuteButton } from './MuteButton'
 import { EndCard } from './EndCard'
 
 interface VideoFeedProps {
-  videos: Video[]
-  editionId?: string | null
+  initialEdition: Edition | null
+  allEditions: EditionMeta[]
 }
 
-export function VideoFeed({ videos, editionId = null }: VideoFeedProps) {
+function formatEditionLabel(meta: EditionMeta): string {
+  if (!meta.published_at) return meta.edition_date
+  const date = new Date(meta.published_at)
+  const now = new Date()
+  const isToday = date.toDateString() === now.toDateString()
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const isYesterday = date.toDateString() === yesterday.toDateString()
+  const time = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  if (isToday) return `Hoy ${time}`
+  if (isYesterday) return `Ayer ${time}`
+  return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) + ` ${time}`
+}
+
+export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
+  const [currentEdition, setCurrentEdition] = useState<Edition | null>(initialEdition)
+  const [editionIndex, setEditionIndex] = useState(0) // 0 = latest (allEditions[0])
+  const [isLoadingEdition, setIsLoadingEdition] = useState(false)
+
   const [isMuted, setIsMuted] = useState(true)
   const [activeIndex, setActiveIndex] = useState(0)
   const [showEndCard, setShowEndCard] = useState(false)
   const [buttonProminent, setButtonProminent] = useState(false)
 
-  // Array of refs — one per video element. Used to set .muted synchronously
-  // on ALL video elements in the iOS unmute handler (no async boundary).
-  const videoRefs = useRef<Array<React.RefObject<HTMLVideoElement | null>>>([])
+  const videos: Video[] = currentEdition?.videos ?? []
 
-  // Initialize / resize the refs array when videos change
+  const videoRefs = useRef<Array<React.RefObject<HTMLVideoElement | null>>>([])
   if (videoRefs.current.length !== videos.length) {
     videoRefs.current = videos.map(() => React.createRef<HTMLVideoElement>())
   }
 
-  if (videos.length === 0) {
+  // Switch to a different edition by index in allEditions (0 = latest)
+  const switchEdition = useCallback(async (newIndex: number) => {
+    const target = allEditions[newIndex]
+    if (!target) return
+    setIsLoadingEdition(true)
+    setEditionIndex(newIndex)
+    try {
+      const res = await fetch(`/api/editions/${target.id}`, { cache: 'no-store' })
+      const data = await res.json()
+      if (data.edition) {
+        setCurrentEdition(data.edition)
+        setActiveIndex(0)
+        setShowEndCard(false)
+        // Scroll feed back to top
+        const feed = document.querySelector('.feed-container')
+        if (feed) feed.scrollTop = 0
+      }
+    } catch {
+      // silently fail — stay on current edition
+    } finally {
+      setIsLoadingEdition(false)
+    }
+  }, [allEditions])
+
+  if (videos.length === 0 && !isLoadingEdition) {
     return (
-      <div className="flex items-center justify-center h-screen bg-black text-white text-center p-8">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#000', color: 'white', textAlign: 'center', padding: '32px' }}>
         <div>
-          <p className="text-xl font-semibold">No videos yet</p>
-          <p className="text-sm text-gray-400 mt-2">Check back soon for today&apos;s briefing</p>
+          <p style={{ fontSize: '1.1rem', fontWeight: 600, fontFamily: 'system-ui, -apple-system, sans-serif' }}>No hay vídeos todavía</p>
+          <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.4)', marginTop: '8px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Vuelve pronto</p>
         </div>
       </div>
     )
   }
 
-  // CRITICAL: everything in this function is synchronous — no async, no await.
-  // iOS requires .muted to be set within the user-gesture call stack.
   function handleMuteToggle() {
     const newMuted = !isMuted
-    // 1. Update module-level flag (read by IntersectionObserver callbacks)
     globalMuted = newMuted
-    // 2. Set .muted on ALL video elements synchronously (iOS requirement)
     videoRefs.current.forEach(ref => {
       if (ref.current) ref.current.muted = newMuted
     })
-    // 3. Update React state for icon re-render (non-blocking, happens after)
     setIsMuted(newMuted)
   }
 
@@ -66,10 +100,8 @@ export function VideoFeed({ videos, editionId = null }: VideoFeedProps) {
     }
   }
 
-  // Screen-tap restore: when user taps anywhere except the MuteButton,
-  // briefly make the button prominent (opacity 1) then fade back after 2s.
   function handleScreenTap(e: React.MouseEvent) {
-    if ((e.target as HTMLElement).closest('button')) return
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) return
     setButtonProminent(true)
     setTimeout(() => setButtonProminent(false), 2000)
   }
@@ -77,38 +109,130 @@ export function VideoFeed({ videos, editionId = null }: VideoFeedProps) {
   function handleReplay() {
     setShowEndCard(false)
     setActiveIndex(0)
-    // Seek all videos back to start so they replay from the beginning
     videoRefs.current.forEach(ref => {
       if (ref.current) {
         ref.current.currentTime = 0
         ref.current.pause()
       }
     })
-    // Scroll the feed container back to the top (first video)
     const feedContainer = document.querySelector('.feed-container')
     if (feedContainer) feedContainer.scrollTop = 0
   }
 
   function handleNewEdition() {
-    // End card is shown — user won't notice a reload.
-    // New edition available: reload to fetch fresh data from server.
     window.location.reload()
   }
 
+  const hasMultipleEditions = allEditions.length > 1
+  const isLatest = editionIndex === 0
+  const isOldest = editionIndex === allEditions.length - 1
+
   return (
-    <div className="relative" onClick={handleScreenTap}>
-      {/* Progress dots — centered at top, above videos */}
+    <div
+      style={{
+        position: 'relative',
+        height: '100dvh',
+        maxWidth: '430px',
+        margin: '0 auto',
+        overflow: 'hidden',
+        background: '#000',
+      }}
+      onClick={handleScreenTap}
+    >
+      {/* Edition navigation bar — shown only when multiple editions exist */}
+      {hasMultipleEditions && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            paddingTop: 'calc(env(safe-area-inset-top) + 8px)',
+            paddingBottom: '8px',
+            paddingLeft: '12px',
+            paddingRight: '12px',
+            zIndex: 50,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)',
+            pointerEvents: 'none',
+          }}
+        >
+          <button
+            onClick={e => { e.stopPropagation(); switchEdition(editionIndex + 1) }}
+            disabled={isOldest || isLoadingEdition}
+            style={{
+              pointerEvents: 'auto',
+              background: 'rgba(255,255,255,0.1)',
+              border: 'none',
+              borderRadius: '20px',
+              color: isOldest ? 'rgba(255,255,255,0.2)' : 'white',
+              padding: '5px 12px',
+              fontSize: '0.78rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              cursor: isOldest ? 'default' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            ← Anterior
+          </button>
+
+          <span
+            style={{
+              color: 'rgba(255,255,255,0.8)',
+              fontSize: '0.78rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {isLoadingEdition
+              ? 'Cargando…'
+              : allEditions[editionIndex]
+              ? formatEditionLabel(allEditions[editionIndex])
+              : ''}
+          </span>
+
+          <button
+            onClick={e => { e.stopPropagation(); switchEdition(editionIndex - 1) }}
+            disabled={isLatest || isLoadingEdition}
+            style={{
+              pointerEvents: 'auto',
+              background: 'rgba(255,255,255,0.1)',
+              border: 'none',
+              borderRadius: '20px',
+              color: isLatest ? 'rgba(255,255,255,0.2)' : 'white',
+              padding: '5px 12px',
+              fontSize: '0.78rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              cursor: isLatest ? 'default' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
+
+      {/* Progress dots */}
       {videos.length > 1 && (
         <div
           style={{
-            position: 'fixed',
-            top: 'calc(env(safe-area-inset-top) + 10px)',
+            position: 'absolute',
+            top: hasMultipleEditions
+              ? 'calc(env(safe-area-inset-top) + 46px)'
+              : 'calc(env(safe-area-inset-top) + 10px)',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 40,
             display: 'flex',
             gap: '5px',
             alignItems: 'center',
+            pointerEvents: 'none',
           }}
         >
           {videos.map((_, idx) => (
@@ -127,8 +251,19 @@ export function VideoFeed({ videos, editionId = null }: VideoFeedProps) {
         </div>
       )}
 
-      {/* Mute button — top-right corner, above all video items */}
-      <MuteButton isMuted={isMuted} onToggle={handleMuteToggle} prominent={buttonProminent} />
+      {/* Mute button */}
+      <div
+        style={{
+          position: 'absolute',
+          top: hasMultipleEditions
+            ? 'calc(env(safe-area-inset-top) + 40px)'
+            : 'calc(env(safe-area-inset-top) + 8px)',
+          right: '12px',
+          zIndex: 40,
+        }}
+      >
+        <MuteButton isMuted={isMuted} onToggle={handleMuteToggle} prominent={buttonProminent} />
+      </div>
 
       {/* Scroll container */}
       <div className="feed-container">
@@ -146,16 +281,17 @@ export function VideoFeed({ videos, editionId = null }: VideoFeedProps) {
               onEnded={isActive ? handleVideoEnded : undefined}
               onBecomeActive={() => setActiveIndex(idx)}
               videoRefOverride={videoRefs.current[idx]}
+              editionPublishedAt={currentEdition?.published_at}
             />
           )
         })}
       </div>
 
-      {/* End card — rendered on top when all videos have played */}
+      {/* End card */}
       {showEndCard && (
         <EndCard
           onReplay={handleReplay}
-          currentEditionId={editionId}
+          currentEditionId={currentEdition?.id ?? null}
           onNewEdition={handleNewEdition}
         />
       )}
