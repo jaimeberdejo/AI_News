@@ -1,10 +1,17 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 
-export function useVideoPlayer(isMuted: boolean, onBecomeActive?: () => void) {
+export function useVideoPlayer(
+  isMuted: boolean,
+  onBecomeActive?: () => void,
+  externalVideoRef?: React.RefObject<HTMLVideoElement | null>
+) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const internalVideoRef = useRef<HTMLVideoElement>(null)
+  // Use external ref when provided — the IntersectionObserver must reference the same
+  // element that the <video> tag is attached to, otherwise play/pause calls are on null.
+  const videoRef = externalVideoRef ?? internalVideoRef
   const isMutedRef = useRef(isMuted)
 
   // Keep isMutedRef in sync with prop so IntersectionObserver callbacks always
@@ -44,5 +51,5 @@ export function useVideoPlayer(isMuted: boolean, onBecomeActive?: () => void) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return { containerRef, videoRef }
+  return { containerRef, videoRef: internalVideoRef }
 }

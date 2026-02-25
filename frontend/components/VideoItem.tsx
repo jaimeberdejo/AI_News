@@ -23,9 +23,11 @@ export function VideoItem({
   onBecomeActive,
   videoRefOverride,
 }: VideoItemProps) {
-  const { containerRef, videoRef: internalRef } = useVideoPlayer(isMuted, onBecomeActive)
-  // If the parent provides a ref override, use it so VideoFeed can set .muted
-  // synchronously on all video elements in the iOS unmute handler.
+  // Pass videoRefOverride into the hook so the IntersectionObserver targets the
+  // same element the <video> tag is attached to. Without this, play/pause calls
+  // inside the observer fire on the hook's internal ref (null) while the actual
+  // element is attached to videoRefOverride — causing second+ videos to never play.
+  const { containerRef, videoRef: internalRef } = useVideoPlayer(isMuted, onBecomeActive, videoRefOverride)
   const videoRef = videoRefOverride ?? internalRef
 
   return (
@@ -59,8 +61,11 @@ export function VideoItem({
         preload="auto"
         loop={false}
         onEnded={onEnded}
-        className={preloadOnly ? undefined : 'absolute inset-0 w-full h-full object-cover'}
-        style={{ display: 'block' }}
+        style={
+          preloadOnly
+            ? { display: 'block' }
+            : { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }
+        }
       />
 
       {!preloadOnly && (
