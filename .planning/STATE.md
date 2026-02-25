@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** A finite, curated daily financial briefing — users always know when they're done.
-**Current focus:** Phase 3 - Frontend (Plan 1 complete)
+**Current focus:** Phase 3 - Frontend (Plan 2 complete)
 
 ## Current Position
 
 Phase: 3 of 7 (Frontend) — IN PROGRESS
-Plan: 1 of 5 complete
-Status: Plan 03-01 complete — Tailwind v4 CSS foundation, useEdition hook, Server Component page.tsx
-Last activity: 2026-02-25 — Completed 03-01-PLAN.md (Tailwind v4 installed, scroll-snap CSS foundation, viewport metadata, useEdition hook, Server Component data flow)
+Plan: 2 of 4 complete
+Status: Plan 03-02 complete — VideoFeed/VideoItem scaffold, useVideoPlayer IntersectionObserver hook, MuteButton corner icon
+Last activity: 2026-02-25 — Completed 03-02-PLAN.md (VideoFeed scroll container, VideoItem with iOS attrs + #t=0.001, useVideoPlayer at 0.7 threshold, MuteButton with safe-area + opacity transition)
 
 Progress: [████████░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: ~14 min
 - Total execution time: ~113 min
 
@@ -29,7 +29,7 @@ Progress: [████████░░] 60%
 |-------|-------|-------|----------|
 | 01-foundation | 2 | ~62 min | ~31 min |
 | 02-pipeline | 5 | ~49 min | ~10 min |
-| 03-frontend | 1 | ~2 min | ~2 min |
+| 03-frontend | 2 | ~4 min | ~2 min |
 
 **Recent Trend:**
 - Last 5 plans: ~10 min avg (pipeline plans well-specified)
@@ -82,6 +82,11 @@ Recent decisions affecting current work:
 - [03-01]: page.tsx fetches /api/today via NEXT_PUBLIC_APP_URL absolute URL — required for server-side fetch in Next.js
 - [03-01]: scroll-snap-stop: always on .feed-item — prevents fast-swipe skipping items (Safari 15+)
 - [03-01]: No Geist fonts in layout.tsx — unnecessary weight for full-screen video PWA
+- [03-02]: VideoItem keeps 'muted' JSX prop + useVideoPlayer sets video.muted on intersection — two-layer muted sync
+- [03-02]: isMuted in useEffect deps — observer re-attaches with current muted value on toggle
+- [03-02]: threshold: 0.7 on IntersectionObserver — 70% visibility before play, standard for vertical feed
+- [03-02]: MuteButton uses inline styles for fixed positioning — avoids Tailwind purge risks with dynamic z-index
+- [03-02]: showEndCard placeholder in VideoFeed — minimal end state, replaced in Plan 03
 
 ### Pending Todos
 
@@ -96,5 +101,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Completed 03-01-PLAN.md — Tailwind v4 installed, scroll-snap CSS foundation (.feed-container/.feed-item), layout.tsx viewport with viewportFit cover, useEdition hook with Video/Edition types, page.tsx Server Component fetching /api/today.
+Stopped at: Completed 03-02-PLAN.md — VideoFeed/VideoItem scaffold, useVideoPlayer IntersectionObserver hook (0.7 threshold), MuteButton with safe-area-inset-top and opacity transition, page.tsx updated to render VideoFeed.
 Resume file: None
