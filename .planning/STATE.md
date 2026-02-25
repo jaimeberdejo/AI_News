@@ -93,6 +93,8 @@ Recent decisions affecting current work:
 - [03-03]: Progress dots use pill-shaped bars (6px → 20px active) — Instagram Stories style per CONTEXT.md
 - [03-03]: EndCard new-edition detection triggers window.location.reload() — user on end card won't notice; cleanest way to get fresh SSR data
 - [03-03]: getNextEditionMessage uses hour-of-day buckets (morning/afternoon/tonight/tomorrow morning) not countdown timer
+- [Phase 03-04]: Next.js MetadataRoute.Manifest (native App Router) used for PWA manifest — no plugin needed, /manifest.webmanifest auto-generated
+- [Phase 03-04]: appleWebApp.statusBarStyle: black-translucent — status bar overlays content for full-screen dark video UI
 
 ### Pending Todos
 
