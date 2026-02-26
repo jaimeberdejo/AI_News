@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 4 of 7 (Ship) — IN PROGRESS
-Plan: 1 of 4 complete
-Status: 04-01 complete — GitHub Actions cron workflow created
-Last activity: 2026-02-26 — Plan 04-01 complete. Created .github/workflows/pipeline.yml with dual cron (6am/6pm UTC), workflow_dispatch, step-level secrets injection, pip/HuggingFace caches, FFmpeg install, 45-min timeout. Documented GitHub repo secrets in .env.example.
+Plan: 2 of 4 complete
+Status: 04-02 complete — FinFeed deployed to Vercel at https://auto-news-ai.vercel.app
+Last activity: 2026-02-26 — Plan 04-02 complete. Deployed Next.js PWA to Vercel with Supabase env vars (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_APP_URL). App loads at https://auto-news-ai.vercel.app without errors. GitHub auto-deploy active on main branch push.
 
-Progress: [████████████] 78%
+Progress: [█████████████] 83%
 
 ## Performance Metrics
 
@@ -112,6 +112,9 @@ Recent decisions affecting current work:
 - [04-01]: HuggingFace cache key is static (huggingface-faster-whisper-tiny-en-v1) — model weights are deterministic, no need for content-based key
 - [04-01]: Secrets in env: block on Run pipeline step ONLY — not at job/workflow level to minimize exposure surface
 - [04-01]: actions/cache@v4 (not v3) — v3 deprecated Feb 2025, v4 required for new cache backend service
+- [04-02]: NEXT_PUBLIC_APP_URL set to https://auto-news-ai.vercel.app (not localhost) — page.tsx Server Component fetches /api/today via absolute URL during SSR on Vercel servers
+- [04-02]: Root Directory set to frontend in Vercel dashboard — without this, Vercel builds from repo root and fails to detect Next.js framework
+- [04-02]: remotePatterns wildcard /storage/v1/object/public/** covers all Supabase Storage buckets without enumerating each bucket individually
 
 ### Pending Todos
 
@@ -126,5 +129,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Phase 04 Plan 01 complete. Created .github/workflows/pipeline.yml (dual cron 6am/6pm UTC, workflow_dispatch, step-level secrets, pip/HuggingFace caches, FFmpeg, 45-min timeout). Documented GitHub repo secrets in .env.example. Ready for Plan 04-02 (Vercel deployment).
+Stopped at: Phase 04 Plan 02 complete. Deployed FinFeed Next.js PWA to Vercel at https://auto-news-ai.vercel.app. next.config.ts updated with Supabase Storage remotePatterns. All 3 NEXT_PUBLIC_ env vars set in Vercel Production. GitHub auto-deploy active. Ready for Plan 04-03 (real-device validation).
 Resume file: None
