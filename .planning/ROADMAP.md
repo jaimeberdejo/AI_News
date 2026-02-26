@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - Supabase schema, storage, and API contract are live and verified
 - [x] **Phase 2: Pipeline** - Full pipeline runs locally end-to-end: RSS ingestion → scripts → TTS → Whisper alignment → FFmpeg video assembly → Supabase upload → published edition with 7-day cleanup (financial news category, variable video count) (completed 2026-02-25)
 - [x] **Phase 3: Frontend** - Next.js PWA delivers the vertical video feed with muted autoplay, tap-to-unmute, preloading, info panel (date/time/headline/source link), edition navigation, end card, and PWA installability (completed 2026-02-25)
-- [ ] **Phase 4: Ship** - GitHub Actions cron automates the pipeline, Vercel deploys the frontend, and the full user journey is validated on real devices
+- [x] **Phase 4: Ship** - GitHub Actions cron automates the pipeline, Vercel deploys the frontend, and the full user journey is validated on real devices (completed 2026-02-26)
 
 ## Phase Details
 
@@ -106,4 +106,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Foundation | 2/2 | Complete | 2026-02-24 |
 | 2. Pipeline | 5/5 | Complete   | 2026-02-25 |
 | 3. Frontend | 4/4 | Complete   | 2026-02-25 |
-| 4. Ship | 2/3 | In Progress|  |
+| 4. Ship | 3/3 | Complete   | 2026-02-26 |

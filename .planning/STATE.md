@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 
 ## Current Position
 
-Phase: 4 of 7 (Ship) — IN PROGRESS
-Plan: 3 of 4 in progress (stopped at Task 2 checkpoint:human-verify)
-Status: 04-03 Task 1 complete — GitHub secrets set, pipeline run succeeded (5-story edition published), db.py bug fixed. Stopped at Task 2 real-device validation checkpoint.
-Last activity: 2026-02-26 — Plan 04-03 Task 1 complete. All 5 GitHub secrets set. pipeline/db.py fixed (remove raise_error_if_not_found). Manual workflow_dispatch run succeeded in 4m40s: edition 6cc7df10 published (5 videos). No secret leakage in logs. Stopped at Task 2 checkpoint:human-verify — real-device iOS/Android testing required.
+Phase: 4 of 7 (Ship) — COMPLETE
+Plan: 3 of 4 complete (all tasks done; plan 04-04 is docs/closeout if needed)
+Status: 04-03 complete — GitHub Actions pipeline validated (4m40s, 5 stories), real iOS device testing passed (all critical paths A/B/C), Phase 4 done.
+Last activity: 2026-02-26 — Plan 04-03 complete. Real-device iOS validation approved by user. All critical paths (basic load, tap-to-unmute, scroll+endcard) passed on real iPhone. Phase 4 ship criteria all met. Production: https://autonews-ai.vercel.app. Cron active at 6am/6pm UTC from master.
 
-Progress: [█████████████] 83%
+Progress: [██████████████] 87%
 
 ## Performance Metrics
 
@@ -117,6 +117,7 @@ Recent decisions affecting current work:
 - [04-02]: remotePatterns wildcard /storage/v1/object/public/** covers all Supabase Storage buckets without enumerating each bucket individually
 - [Phase 04-ship]: find_dotenv() must NOT use raise_error_if_not_found=True on GitHub Actions — .env absent, secrets come from env: block in workflow
 - [Phase 04-ship]: GitHub Actions first warm-cache run: 4m40s — 45-minute timeout is very conservative; tighten to 15 minutes after a few more observed runs
+- [Phase 04-ship]: iOS real-device validation passed (tap-to-unmute critical path) — the known Phase 1 blocker confirmed resolved on real iPhone hardware; Android deferred, not a blocker for v1
 
 ### Pending Todos
 
@@ -124,12 +125,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- iOS Safari tap-to-unmute must be tested on a real iPhone (not Simulator) during Phase 6 — synchronous gesture handler only manifests on real device
 - Verify Groq free tier rate limits at console.groq.com/docs/rate-limits before scheduling
 - Video file size target (10 MB at 720p CRF 28) empirically validated: clips produced ~3-8 MB, within budget
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Phase 04 Plan 02 complete. Deployed FinFeed Next.js PWA to Vercel at https://autonews-ai.vercel.app. next.config.ts updated with Supabase Storage remotePatterns. All 3 NEXT_PUBLIC_ env vars set in Vercel Production. GitHub auto-deploy active. Ready for Plan 04-03 (real-device validation).
+Stopped at: Phase 04 Plan 03 complete. GitHub Actions pipeline validated (4m40s first run, 5 stories). Real iOS device testing approved — tap-to-unmute working on real hardware. Phase 4 ship complete. Production: https://autonews-ai.vercel.app. Cron: 6am/6pm UTC from master.
 Resume file: None
