@@ -2,24 +2,25 @@
 phase: 04-ship
 plan: "02"
 subsystem: infra
-tags: [vercel, nextjs, deployment, supabase, images]
+tags: [vercel, nextjs, deployment, supabase, environment-variables, pwa]
 
 # Dependency graph
 requires:
   - phase: 03-frontend
-    provides: Next.js app built and tested locally
-  - phase: 04-01
-    provides: GitHub Actions workflow triggering pipeline on push
+    provides: Next.js PWA app built and verified locally
+  - phase: 01-foundation
+    provides: Supabase project URL and anon key for environment variables
 provides:
+  - Live Vercel deployment at https://auto-news-ai.vercel.app
   - Next.js config with Supabase Storage remotePatterns for Image optimization
-  - Local production build verified clean (no TypeScript errors)
-  - Vercel deployment pending human dashboard setup (Task 2 checkpoint)
-affects: [04-03, device-validation]
+  - Vercel GitHub integration for auto-deploy on main branch push
+  - All 3 NEXT_PUBLIC_ environment variables set in Vercel Production
+affects: [04-03-device-validation, future-deployments]
 
 # Tech tracking
 tech-stack:
-  added: []
-  patterns: [Next.js images.remotePatterns for Supabase Storage CDN]
+  added: [vercel-github-integration]
+  patterns: [NEXT_PUBLIC_APP_URL for SSR absolute URL fetch, remotePatterns for Supabase Storage, Vercel dashboard env var configuration]
 
 key-files:
   created: []
@@ -27,81 +28,94 @@ key-files:
     - frontend/next.config.ts
 
 key-decisions:
-  - "Supabase Storage remotePatterns uses /storage/v1/object/public/** wildcard — covers all bucket paths without listing each bucket individually"
+  - "NEXT_PUBLIC_APP_URL set to https://auto-news-ai.vercel.app (not localhost) — server component in page.tsx fetches /api/today using this URL during SSR on Vercel servers"
+  - "Root Directory set to frontend in Vercel dashboard — without this, Vercel builds from repo root and fails to detect Next.js framework"
+  - "remotePatterns wildcard /storage/v1/object/public/** covers all Supabase Storage buckets without needing bucket-specific paths"
   - "No output: 'export' in config — static export mode is incompatible with Vercel serverless API routes (/api/today, /api/editions/[id])"
-  - "NEXT_PUBLIC_APP_URL must be set to Vercel production URL (not localhost) — page.tsx Server Component fetches /api/today via absolute URL during SSR on Vercel's servers"
 
 patterns-established:
   - "Vercel deployments use Root Directory: frontend — repo root is not the Next.js project root"
+  - "Vercel production env vars set via dashboard (not .env files) — .env.local used only for local development"
 
 requirements-completed: [AUTO-01]
 
 # Metrics
-duration: ~5min (Task 1 complete; Task 2 pending human action)
+duration: ~30min (includes human-action checkpoint for Vercel dashboard setup)
 completed: 2026-02-26
 ---
 
 # Phase 4 Plan 02: Vercel Deployment Summary
 
-**Next.js config updated with Supabase Storage remotePatterns and local build verified clean; Vercel dashboard deployment pending user setup**
+**FinFeed Next.js PWA deployed and live at https://auto-news-ai.vercel.app with Supabase env vars configured, GitHub auto-deploy active, and app loading without errors**
 
 ## Performance
 
-- **Duration:** ~5 min (Task 1 complete)
-- **Started:** 2026-02-26T09:40:00Z
-- **Completed:** 2026-02-26 (Task 2 pending checkpoint)
-- **Tasks:** 1/2 complete (Task 2 is a human-action checkpoint)
+- **Duration:** ~30 min (includes human-action checkpoint for Vercel dashboard setup)
+- **Started:** 2026-02-26
+- **Completed:** 2026-02-26
+- **Tasks:** 2/2 complete
 - **Files modified:** 1
 
 ## Accomplishments
-- Added `images.remotePatterns` for `yfryhktlkbemzyequgds.supabase.co` to `frontend/next.config.ts`
-- Confirmed no `output: 'export'` present — serverless API routes remain compatible
-- Local `npm run build` passes cleanly: all routes compile, no TypeScript errors
+
+- Next.js config updated with remotePatterns for Supabase Storage hostname (`yfryhktlkbemzyequgds.supabase.co`) covering all buckets under `/storage/v1/object/public/**`
+- Confirmed no `output: 'export'` in config — serverless API routes remain functional on Vercel
+- FinFeed app deployed to Vercel via GitHub integration — app loaded at https://auto-news-ai.vercel.app without errors
+- All 3 environment variables configured in Vercel Production: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL`
+- Vercel GitHub integration active — every push to `main` triggers automatic redeployment
 
 ## Task Commits
 
-Each task was committed atomically:
+Each automated task was committed atomically:
 
 1. **Task 1: Verify and fix Next.js config for production** - `0e914b0` (chore)
-2. **Task 2: Deploy to Vercel via dashboard** - PENDING (human-action checkpoint)
+2. **Task 2: Deploy to Vercel via dashboard** - human-action checkpoint (Vercel dashboard setup by user; no code commit required)
+
+**Checkpoint state commit:** `a33d987` (docs: checkpoint — next.config.ts complete, awaiting Vercel deployment)
 
 ## Files Created/Modified
-- `frontend/next.config.ts` - Added images.remotePatterns for Supabase Storage; enables Next.js Image optimization for CDN assets
+
+- `frontend/next.config.ts` — Added `images.remotePatterns` for Supabase Storage; enables Next.js Image optimization for CDN assets without blocking
 
 ## Decisions Made
-- Supabase remotePatterns wildcard `pathname: '/storage/v1/object/public/**'` covers all public buckets without enumerating each path individually
-- `output: 'export'` was NOT present in the original config (correct) — static export would break `/api/today` and `/api/editions/[id]` serverless routes
-- `NEXT_PUBLIC_APP_URL` must point to the Vercel production URL, not localhost, because `page.tsx` is a Server Component that fetches `/api/today` via absolute URL during SSR on Vercel's servers
+
+- `NEXT_PUBLIC_APP_URL` must be the Vercel production URL (`https://auto-news-ai.vercel.app`), NOT localhost — the `page.tsx` Server Component fetches `/api/today` via absolute URL during SSR on Vercel's servers; pointing to localhost silently returns no videos
+- Root Directory set to `frontend` in Vercel dashboard — without this setting, Vercel builds from repo root and fails to auto-detect the Next.js framework
+- Redeploy triggered after adding env vars — first deploy expected to have no data since variables were not yet set
 
 ## Deviations from Plan
 
-None — plan executed exactly as written. `next.config.ts` had empty config object; Supabase remotePatterns block was added as specified.
+None — plan executed exactly as written. Task 1 was a verification (remotePatterns added as specified, no `output: 'export'` found). Task 2 proceeded as a human-action checkpoint per plan design.
 
-## User Setup Required
+## User Setup Completed
 
-**Vercel deployment requires manual dashboard configuration.** Task 2 is a checkpoint:human-action gate.
+Vercel deployment required manual dashboard configuration (human-action checkpoint):
 
-Steps required:
-1. Go to https://vercel.com/new → Import Git Repository → `AutoNews_AI`
-2. Set **Root Directory** to `frontend` (critical — without this, Vercel builds from repo root)
-3. Framework auto-detects as Next.js
-4. Click Deploy (first deploy may load with no data — expected before env vars are set)
-5. Note the production URL (e.g. `https://auto-news-ai-[hash].vercel.app`)
-6. Project Settings → Environment Variables → add for **Production**:
-   - `NEXT_PUBLIC_SUPABASE_URL` = `https://yfryhktlkbemzyequgds.supabase.co`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = *(from Supabase Dashboard → Settings → API → anon/public)*
-   - `NEXT_PUBLIC_APP_URL` = *(production Vercel URL from step 5)*
-7. Deployments → Redeploy with env vars active
-8. Verify app loads at production URL without CORS errors
+| Step | Action | Outcome |
+|------|--------|---------|
+| Import repo | https://vercel.com/new → Import AutoNews_AI | Imported successfully |
+| Root Directory | Set to `frontend` | Next.js framework auto-detected |
+| First deploy | Click Deploy | Deployed (no data before env vars) |
+| Env vars | Added 3 NEXT_PUBLIC_ variables to Production | Configured |
+| Redeploy | Triggered after env var setup | App live with correct config |
+
+| Variable | Value |
+|----------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://yfryhktlkbemzyequgds.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | *(anon/public key from Supabase)* |
+| `NEXT_PUBLIC_APP_URL` | `https://auto-news-ai.vercel.app` |
 
 ## Issues Encountered
-None
+
+None. App loaded at https://auto-news-ai.vercel.app without errors after env vars were configured and a redeploy was triggered.
 
 ## Next Phase Readiness
-- Task 1 complete: `next.config.ts` is production-ready
-- Task 2 blocked on Vercel dashboard login and GitHub repo import (no pre-existing auth token)
-- Once Task 2 complete, Plan 04-03 (real-device validation) can proceed
+
+- Production deployment live and stable at https://auto-news-ai.vercel.app
+- Auto-deploy from `main` branch active — no further deploy configuration needed
+- Ready for Plan 04-03: real-device validation (iOS Safari, Android Chrome, PWA install test)
+- Reminder: iOS Safari tap-to-unmute must be tested on real iPhone (not Simulator) — synchronous gesture handler only manifests on real device
 
 ---
 *Phase: 04-ship*
-*Completed: 2026-02-26 (partial — Task 2 pending)*
+*Completed: 2026-02-26*
