@@ -6,7 +6,7 @@ import os
 from supabase import create_client, Client
 from dotenv import find_dotenv, load_dotenv
 
-load_dotenv(find_dotenv(raise_error_if_not_found=True))
+load_dotenv(find_dotenv())  # silent if no .env — env vars come from system on GitHub Actions
 
 _client: Client | None = None
 
