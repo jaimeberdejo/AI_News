@@ -30,6 +30,7 @@ Progress: [████████████] 78%
 | 01-foundation | 2 | ~62 min | ~31 min |
 | 02-pipeline | 5 | ~49 min | ~10 min |
 | 03-frontend | 4 | ~10 min | ~2.5 min |
+| 04-ship | 1 | ~2 min | ~2 min |
 
 **Recent Trend:**
 - Last 5 plans: ~10 min avg (pipeline plans well-specified)
@@ -107,6 +108,10 @@ Recent decisions affecting current work:
 - [03-schema]: editions table UNIQUE constraint on edition_date was dropped (migration 20260225) — allows multiple pipeline runs per day, each creating its own edition row identified by UUID
 - [03-UX]: MuteButton uses no positional CSS itself — positioned by absolute wrapper in VideoFeed; removes viewport-relative drift on desktop
 - [Phase 04-ship]: next.config.ts remotePatterns wildcard /storage/v1/object/public/** covers all Supabase Storage buckets; NEXT_PUBLIC_APP_URL must be Vercel production URL (not localhost) for SSR fetch in page.tsx Server Component
+- [04-01]: timeout-minutes: 45 not 30 — first cold-cache run estimated 20-28 min; tighten to 30 after measuring real runs
+- [04-01]: HuggingFace cache key is static (huggingface-faster-whisper-tiny-en-v1) — model weights are deterministic, no need for content-based key
+- [04-01]: Secrets in env: block on Run pipeline step ONLY — not at job/workflow level to minimize exposure surface
+- [04-01]: actions/cache@v4 (not v3) — v3 deprecated Feb 2025, v4 required for new cache backend service
 
 ### Pending Todos
 
@@ -120,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-25
-Stopped at: Phase 03 fully complete. Post-execution fixes and UX enhancements shipped: scroll-play IntersectionObserver bug fixed, portrait layout constrained to 430px, video info panel (date/time/headline/source link), edition navigation bar with client-side edition switching, /api/editions/[id] endpoint added. Ready for Phase 04 (Ship).
+Last session: 2026-02-26
+Stopped at: Phase 04 Plan 01 complete. Created .github/workflows/pipeline.yml (dual cron 6am/6pm UTC, workflow_dispatch, step-level secrets, pip/HuggingFace caches, FFmpeg, 45-min timeout). Documented GitHub repo secrets in .env.example. Ready for Plan 04-02 (Vercel deployment).
 Resume file: None
