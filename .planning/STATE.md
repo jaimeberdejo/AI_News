@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 4 of 7 (Ship) — IN PROGRESS
-Plan: 2 of 4 complete
-Status: 04-02 complete — FinFeed deployed to Vercel at https://autonews-ai.vercel.app
-Last activity: 2026-02-26 — Plan 04-02 complete. Deployed Next.js PWA to Vercel with Supabase env vars (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_APP_URL). App loads at https://autonews-ai.vercel.app without errors. GitHub auto-deploy active on main branch push.
+Plan: 3 of 4 in progress (stopped at Task 2 checkpoint:human-verify)
+Status: 04-03 Task 1 complete — GitHub secrets set, pipeline run succeeded (5-story edition published), db.py bug fixed. Stopped at Task 2 real-device validation checkpoint.
+Last activity: 2026-02-26 — Plan 04-03 Task 1 complete. All 5 GitHub secrets set. pipeline/db.py fixed (remove raise_error_if_not_found). Manual workflow_dispatch run succeeded in 4m40s: edition 6cc7df10 published (5 videos). No secret leakage in logs. Stopped at Task 2 checkpoint:human-verify — real-device iOS/Android testing required.
 
 Progress: [█████████████] 83%
 
@@ -115,6 +115,8 @@ Recent decisions affecting current work:
 - [04-02]: NEXT_PUBLIC_APP_URL set to https://autonews-ai.vercel.app (not localhost) — page.tsx Server Component fetches /api/today via absolute URL during SSR on Vercel servers
 - [04-02]: Root Directory set to frontend in Vercel dashboard — without this, Vercel builds from repo root and fails to detect Next.js framework
 - [04-02]: remotePatterns wildcard /storage/v1/object/public/** covers all Supabase Storage buckets without enumerating each bucket individually
+- [Phase 04-ship]: find_dotenv() must NOT use raise_error_if_not_found=True on GitHub Actions — .env absent, secrets come from env: block in workflow
+- [Phase 04-ship]: GitHub Actions first warm-cache run: 4m40s — 45-minute timeout is very conservative; tighten to 15 minutes after a few more observed runs
 
 ### Pending Todos
 
