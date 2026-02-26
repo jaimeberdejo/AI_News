@@ -38,7 +38,7 @@
 
 ### Pipeline — Automation
 
-- [ ] **AUTO-01**: GitHub Actions cron job runs the pipeline automatically 1–2x per day
+- [x] **AUTO-01**: GitHub Actions cron job runs the pipeline automatically 1–2x per day
 - [x] **AUTO-02**: Each story is processed in isolation — if 1 story fails, the remaining stories still complete and publish
 - [x] **AUTO-03**: Each pipeline run records its status (running / complete / partial / failed) in the DB
 
@@ -124,7 +124,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VIDEO-04 | Phase 2 | Complete |
 | AUTO-02 | Phase 2 | Complete |
 | AUTO-03 | Phase 2 | Complete |
-| AUTO-01 | Phase 4 | Pending |
+| AUTO-01 | Phase 4 | Complete |
 | PLAY-01 | Phase 3 | Complete |
 | PLAY-02 | Phase 3 | Complete |
 | PLAY-03 | Phase 3 | Complete |

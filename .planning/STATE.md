@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 
 ## Current Position
 
-Phase: 3 of 7 (Frontend) — COMPLETE
-Plan: 4 of 4 complete
-Status: All 03 plans executed + post-build fixes + info panel + edition navigation added
-Last activity: 2026-02-25 — Phase 03 complete. Post-execution: fixed IntersectionObserver ref bug (scroll-play), added info panel (date/time/headline/source link), added edition navigation bar (← Anterior / timestamp / Siguiente →), new /api/editions/[id] endpoint
+Phase: 4 of 7 (Ship) — IN PROGRESS
+Plan: 1 of 4 complete
+Status: 04-01 complete — GitHub Actions cron workflow created
+Last activity: 2026-02-26 — Plan 04-01 complete. Created .github/workflows/pipeline.yml with dual cron (6am/6pm UTC), workflow_dispatch, step-level secrets injection, pip/HuggingFace caches, FFmpeg install, 45-min timeout. Documented GitHub repo secrets in .env.example.
 
-Progress: [███████████] 75%
+Progress: [████████████] 78%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: ~12 min
-- Total execution time: ~116 min
+- Total plans completed: 11
+- Average duration: ~11 min
+- Total execution time: ~117 min
 
 **By Phase:**
 
@@ -106,6 +106,7 @@ Recent decisions affecting current work:
 - [03-API]: New /api/editions/[id] endpoint — returns specific published edition with sorted videos; 404 if not found or not published
 - [03-schema]: editions table UNIQUE constraint on edition_date was dropped (migration 20260225) — allows multiple pipeline runs per day, each creating its own edition row identified by UUID
 - [03-UX]: MuteButton uses no positional CSS itself — positioned by absolute wrapper in VideoFeed; removes viewport-relative drift on desktop
+- [Phase 04-ship]: next.config.ts remotePatterns wildcard /storage/v1/object/public/** covers all Supabase Storage buckets; NEXT_PUBLIC_APP_URL must be Vercel production URL (not localhost) for SSR fetch in page.tsx Server Component
 
 ### Pending Todos
 
