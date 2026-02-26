@@ -11,7 +11,7 @@ requires:
   - phase: 01-foundation
     provides: Supabase project URL and anon key for environment variables
 provides:
-  - Live Vercel deployment at https://auto-news-ai.vercel.app
+  - Live Vercel deployment at https://autonews-ai.vercel.app
   - Next.js config with Supabase Storage remotePatterns for Image optimization
   - Vercel GitHub integration for auto-deploy on main branch push
   - All 3 NEXT_PUBLIC_ environment variables set in Vercel Production
@@ -28,7 +28,7 @@ key-files:
     - frontend/next.config.ts
 
 key-decisions:
-  - "NEXT_PUBLIC_APP_URL set to https://auto-news-ai.vercel.app (not localhost) — server component in page.tsx fetches /api/today using this URL during SSR on Vercel servers"
+  - "NEXT_PUBLIC_APP_URL set to https://autonews-ai.vercel.app (not localhost) — server component in page.tsx fetches /api/today using this URL during SSR on Vercel servers"
   - "Root Directory set to frontend in Vercel dashboard — without this, Vercel builds from repo root and fails to detect Next.js framework"
   - "remotePatterns wildcard /storage/v1/object/public/** covers all Supabase Storage buckets without needing bucket-specific paths"
   - "No output: 'export' in config — static export mode is incompatible with Vercel serverless API routes (/api/today, /api/editions/[id])"
@@ -46,7 +46,7 @@ completed: 2026-02-26
 
 # Phase 4 Plan 02: Vercel Deployment Summary
 
-**FinFeed Next.js PWA deployed and live at https://auto-news-ai.vercel.app with Supabase env vars configured, GitHub auto-deploy active, and app loading without errors**
+**FinFeed Next.js PWA deployed and live at https://autonews-ai.vercel.app with Supabase env vars configured, GitHub auto-deploy active, and app loading without errors**
 
 ## Performance
 
@@ -60,7 +60,7 @@ completed: 2026-02-26
 
 - Next.js config updated with remotePatterns for Supabase Storage hostname (`yfryhktlkbemzyequgds.supabase.co`) covering all buckets under `/storage/v1/object/public/**`
 - Confirmed no `output: 'export'` in config — serverless API routes remain functional on Vercel
-- FinFeed app deployed to Vercel via GitHub integration — app loaded at https://auto-news-ai.vercel.app without errors
+- FinFeed app deployed to Vercel via GitHub integration — app loaded at https://autonews-ai.vercel.app without errors
 - All 3 environment variables configured in Vercel Production: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL`
 - Vercel GitHub integration active — every push to `main` triggers automatic redeployment
 
@@ -79,7 +79,7 @@ Each automated task was committed atomically:
 
 ## Decisions Made
 
-- `NEXT_PUBLIC_APP_URL` must be the Vercel production URL (`https://auto-news-ai.vercel.app`), NOT localhost — the `page.tsx` Server Component fetches `/api/today` via absolute URL during SSR on Vercel's servers; pointing to localhost silently returns no videos
+- `NEXT_PUBLIC_APP_URL` must be the Vercel production URL (`https://autonews-ai.vercel.app`), NOT localhost — the `page.tsx` Server Component fetches `/api/today` via absolute URL during SSR on Vercel's servers; pointing to localhost silently returns no videos
 - Root Directory set to `frontend` in Vercel dashboard — without this setting, Vercel builds from repo root and fails to auto-detect the Next.js framework
 - Redeploy triggered after adding env vars — first deploy expected to have no data since variables were not yet set
 
@@ -103,15 +103,15 @@ Vercel deployment required manual dashboard configuration (human-action checkpoi
 |----------|-------|
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://yfryhktlkbemzyequgds.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | *(anon/public key from Supabase)* |
-| `NEXT_PUBLIC_APP_URL` | `https://auto-news-ai.vercel.app` |
+| `NEXT_PUBLIC_APP_URL` | `https://autonews-ai.vercel.app` |
 
 ## Issues Encountered
 
-None. App loaded at https://auto-news-ai.vercel.app without errors after env vars were configured and a redeploy was triggered.
+None. App loaded at https://autonews-ai.vercel.app without errors after env vars were configured and a redeploy was triggered.
 
 ## Next Phase Readiness
 
-- Production deployment live and stable at https://auto-news-ai.vercel.app
+- Production deployment live and stable at https://autonews-ai.vercel.app
 - Auto-deploy from `main` branch active — no further deploy configuration needed
 - Ready for Plan 04-03: real-device validation (iOS Safari, Android Chrome, PWA install test)
 - Reminder: iOS Safari tap-to-unmute must be tested on real iPhone (not Simulator) — synchronous gesture handler only manifests on real device
