@@ -89,12 +89,12 @@ Post-plan enhancements (2026-02-25):
   2. A user on an iPhone can open the public Vercel URL, watch all 5 videos with audio, and see the "You're up to date" screen — no developer steps required
   3. The next day, the pipeline runs automatically and the user sees 5 new videos without any manual trigger
   4. The Vercel deployment serves the app with no CORS errors when streaming video from Supabase Storage
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: GitHub Actions workflow with cron, secrets, and dependency caching
-- [ ] 04-02: Vercel deployment, environment variable configuration, and CORS production verification
-- [ ] 04-03: End-to-end validation on real iOS and Android devices
+- [ ] 04-01-PLAN.md — GitHub Actions cron workflow with FFmpeg, pip cache, HuggingFace model cache, and secure secret injection
+- [ ] 04-02-PLAN.md — Vercel deployment: Next.js production config, dashboard setup, environment variable configuration
+- [ ] 04-03-PLAN.md — End-to-end validation: trigger pipeline via gh CLI, real iOS/Android device testing
 
 ## Progress
 
