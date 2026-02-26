@@ -37,7 +37,7 @@ export async function GET(
       )
     `)
     .eq('id', id)
-    .eq('status', 'published')
+    .in('status', ['published', 'partial'])
     .single()
 
   if (error || !edition) {

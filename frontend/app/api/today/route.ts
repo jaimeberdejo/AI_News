@@ -34,7 +34,7 @@ export async function GET() {
         duration
       )
     `)
-    .eq('status', 'published')
+    .in('status', ['published', 'partial'])
     .order('published_at', { ascending: false })
     .limit(1)
     .single()
@@ -43,7 +43,7 @@ export async function GET() {
   const { data: allEditions } = await supabase
     .from('editions')
     .select('id, published_at, edition_date')
-    .eq('status', 'published')
+    .in('status', ['published', 'partial'])
     .order('published_at', { ascending: false })
 
   if (error || !edition) {

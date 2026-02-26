@@ -38,7 +38,6 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
 
   const [isMuted, setIsMuted] = useState(true)
   const [activeIndex, setActiveIndex] = useState(0)
-  const [showEndCard, setShowEndCard] = useState(false)
   const [buttonProminent, setButtonProminent] = useState(false)
 
   const videos: Video[] = currentEdition?.videos ?? []
@@ -97,7 +96,6 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
       if (data.edition) {
         setCurrentEdition(data.edition)
         setActiveIndex(0)
-        setShowEndCard(false)
         if (feedRef.current) feedRef.current.scrollTop = 0
       }
     } catch {
@@ -129,13 +127,6 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
     setIsMuted(newMuted)
   }
 
-  function handleVideoEnded() {
-    if (activeIndex === videos.length - 1) {
-      setShowEndCard(true)
-    }
-    // Non-last video: do nothing — user scrolls to the next one manually
-  }
-
   function handleScreenTap(e: React.MouseEvent) {
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) return
     setButtonProminent(true)
@@ -143,7 +134,6 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   }
 
   function handleReplay() {
-    setShowEndCard(false)
     setActiveIndex(0)
     videoRefs.current.forEach(ref => {
       if (ref.current) {
@@ -155,7 +145,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   }
 
   function handleNewEdition() {
-    window.location.reload()
+    switchEdition(0)
   }
 
   const hasMultipleEditions = allEditions.length > 1
@@ -286,23 +276,25 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
           <VideoItem
             key={video.id}
             video={video}
-            onEnded={idx === videos.length - 1 ? () => setShowEndCard(true) : undefined}
+            onEnded={idx === videos.length - 1 ? () => {
+              const feed = feedRef.current
+              if (feed) feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' })
+            } : undefined}
             videoRef={videoRefs.current[idx]}
             editionPublishedAt={currentEdition?.published_at}
           />
         ))}
-      </div>
-
-      {/* End card */}
-      {showEndCard && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 60 }}>
+        {/* End card as a scroll item — reachable by scrolling or auto-scrolled to on last video end */}
+        <div className="feed-item" style={{ position: 'relative' }}>
           <EndCard
             onReplay={handleReplay}
             currentEditionId={currentEdition?.id ?? null}
             onNewEdition={handleNewEdition}
+            isActive={activeIndex === videos.length}
+            isLatestEdition={isLatest}
           />
         </div>
-      )}
+      </div>
     </div>
   )
 }
