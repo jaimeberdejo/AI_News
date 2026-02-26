@@ -2,17 +2,16 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-23)
+See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** A finite, curated daily financial briefing — users always know when they're done.
-**Current focus:** Phase 4 - Ship
+**Current focus:** Planning next milestone (v1.1)
 
 ## Current Position
 
-Phase: 4 of 7 (Ship) — COMPLETE
-Plan: 3 of 4 complete (all tasks done; plan 04-04 is docs/closeout if needed)
-Status: 04-03 complete — GitHub Actions pipeline validated (4m40s, 5 stories), real iOS device testing passed (all critical paths A/B/C), Phase 4 done.
-Last activity: 2026-02-26 — Plan 04-03 complete. Real-device iOS validation approved by user. All critical paths (basic load, tap-to-unmute, scroll+endcard) passed on real iPhone. Phase 4 ship criteria all met. Production: https://autonews-ai.vercel.app. Cron active at 6am/6pm UTC from master.
+Milestone: v1.0 MVP — COMPLETE (shipped 2026-02-26)
+Status: All 4 phases complete (14/14 plans). Production live at https://autonews-ai.vercel.app. Cron active at 6am/5pm EST from master.
+Last activity: 2026-02-26 — v1.0 milestone archived. Next: /gsd:new-milestone to define v1.1.
 
 Progress: [██████████████] 87%
 
