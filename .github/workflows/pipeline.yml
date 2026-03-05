@@ -2,8 +2,7 @@ name: FinFeed Pipeline
 
 on:
   schedule:
-    - cron: '0 11 * * *'   # 6am EST / 11am UTC — pre-market briefing
-    - cron: '0 22 * * *'   # 5pm EST / 10pm UTC — market close recap
+    - cron: '0 11 * * *'   # 6am EST / 11am UTC — morning briefing
   workflow_dispatch:         # Manual trigger for testing
 
 jobs:
