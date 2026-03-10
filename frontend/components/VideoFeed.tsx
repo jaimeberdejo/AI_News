@@ -60,6 +60,12 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   // Ref to the scroll container for scroll-event index tracking
   const feedRef = useRef<HTMLDivElement>(null)
 
+  // Per-tab scroll state: preserves activeIndex and scrollTop when switching categories
+  const tabScrollState = useRef<Record<Category, { activeIndex: number; scrollTop: number }>>({
+    finance: { activeIndex: 0, scrollTop: 0 },
+    tech: { activeIndex: 0, scrollTop: 0 },
+  })
+
   // ── Index tracking via scroll ────────────────────────────────────────────
   // More reliable than IntersectionObserver for scroll-snap feeds:
   // each item is exactly clientHeight tall, so Math.round(scrollTop/clientHeight)
@@ -117,22 +123,39 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   // ── Category switching ───────────────────────────────────────────────────
   const switchCategory = useCallback(async (next: Category) => {
     if (next === category) return
+
+    // Save current tab's scroll state
+    tabScrollState.current[category] = {
+      activeIndex,
+      scrollTop: feedRef.current?.scrollTop ?? 0,
+    }
+
     setCategory(next)
     setIsLoadingEdition(true)
     setEditionIndex(0)
-    setActiveIndex(0)
-    if (feedRef.current) feedRef.current.scrollTop = 0
+
+    // Restore saved scroll state for the next tab
+    const saved = tabScrollState.current[next]
+    setActiveIndex(saved.activeIndex)
+    if (feedRef.current) feedRef.current.scrollTop = saved.scrollTop
+
     try {
       const res = await fetch(`/api/today?category=${next}`, { cache: 'no-store' })
       const data = await res.json()
       setCurrentEdition(data.edition ?? null)
       setEditionList(data.all_editions ?? [])
+      // After edition loads, restore scroll to saved position
+      // Use requestAnimationFrame to wait for DOM to update with new videos
+      requestAnimationFrame(() => {
+        if (feedRef.current) feedRef.current.scrollTop = saved.scrollTop
+        setActiveIndex(saved.activeIndex)
+      })
     } catch {
       // stay on current
     } finally {
       setIsLoadingEdition(false)
     }
-  }, [category])
+  }, [category, activeIndex])
 
   if (videos.length === 0 && !isLoadingEdition) {
     return (
