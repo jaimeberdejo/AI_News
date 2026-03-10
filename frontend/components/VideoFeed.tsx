@@ -12,6 +12,13 @@ import { VideoItem } from './VideoItem'
 import { MuteButton } from './MuteButton'
 import { EndCard } from './EndCard'
 
+type Category = 'finance' | 'tech'
+
+const CATEGORY_LABELS: Record<Category, string> = {
+  finance: 'Finance',
+  tech: 'Tech',
+}
+
 interface VideoFeedProps {
   initialEdition: Edition | null
   allEditions: EditionMeta[]
@@ -32,7 +39,9 @@ function formatEditionLabel(meta: EditionMeta): string {
 }
 
 export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
+  const [category, setCategory] = useState<Category>('finance')
   const [currentEdition, setCurrentEdition] = useState<Edition | null>(initialEdition)
+  const [editionList, setEditionList] = useState<EditionMeta[]>(allEditions)
   const [editionIndex, setEditionIndex] = useState(0)
   const [isLoadingEdition, setIsLoadingEdition] = useState(false)
 
@@ -86,7 +95,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
 
   // ── Edition switching ────────────────────────────────────────────────────
   const switchEdition = useCallback(async (newIndex: number) => {
-    const target = allEditions[newIndex]
+    const target = editionList[newIndex]
     if (!target) return
     setIsLoadingEdition(true)
     setEditionIndex(newIndex)
@@ -103,7 +112,27 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
     } finally {
       setIsLoadingEdition(false)
     }
-  }, [allEditions])
+  }, [editionList])
+
+  // ── Category switching ───────────────────────────────────────────────────
+  const switchCategory = useCallback(async (next: Category) => {
+    if (next === category) return
+    setCategory(next)
+    setIsLoadingEdition(true)
+    setEditionIndex(0)
+    setActiveIndex(0)
+    if (feedRef.current) feedRef.current.scrollTop = 0
+    try {
+      const res = await fetch(`/api/today?category=${next}`, { cache: 'no-store' })
+      const data = await res.json()
+      setCurrentEdition(data.edition ?? null)
+      setEditionList(data.all_editions ?? [])
+    } catch {
+      // stay on current
+    } finally {
+      setIsLoadingEdition(false)
+    }
+  }, [category])
 
   if (videos.length === 0 && !isLoadingEdition) {
     return (
@@ -148,9 +177,9 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
     switchEdition(0)
   }
 
-  const hasMultipleEditions = allEditions.length > 1
+  const hasMultipleEditions = editionList.length > 1
   const isLatest = editionIndex === 0
-  const isOldest = editionIndex === allEditions.length - 1
+  const isOldest = editionIndex === editionList.length - 1
 
   return (
     <div
@@ -164,6 +193,45 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
       }}
       onClick={handleScreenTap}
     >
+      {/* Category tab bar */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 60,
+          paddingTop: 'calc(env(safe-area-inset-top) + 8px)',
+          paddingBottom: '8px',
+          paddingLeft: '16px',
+          paddingRight: '16px',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, transparent 100%)',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(([cat, label]) => (
+            <button
+              key={cat}
+              onClick={e => { e.stopPropagation(); switchCategory(cat) }}
+              disabled={isLoadingEdition}
+              style={{
+                border: 'none',
+                borderRadius: '20px',
+                padding: '5px 14px',
+                fontSize: '0.82rem',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                cursor: 'pointer',
+                background: cat === category ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.15)',
+                color: cat === category ? '#000' : '#fff',
+                fontWeight: cat === category ? 600 : 400,
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Edition navigation bar */}
       {hasMultipleEditions && (
         <div
@@ -172,7 +240,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
             top: 0,
             left: 0,
             right: 0,
-            paddingTop: 'calc(env(safe-area-inset-top) + 8px)',
+            paddingTop: 'calc(env(safe-area-inset-top) + 50px)',
             paddingBottom: '8px',
             paddingLeft: '12px',
             paddingRight: '12px',
@@ -202,7 +270,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
             ← Anterior
           </button>
           <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.78rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-            {isLoadingEdition ? 'Cargando…' : allEditions[editionIndex] ? formatEditionLabel(allEditions[editionIndex]) : ''}
+            {isLoadingEdition ? 'Cargando…' : editionList[editionIndex] ? formatEditionLabel(editionList[editionIndex]) : ''}
           </span>
           <button
             onClick={e => { e.stopPropagation(); switchEdition(editionIndex - 1) }}
@@ -230,8 +298,8 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
           style={{
             position: 'absolute',
             top: hasMultipleEditions
-              ? 'calc(env(safe-area-inset-top) + 46px)'
-              : 'calc(env(safe-area-inset-top) + 10px)',
+              ? 'calc(env(safe-area-inset-top) + 96px)'
+              : 'calc(env(safe-area-inset-top) + 58px)',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 40,
@@ -261,8 +329,8 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         style={{
           position: 'absolute',
           top: hasMultipleEditions
-            ? 'calc(env(safe-area-inset-top) + 40px)'
-            : 'calc(env(safe-area-inset-top) + 8px)',
+            ? 'calc(env(safe-area-inset-top) + 90px)'
+            : 'calc(env(safe-area-inset-top) + 52px)',
           right: '12px',
           zIndex: 40,
         }}
