@@ -61,18 +61,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TECH-01 | — | Pending |
-| TECH-02 | — | Pending |
-| TECH-03 | — | Pending |
-| CATUI-01 | — | Pending |
-| CATUI-02 | — | Pending |
-| CATUI-03 | — | Pending |
+| TECH-01 | Phase 5 | Pending |
+| TECH-02 | Phase 5 | Pending |
+| TECH-03 | Phase 5 | Pending |
+| CATUI-01 | Phase 6 | Pending |
+| CATUI-02 | Phase 6 | Pending |
+| CATUI-03 | Phase 6 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 6 total
-- Mapped to phases: 0
-- Unmapped: 6 ⚠️
+- Mapped to phases: 6
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-10*
-*Last updated: 2026-03-10 after initial definition*
+*Last updated: 2026-03-10 — traceability populated after roadmap creation*
