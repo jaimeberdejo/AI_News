@@ -9,9 +9,9 @@ Requirements for the Multi-Category milestone. Each maps to roadmap phases.
 
 ### Tech Pipeline
 
-- [ ] **TECH-01**: A new tech news edition is automatically generated and published daily
-- [ ] **TECH-02**: Tech pipeline ingests from free tech-focused RSS feeds (TechCrunch, Hacker News, Ars Technica, etc.)
-- [ ] **TECH-03**: Tech video scripts use a tech-appropriate narration tone (not the financial influencer style)
+- [x] **TECH-01**: A new tech news edition is automatically generated and published daily
+- [x] **TECH-02**: Tech pipeline ingests from free tech-focused RSS feeds (TechCrunch, Hacker News, Ars Technica, etc.)
+- [x] **TECH-03**: Tech video scripts use a tech-appropriate narration tone (not the financial influencer style)
 
 ### Category UI
 
@@ -61,9 +61,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TECH-01 | Phase 5 | Pending |
-| TECH-02 | Phase 5 | Pending |
-| TECH-03 | Phase 5 | Pending |
+| TECH-01 | Phase 5 | Complete |
+| TECH-02 | Phase 5 | Complete |
+| TECH-03 | Phase 5 | Complete |
 | CATUI-01 | Phase 6 | Pending |
 | CATUI-02 | Phase 6 | Pending |
 | CATUI-03 | Phase 6 | Pending |
