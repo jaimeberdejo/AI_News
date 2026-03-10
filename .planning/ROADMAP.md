@@ -24,6 +24,9 @@ See full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 **Milestone Goal:** Expand FinFeed from finance-only to a two-category app (Finance + Tech) with automated tech pipeline and tab bar UI.
 
 - [ ] **Phase 5: Tech Pipeline** - Automated daily tech news edition generation runs on GitHub Actions
+  - Plans: 2 plans
+  - [ ] 05-01-PLAN.md — DB migration + pipeline parameterization (ingest, script, run)
+  - [ ] 05-02-PLAN.md — GitHub Actions second independent job for tech pipeline
 - [ ] **Phase 6: Category UI** - Tab bar lets users switch between Finance and Tech feeds without page reload
 
 ## Phase Details
@@ -37,7 +40,11 @@ See full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   2. Tech videos are narrated with a tech-appropriate tone — not the financial influencer style used for finance
   3. Tech RSS feeds (TechCrunch, Hacker News, Ars Technica, etc.) are the source — not Yahoo Finance or CNBC
   4. Tech and finance editions are generated independently — a failure in one does not block the other
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — DB migration + pipeline parameterization (ingest, script, run)
+- [ ] 05-02-PLAN.md — GitHub Actions second independent job for tech pipeline
 
 ### Phase 6: Category UI
 **Goal**: Users can switch between Finance and Tech feeds via a tab bar with no page reload and independent per-tab scroll position
@@ -58,5 +65,5 @@ See full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 2. Pipeline | v1.0 | 5/5 | Complete | 2026-02-25 |
 | 3. Frontend | v1.0 | 4/4 | Complete | 2026-02-25 |
 | 4. Ship | v1.0 | 3/3 | Complete | 2026-02-26 |
-| 5. Tech Pipeline | v1.1 | 0/? | Not started | - |
+| 5. Tech Pipeline | v1.1 | 0/2 | Not started | - |
 | 6. Category UI | v1.1 | 0/? | Not started | - |
