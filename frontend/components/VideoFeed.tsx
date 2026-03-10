@@ -97,7 +97,9 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         ref.current.pause()
       }
     })
-  }, [activeIndex])
+  // currentEdition?.id re-triggers play when a new edition loads after category switch
+  // (activeIndex stays 0 in that case, so the dep alone wouldn't fire again)
+  }, [activeIndex, currentEdition?.id])
 
   // ── Edition switching ────────────────────────────────────────────────────
   const switchEdition = useCallback(async (newIndex: number) => {
@@ -157,16 +159,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
     }
   }, [category, activeIndex])
 
-  if (videos.length === 0 && !isLoadingEdition) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#000', color: 'white', textAlign: 'center', padding: '32px' }}>
-        <div>
-          <p style={{ fontSize: '1.1rem', fontWeight: 600, fontFamily: 'system-ui, -apple-system, sans-serif' }}>No hay vídeos todavía</p>
-          <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.4)', marginTop: '8px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Vuelve pronto</p>
-        </div>
-      </div>
-    )
-  }
+  const isEmpty = videos.length === 0 && !isLoadingEdition
 
   // CRITICAL: fully synchronous, no async. iOS requires .muted inside the
   // user-gesture call stack or the browser ignores it.
@@ -361,30 +354,42 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         <MuteButton isMuted={isMuted} onToggle={handleMuteToggle} prominent={buttonProminent} />
       </div>
 
-      {/* Scroll container */}
+      {/* Scroll container — always mounted so feedRef + scroll listener are stable */}
       <div ref={feedRef} className="feed-container">
-        {videos.map((video, idx) => (
-          <VideoItem
-            key={video.id}
-            video={video}
-            onEnded={idx === videos.length - 1 ? () => {
-              const feed = feedRef.current
-              if (feed) feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' })
-            } : undefined}
-            videoRef={videoRefs.current[idx]}
-            editionPublishedAt={currentEdition?.published_at}
-          />
-        ))}
-        {/* End card as a scroll item — reachable by scrolling or auto-scrolled to on last video end */}
-        <div className="feed-item" style={{ position: 'relative' }}>
-          <EndCard
-            onReplay={handleReplay}
-            currentEditionId={currentEdition?.id ?? null}
-            onNewEdition={handleNewEdition}
-            isActive={activeIndex === videos.length}
-            isLatestEdition={isLatest}
-          />
-        </div>
+        {isEmpty ? (
+          /* Empty state as a single snap-item so the container still has content */
+          <div className="feed-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ textAlign: 'center', padding: '32px', color: 'white' }}>
+              <p style={{ fontSize: '1.1rem', fontWeight: 600, fontFamily: 'system-ui, -apple-system, sans-serif' }}>No hay vídeos todavía</p>
+              <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.4)', marginTop: '8px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Vuelve pronto</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {videos.map((video, idx) => (
+              <VideoItem
+                key={video.id}
+                video={video}
+                onEnded={idx === videos.length - 1 ? () => {
+                  const feed = feedRef.current
+                  if (feed) feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' })
+                } : undefined}
+                videoRef={videoRefs.current[idx]}
+                editionPublishedAt={currentEdition?.published_at}
+              />
+            ))}
+            {/* End card as a scroll item — reachable by scrolling or auto-scrolled to on last video end */}
+            <div className="feed-item" style={{ position: 'relative' }}>
+              <EndCard
+                onReplay={handleReplay}
+                currentEditionId={currentEdition?.id ?? null}
+                onNewEdition={handleNewEdition}
+                isActive={activeIndex === videos.length}
+                isLatestEdition={isLatest}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
