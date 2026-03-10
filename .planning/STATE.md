@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** v1.1 Multi-Category — Phase 5: Tech Pipeline
+**Current focus:** v1.1 Multi-Category — COMPLETE (Phase 6 done)
 
 ## Current Position
 
-Phase: 5 of 6 (Tech Pipeline)
-Plan: 2 of ? in current phase
-Status: In progress
-Last activity: 2026-03-10 — 05-02 complete (independent tech-pipeline GitHub Actions job)
+Phase: 6 of 6 (Category UI) — COMPLETE
+Plan: 1 of 1 in current phase — COMPLETE
+Status: v1.1 milestone complete
+Last activity: 2026-03-10 — 06-01 complete (category tab bar + scroll memory, human verified)
 
-Progress: [████░░░░░░] ~45% (4/6 phases, 2 plans completed in Phase 5)
+Progress: [██████████] 100% (6/6 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14 (v1.0) + 2 (v1.1 so far)
-- Average duration: ~11 min (v1.0), ~2 min (v1.1 plans)
-- Total execution time: ~117 min (v1.0)
+- Total plans completed: 14 (v1.0) + 3 (v1.1)
+- Average duration: ~11 min (v1.0), ~14 min (v1.1 plans avg)
+- Total execution time: ~117 min (v1.0), ~39 min (v1.1)
 
 **By Phase:**
 
@@ -32,14 +32,15 @@ Progress: [████░░░░░░] ~45% (4/6 phases, 2 plans completed i
 | 03-frontend | 4 | ~10 min | ~2.5 min |
 | 04-ship | 3 | ~2 min | ~1 min |
 | 05-tech-pipeline | 2 | ~4 min | ~2 min |
+| 06-category-ui | 1 | ~35 min | ~35 min |
 
 **Recent Trend:**
-- Pipeline and frontend work runs fast when plans are well-specified
+- Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
 - Trend: Stable
 
 *Updated after each plan completion*
 | Phase 05-tech-pipeline P02 | 1 | 1 tasks | 1 files |
-| Phase 06-category-ui P01 | 2 | 2 tasks | 1 files |
+| Phase 06-category-ui P01 | 35 | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -58,21 +59,21 @@ Recent decisions affecting current work:
 - [05-01]: Finance system prompt preserved exactly from v1.0 — zero behavioral regression on existing category
 - [05-02]: Two independent jobs (no needs:) chosen — finance failure must not block tech edition generation
 - [05-02]: Job setup steps duplicated verbatim (no reusable workflow) — simplicity over DRY for a two-job workflow
-- [Phase 05-02]: Two independent jobs (no needs:) — finance failure must not block tech edition generation
-- [Phase 05-02]: Job setup steps duplicated verbatim (no reusable workflow) — simplicity over DRY for a two-job workflow
 - [Phase 06-01]: tabScrollState as useRef not useState — scroll position is imperative state, not render state
 - [Phase 06-01]: Tab bar unconditional (not gated on hasMultipleEditions) — always present per CATUI-01
+- [Phase 06-01]: currentEdition?.id added to play/pause useEffect deps — activeIndex alone does not re-fire when switching at index 0
+- [Phase 06-01]: Feed container always mounted (no early-return empty state) — keeps feedRef stable across category switches
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-- API endpoint category filtering: /api/today must become category-aware before Phase 6 can wire up tabs
+None. v1.1 is complete.
 
 ## Session Continuity
 
 Last session: 2026-03-10
-Stopped at: Completed 05-02-PLAN.md — independent tech-pipeline GitHub Actions job added. Phase 5 continues with remaining plans.
+Stopped at: Completed 06-01-PLAN.md — category tab bar + scroll memory, human verified. v1.1 Multi-Category milestone complete.
 Resume file: None

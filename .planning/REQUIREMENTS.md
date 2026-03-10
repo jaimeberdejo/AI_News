@@ -15,9 +15,9 @@ Requirements for the Multi-Category milestone. Each maps to roadmap phases.
 
 ### Category UI
 
-- [ ] **CATUI-01**: User sees Finance and Tech tabs at the top of the feed
-- [ ] **CATUI-02**: User can switch between Finance and Tech by tapping a tab (no page reload)
-- [ ] **CATUI-03**: Each tab maintains its own video position — switching tabs doesn't reset where the user was
+- [x] **CATUI-01**: User sees Finance and Tech tabs at the top of the feed
+- [x] **CATUI-02**: User can switch between Finance and Tech by tapping a tab (no page reload)
+- [x] **CATUI-03**: Each tab maintains its own video position — switching tabs doesn't reset where the user was
 
 ## Future Requirements (v1.2+)
 
@@ -64,9 +64,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TECH-01 | Phase 5 | Complete |
 | TECH-02 | Phase 5 | Complete |
 | TECH-03 | Phase 5 | Complete |
-| CATUI-01 | Phase 6 | Pending |
-| CATUI-02 | Phase 6 | Pending |
-| CATUI-03 | Phase 6 | Pending |
+| CATUI-01 | Phase 6 | Complete |
+| CATUI-02 | Phase 6 | Complete |
+| CATUI-03 | Phase 6 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 6 total
