@@ -12,6 +12,15 @@ v1 ships with financial news. v2+ will expand to additional categories (technolo
 
 A finite, curated daily briefing in vertical video format — users always know when they're done. No infinite scroll, no algorithmic rabbit holes. Just today's most important stories, consumed in the format people already know how to use.
 
+## Current Milestone: v1.1 Multi-Category
+
+**Goal:** Expand FinFeed from finance-only to a two-category app (Finance + Tech) with a tab bar for switching.
+
+**Target features:**
+- Tech news pipeline: automated daily video generation for the technology category
+- Tab bar UI: Finance | Tech switcher in the PWA frontend
+- Category-aware API and DB queries
+
 ## Requirements
 
 ### Validated
@@ -33,19 +42,22 @@ A finite, curated daily briefing in vertical video format — users always know 
 
 ### Active
 
-- [ ] Regression-test hallucination prevention: validate numbers/percentages in scripts against source articles (QUAL-01)
-- [ ] Upgrade to higher-quality LLM for script writing (QUAL-02)
-- [ ] Upgrade TTS to tts-1-hd or ElevenLabs for more expressive narration (QUAL-03)
-- [ ] Replace Pexels free tier b-roll with premium stock footage API (QUAL-04)
-- [ ] Push notifications for new daily edition (PUSH-01)
-- [ ] User accounts with watch history and notification preferences (AUTH-01–03)
+- [ ] Tech news pipeline runs daily via GitHub Actions, producing a full tech edition (TECH-01)
+- [ ] Pipeline uses tech-focused RSS feeds and appropriate LLM tone for technology news (TECH-02)
+- [ ] Tab bar (Finance | Tech) at top of PWA — user switches category without page reload (TECH-03)
+- [ ] Each category shows its own daily feed with independent edition navigation (TECH-04)
 
-### Out of Scope (v1 — validated)
+### Out of Scope (v1.1)
 
-- User accounts / authentication — open access for validation; v2+
-- Multiple news categories — financial news only for v1; architecture supports expansion
+- Hallucination guard (QUAL-01) — deferred to v1.2+
+- LLM upgrade (QUAL-02) — deferred to v1.2+; Groq free tier sufficient at current volume
+- TTS upgrade (QUAL-03) — deferred to v1.2+; cost not justified until scale
+- Premium b-roll (QUAL-04) — deferred to v1.2+; Pexels free tier adequate
+- Push notifications (PUSH-01) — deferred to v1.2+
+- User accounts / authentication — open access sufficient for validation; v1.2+
+- Sports, politics, science categories — v1.1 adds tech only; expand in v1.2+
 - Native mobile app — PWA web-first only
-- Multiple languages — English only for v1
+- Multiple languages — English only
 - Personalized feeds — one curated feed per category for all users
 - Monetization / subscriptions — validation phase only
 - Social features (comments, likes) — not core to finite feed value proposition
@@ -90,4 +102,4 @@ A finite, curated daily briefing in vertical video format — users always know 
 | editions UNIQUE constraint dropped (multi-edition per day) | Allows multiple pipeline runs per day for partial recovery | ✓ Good — each edition has its own UUID |
 
 ---
-*Last updated: 2026-02-26 after v1.0 milestone*
+*Last updated: 2026-03-10 after v1.1 milestone started*

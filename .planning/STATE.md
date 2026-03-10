@@ -2,18 +2,17 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-26)
+See: .planning/PROJECT.md (updated 2026-03-10)
 
-**Core value:** A finite, curated daily financial briefing — users always know when they're done.
-**Current focus:** Planning next milestone (v1.1)
+**Core value:** A finite, curated daily briefing — users always know when they're done.
+**Current focus:** v1.1 Multi-Category — Tech news + tab bar
 
 ## Current Position
 
-Milestone: v1.0 MVP — COMPLETE (shipped 2026-02-26)
-Status: All 4 phases complete (14/14 plans). Production live at https://autonews-ai.vercel.app. Cron active at 6am/5pm EST from master.
-Last activity: 2026-02-26 — v1.0 milestone archived. Next: /gsd:new-milestone to define v1.1.
-
-Progress: [██████████████] 87%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-10 — Milestone v1.1 Multi-Category started
 
 ## Performance Metrics
 
