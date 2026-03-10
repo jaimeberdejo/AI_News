@@ -55,7 +55,10 @@ Plans:
   2. Tapping a tab switches to that category's feed without a full page reload
   3. Switching from Tech back to Finance (or vice versa) resumes at the same video position the user left — it does not restart from video 1
   4. Each tab shows only its own category's videos — no cross-category mixing
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 06-01-PLAN.md — Tab bar UI, overlay offset adjustments, per-tab scroll position memory
 
 ## Progress
 
