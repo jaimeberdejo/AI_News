@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-02-26) — [Archive](milestones/v1.0-ROADMAP.md)
-- 🚧 **v1.1 Multi-Category** — Phases 5-6 (in progress)
+- ✅ **v1.1 Multi-Category** — Phases 5-6 (shipped 2026-03-10)
 
 ## Phases
 
@@ -19,15 +19,18 @@ See full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 </details>
 
-### 🚧 v1.1 Multi-Category (In Progress)
-
-**Milestone Goal:** Expand FinFeed from finance-only to a two-category app (Finance + Tech) with automated tech pipeline and tab bar UI.
+<details>
+<summary>✅ v1.1 Multi-Category (Phases 5-6) — SHIPPED 2026-03-10</summary>
 
 - [x] **Phase 5: Tech Pipeline** - Automated daily tech news edition generation runs on GitHub Actions (completed 2026-03-10)
   - Plans: 2 plans
-  - [ ] 05-01-PLAN.md — DB migration + pipeline parameterization (ingest, script, run)
-  - [ ] 05-02-PLAN.md — GitHub Actions second independent job for tech pipeline
+  - [x] 05-01-PLAN.md — DB migration + pipeline parameterization (ingest, script, run)
+  - [x] 05-02-PLAN.md — GitHub Actions second independent job for tech pipeline
 - [x] **Phase 6: Category UI** - Tab bar lets users switch between Finance and Tech feeds without page reload (completed 2026-03-10)
+  - Plans: 1 plan
+  - [x] 06-01-PLAN.md — Tab bar UI, overlay offset adjustments, per-tab scroll position memory
+
+</details>
 
 ## Phase Details
 
@@ -43,8 +46,8 @@ See full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — DB migration + pipeline parameterization (ingest, script, run)
-- [ ] 05-02-PLAN.md — GitHub Actions second independent job for tech pipeline
+- [x] 05-01-PLAN.md — DB migration + pipeline parameterization (ingest, script, run)
+- [x] 05-02-PLAN.md — GitHub Actions second independent job for tech pipeline
 
 ### Phase 6: Category UI
 **Goal**: Users can switch between Finance and Tech feeds via a tab bar with no page reload and independent per-tab scroll position
@@ -58,7 +61,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 06-01-PLAN.md — Tab bar UI, overlay offset adjustments, per-tab scroll position memory
+- [x] 06-01-PLAN.md — Tab bar UI, overlay offset adjustments, per-tab scroll position memory
 
 ## Progress
 
@@ -68,5 +71,5 @@ Plans:
 | 2. Pipeline | v1.0 | 5/5 | Complete | 2026-02-25 |
 | 3. Frontend | v1.0 | 4/4 | Complete | 2026-02-25 |
 | 4. Ship | v1.0 | 3/3 | Complete | 2026-02-26 |
-| 5. Tech Pipeline | 2/2 | Complete   | 2026-03-10 | - |
-| 6. Category UI | 1/1 | Complete   | 2026-03-10 | - |
+| 5. Tech Pipeline | v1.1 | 2/2 | Complete | 2026-03-10 |
+| 6. Category UI | v1.1 | 1/1 | Complete | 2026-03-10 |
