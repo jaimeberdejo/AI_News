@@ -1,6 +1,15 @@
 """
-FinFeed Pipeline — Entry point
-Run with: python -m pipeline.run
+AutoNews_AI Pipeline — Entry point
+Run with: python -m pipeline.run [category]
+
+Category argument:
+  finance  (default) — Yahoo Finance + CNBC feeds, financial influencer tone
+  tech               — TechCrunch + Hacker News + Ars Technica feeds, tech journalist tone
+
+Examples:
+  python -m pipeline.run
+  python -m pipeline.run finance
+  python -m pipeline.run tech
 
 Prerequisites:
   - FFmpeg installed: brew install ffmpeg (macOS) or apt install ffmpeg (Linux)
@@ -10,6 +19,7 @@ Prerequisites:
 """
 import logging
 import shutil
+import sys
 import tempfile
 from datetime import date
 from pathlib import Path
@@ -29,6 +39,13 @@ logger = logging.getLogger(__name__)
 
 
 def run() -> None:
+    # Read category from CLI argument (default: 'finance')
+    category = sys.argv[1] if len(sys.argv) > 1 else "finance"
+    if category not in ("finance", "tech"):
+        raise ValueError(f"Unknown category '{category}'. Must be 'finance' or 'tech'.")
+
+    logger.info("=== Pipeline starting for category: %s ===", category)
+
     # Startup check: FFmpeg must be available
     if shutil.which("ffmpeg") is None:
         raise RuntimeError(
@@ -41,15 +58,15 @@ def run() -> None:
     # AUTO-03: Insert pipeline_runs audit record at start
     run_row = db.table("pipeline_runs").insert({"status": "running"}).execute().data[0]
     run_id = run_row["id"]
-    steps_log: list[dict] = []
+    steps_log: list[dict] = [{"step": "start", "category": category}]
     error_log: list[dict] = []
     edition_id: str | None = None
     final_status = "failed"
 
     try:
-        # Stage 1: Ingest articles from RSS feeds
+        # Stage 1: Ingest articles from category-specific RSS feeds
         logger.info("=== Stage 1: RSS Ingestion ===")
-        articles = ingest.fetch_and_deduplicate()
+        articles = ingest.fetch_and_deduplicate(category)
         steps_log.append({"step": "ingest", "article_count": len(articles)})
         logger.info("Fetched %d deduplicated articles", len(articles))
 
@@ -65,7 +82,7 @@ def run() -> None:
 
         # Stage 2: Story selection + script writing + DB video row inserts
         logger.info("=== Stage 2: Story Selection + Script Writing ===")
-        edition_id, stories = script.select_and_write(articles)
+        edition_id, stories = script.select_and_write(articles, category)
 
         db.table("pipeline_runs").update({"edition_id": edition_id}).eq("id", run_id).execute()
         steps_log.append({"step": "script", "story_count": len(stories), "edition_id": edition_id})
