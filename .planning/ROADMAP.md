@@ -23,7 +23,7 @@ See full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 **Milestone Goal:** Expand FinFeed from finance-only to a two-category app (Finance + Tech) with automated tech pipeline and tab bar UI.
 
-- [ ] **Phase 5: Tech Pipeline** - Automated daily tech news edition generation runs on GitHub Actions
+- [x] **Phase 5: Tech Pipeline** - Automated daily tech news edition generation runs on GitHub Actions (completed 2026-03-10)
   - Plans: 2 plans
   - [ ] 05-01-PLAN.md — DB migration + pipeline parameterization (ingest, script, run)
   - [ ] 05-02-PLAN.md — GitHub Actions second independent job for tech pipeline
@@ -65,5 +65,5 @@ Plans:
 | 2. Pipeline | v1.0 | 5/5 | Complete | 2026-02-25 |
 | 3. Frontend | v1.0 | 4/4 | Complete | 2026-02-25 |
 | 4. Ship | v1.0 | 3/3 | Complete | 2026-02-26 |
-| 5. Tech Pipeline | 1/2 | In Progress|  | - |
+| 5. Tech Pipeline | 2/2 | Complete   | 2026-03-10 | - |
 | 6. Category UI | v1.1 | 0/? | Not started | - |
