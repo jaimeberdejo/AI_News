@@ -39,6 +39,7 @@ Progress: [████░░░░░░] ~45% (4/6 phases, 2 plans completed i
 
 *Updated after each plan completion*
 | Phase 05-tech-pipeline P02 | 1 | 1 tasks | 1 files |
+| Phase 06-category-ui P01 | 2 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -59,6 +60,8 @@ Recent decisions affecting current work:
 - [05-02]: Job setup steps duplicated verbatim (no reusable workflow) — simplicity over DRY for a two-job workflow
 - [Phase 05-02]: Two independent jobs (no needs:) — finance failure must not block tech edition generation
 - [Phase 05-02]: Job setup steps duplicated verbatim (no reusable workflow) — simplicity over DRY for a two-job workflow
+- [Phase 06-01]: tabScrollState as useRef not useState — scroll position is imperative state, not render state
+- [Phase 06-01]: Tab bar unconditional (not gated on hasMultipleEditions) — always present per CATUI-01
 
 ### Pending Todos
 

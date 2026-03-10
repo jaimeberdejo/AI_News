@@ -27,7 +27,7 @@ See full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
   - Plans: 2 plans
   - [ ] 05-01-PLAN.md — DB migration + pipeline parameterization (ingest, script, run)
   - [ ] 05-02-PLAN.md — GitHub Actions second independent job for tech pipeline
-- [ ] **Phase 6: Category UI** - Tab bar lets users switch between Finance and Tech feeds without page reload
+- [x] **Phase 6: Category UI** - Tab bar lets users switch between Finance and Tech feeds without page reload (completed 2026-03-10)
 
 ## Phase Details
 
@@ -69,4 +69,4 @@ Plans:
 | 3. Frontend | v1.0 | 4/4 | Complete | 2026-02-25 |
 | 4. Ship | v1.0 | 3/3 | Complete | 2026-02-26 |
 | 5. Tech Pipeline | 2/2 | Complete   | 2026-03-10 | - |
-| 6. Category UI | v1.1 | 0/? | Not started | - |
+| 6. Category UI | 1/1 | Complete   | 2026-03-10 | - |
