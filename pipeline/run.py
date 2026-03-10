@@ -107,7 +107,7 @@ def run() -> None:
                 mp4_path = video.assemble(broll_path, mp3_path, ass_path, tmp_dir, story.position)
 
                 # Upload to Supabase Storage
-                url = storage.upload_video(mp4_path, edition_id, story.position, edition_date)
+                url = storage.upload_video(mp4_path, edition_id, story.position, edition_date, category)
 
                 results.append(VideoResult(
                     story_id=story.db_video_id,

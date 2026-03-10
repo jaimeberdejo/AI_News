@@ -16,6 +16,7 @@ export interface Edition {
   edition_date: string
   status: string
   published_at: string | null
+  category: string
   videos: Video[]
 }
 
@@ -24,6 +25,7 @@ export interface EditionMeta {
   id: string
   published_at: string | null
   edition_date: string
+  category: string
 }
 
 interface EditionState {

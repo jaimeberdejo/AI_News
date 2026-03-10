@@ -14,7 +14,10 @@ function getSupabase() {
   )
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const category = searchParams.get('category') ?? 'finance'
+
   const supabase = getSupabase()
 
   // Latest edition with full video data
@@ -25,6 +28,7 @@ export async function GET() {
       edition_date,
       status,
       published_at,
+      category,
       videos (
         id,
         position,
@@ -35,6 +39,7 @@ export async function GET() {
       )
     `)
     .in('status', ['published', 'partial'])
+    .eq('category', category)
     .order('published_at', { ascending: false })
     .limit(1)
     .single()
@@ -42,8 +47,9 @@ export async function GET() {
   // All published editions — metadata only (for the edition picker)
   const { data: allEditions } = await supabase
     .from('editions')
-    .select('id, published_at, edition_date')
+    .select('id, published_at, edition_date, category')
     .in('status', ['published', 'partial'])
+    .eq('category', category)
     .order('published_at', { ascending: false })
 
   if (error || !edition) {

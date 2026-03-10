@@ -115,6 +115,16 @@ python -m pipeline.run tech
 - Tech pipeline: `python -m pipeline.run tech` produces tech editions in Supabase
 - Phase 6 (Category UI) requires the `/api/today` endpoint to accept a `category` query param to serve the correct edition for each tab
 
+## Self-Check: PASSED
+
+- migration file: FOUND
+- pipeline/ingest.py: FOUND
+- pipeline/script.py: FOUND
+- pipeline/run.py: FOUND
+- e094b84 (Task 1 commit): FOUND
+- b84bba7 (Task 2 commit): FOUND
+- 31dc437 (metadata commit): FOUND
+
 ---
 *Phase: 05-tech-pipeline*
 *Completed: 2026-03-10*

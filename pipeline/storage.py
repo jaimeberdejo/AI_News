@@ -18,14 +18,14 @@ logger = logging.getLogger(__name__)
 BUCKET = "videos"    # created in Phase 1 as 'videos' bucket
 
 
-def upload_video(local_path: Path, edition_id: str, position: int, edition_date: str) -> str:
+def upload_video(local_path: Path, edition_id: str, position: int, edition_date: str, category: str = "finance") -> str:
     """
-    Upload MP4 to Supabase Storage at editions/{date}-{short_id}/{position}.mp4.
+    Upload MP4 to Supabase Storage at editions/{category}-{date}-{short_id}/{position}.mp4.
     Returns the public CDN URL.
     Uses upsert=true to handle re-uploads on partial re-runs.
     """
     db = get_db()
-    folder = f"{edition_date}-{edition_id[:8]}"
+    folder = f"{category}-{edition_date}-{edition_id[:8]}"
     storage_path = f"editions/{folder}/{position}.mp4"
     with open(local_path, "rb") as f:
         db.storage.from_(BUCKET).upload(
@@ -86,7 +86,7 @@ def cleanup_old_editions(days: int = 7) -> None:
 
     old_editions = (
         db.table("editions")
-        .select("id, edition_date")
+        .select("id, edition_date, category")
         .lt("edition_date", cutoff)
         .not_.eq("status", "deleted")
         .execute()
@@ -98,7 +98,9 @@ def cleanup_old_editions(days: int = 7) -> None:
         return
 
     for edition in old_editions:
-        storage_prefix = f"editions/{edition['edition_date']}-{edition['id'][:8]}"
+        ed_date = edition['edition_date']
+        ed_category = edition.get('category', 'finance')
+        storage_prefix = f"editions/{ed_category}-{ed_date}-{edition['id'][:8]}"
         try:
             files = db.storage.from_(BUCKET).list(path=storage_prefix)
             if files:
@@ -108,7 +110,7 @@ def cleanup_old_editions(days: int = 7) -> None:
                     "Deleted %d files from storage: %s", len(paths), storage_prefix
                 )
         except Exception as e:
-            logger.warning("Storage cleanup failed for %s: %s", edition_date, e)
+            logger.warning("Storage cleanup failed for %s: %s", ed_date, e)
 
         db.table("editions").update({"status": "deleted"}).eq("id", edition["id"]).execute()
-        logger.info("Marked edition %s as deleted", edition_date)
+        logger.info("Marked edition %s as deleted", ed_date)
