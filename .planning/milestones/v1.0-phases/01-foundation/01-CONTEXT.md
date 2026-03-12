@@ -14,7 +14,7 @@ Stand up the Supabase infrastructure — Postgres schema, storage bucket configu
 ## Implementation Decisions
 
 ### Repo Structure
-- Monorepo: single AutoNews_AI repository containing both pipeline and frontend
+- Monorepo: single FinFeed repository containing both pipeline and frontend
 - Directory layout: `/pipeline/` for Python, `/frontend/` for Next.js
 - Python pipeline structure: Claude's discretion (package structure recommended for a multi-step pipeline)
 - Shared `.env` at repo root — loaded by both pipeline (python-dotenv) and Next.js (auto-loaded)

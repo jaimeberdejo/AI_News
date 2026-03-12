@@ -42,7 +42,7 @@ The **Next.js frontend** on Vercel reads from Supabase and serves the feed. Each
 ## Project Structure
 
 ```
-AutoNews_AI/
+FinFeed/
 ├── pipeline/               # Python batch pipeline
 │   ├── run.py              # entry point — python -m pipeline.run
 │   ├── ingest.py           # RSS ingestion + deduplication
@@ -104,8 +104,8 @@ AutoNews_AI/
 ### 1. Clone and configure environment
 
 ```bash
-git clone https://github.com/jaimeberdejo/AutoNews_AI.git
-cd AutoNews_AI
+git clone https://github.com/jaimeberdejo/FinFeed.git
+cd FinFeed
 cp .env.example .env
 ```
 
@@ -181,7 +181,7 @@ Open http://localhost:3000. If the pipeline ran successfully, you should see tod
 
 ### Vercel (frontend)
 
-1. Go to [vercel.com/new](https://vercel.com/new) → Import `AutoNews_AI`
+1. Go to [vercel.com/new](https://vercel.com/new) → Import `FinFeed`
 2. Set **Root Directory** to `frontend`
 3. Set **Framework Preset** to **Next.js**
 4. Add these environment variables under **Project Settings → Environment Variables**:

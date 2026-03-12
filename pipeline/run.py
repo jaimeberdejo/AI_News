@@ -1,5 +1,5 @@
 """
-AutoNews_AI Pipeline — Entry point
+FinFeed Pipeline — Entry point
 Run with: python -m pipeline.run [category]
 
 Category argument:

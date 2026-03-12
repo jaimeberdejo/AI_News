@@ -1,5 +1,5 @@
 """
-B-roll download (Pexels) and FFmpeg video assembly for AutoNews_AI pipeline.
+B-roll download (Pexels) and FFmpeg video assembly for FinFeed pipeline.
 
 Public API:
     download_broll(keyword, tmp_dir) -> Path

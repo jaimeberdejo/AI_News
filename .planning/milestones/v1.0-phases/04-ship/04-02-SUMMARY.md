@@ -93,7 +93,7 @@ Vercel deployment required manual dashboard configuration (human-action checkpoi
 
 | Step | Action | Outcome |
 |------|--------|---------|
-| Import repo | https://vercel.com/new → Import AutoNews_AI | Imported successfully |
+| Import repo | https://vercel.com/new → Import FinFeed | Imported successfully |
 | Root Directory | Set to `frontend` | Next.js framework auto-detected |
 | First deploy | Click Deploy | Deployed (no data before env vars) |
 | Env vars | Added 3 NEXT_PUBLIC_ variables to Production | Configured |

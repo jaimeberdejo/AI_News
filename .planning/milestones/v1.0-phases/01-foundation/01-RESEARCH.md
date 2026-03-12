@@ -22,7 +22,7 @@ The one area of medium confidence is Storage range-request behavior under CDN ca
 ### Locked Decisions
 
 **Repo Structure:**
-- Monorepo: single AutoNews_AI repository containing both pipeline and frontend
+- Monorepo: single FinFeed repository containing both pipeline and frontend
 - Directory layout: `/pipeline/` for Python, `/frontend/` for Next.js
 - Python pipeline structure: Claude's discretion (package structure recommended for a multi-step pipeline)
 - Shared `.env` at repo root — loaded by both pipeline (python-dotenv) and Next.js (auto-loaded)
@@ -116,7 +116,7 @@ npm install @supabase/supabase-js
 ### Recommended Project Structure
 
 ```
-AutoNews_AI/
+FinFeed/
 ├── .env                    # Single source of truth for all credentials
 ├── .env.example            # Documented template (committed to git)
 ├── pipeline/               # Python package

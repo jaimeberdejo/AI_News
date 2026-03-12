@@ -162,7 +162,7 @@ jobs:
 
 **Steps (one-time setup):**
 ```
-1. vercel.com/new → Import Git Repository → select AutoNews_AI repo
+1. vercel.com/new → Import Git Repository → select FinFeed repo
 2. Root Directory: frontend
 3. Framework: Next.js (auto-detected)
 4. Environment Variables: add all three (see below)

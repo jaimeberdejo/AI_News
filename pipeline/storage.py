@@ -1,5 +1,5 @@
 """
-Supabase Storage operations for the AutoNews_AI pipeline.
+Supabase Storage operations for the FinFeed pipeline.
 
 Provides:
     upload_video()        — upload MP4 to videos bucket, returns public CDN URL
