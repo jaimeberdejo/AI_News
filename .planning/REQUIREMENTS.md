@@ -79,31 +79,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| AUTH-04 | TBD | Pending |
-| AUTH-05 | TBD | Pending |
-| AUTH-06 | TBD | Pending |
-| AUTH-07 | TBD | Pending |
-| SOCL-01 | TBD | Pending |
-| SOCL-02 | TBD | Pending |
-| SOCL-03 | TBD | Pending |
-| SOCL-04 | TBD | Pending |
-| COMM-01 | TBD | Pending |
-| COMM-02 | TBD | Pending |
-| COMM-03 | TBD | Pending |
-| COMM-04 | TBD | Pending |
-| PROF-01 | TBD | Pending |
-| PROF-02 | TBD | Pending |
-| PROF-03 | TBD | Pending |
-| PROF-04 | TBD | Pending |
+| AUTH-01 | Phase 7 | Pending |
+| AUTH-02 | Phase 7 | Pending |
+| AUTH-03 | Phase 7 | Pending |
+| AUTH-04 | Phase 7 | Pending |
+| AUTH-05 | Phase 7 | Pending |
+| AUTH-06 | Phase 8 | Pending |
+| AUTH-07 | Phase 8 | Pending |
+| SOCL-01 | Phase 9 | Pending |
+| SOCL-02 | Phase 9 | Pending |
+| SOCL-03 | Phase 9 | Pending |
+| SOCL-04 | Phase 9 | Pending |
+| COMM-01 | Phase 10 | Pending |
+| COMM-02 | Phase 10 | Pending |
+| COMM-03 | Phase 10 | Pending |
+| COMM-04 | Phase 10 | Pending |
+| PROF-01 | Phase 11 | Pending |
+| PROF-02 | Phase 11 | Pending |
+| PROF-03 | Phase 11 | Pending |
+| PROF-04 | Phase 11 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 ⚠ (will be resolved by roadmapper)
+- Mapped to phases: 19
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-23*
-*Last updated: 2026-03-23 after initial definition*
+*Last updated: 2026-03-23 — traceability filled after roadmap creation*

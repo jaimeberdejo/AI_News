@@ -4,6 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-02-26) — [Archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Multi-Category** — Phases 5-6 (shipped 2026-03-10) — [Archive](milestones/v1.1-ROADMAP.md)
+- 🔄 **v1.2 Social + Accounts** — Phases 7-11 (in progress)
 
 ## Phases
 
@@ -29,6 +30,72 @@ See full details: [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 
 </details>
 
+### v1.2 Social + Accounts (Phases 7-11)
+
+- [ ] **Phase 7: Auth Infrastructure** — Supabase SSR plumbing, DB schema, Google OAuth + email/password end-to-end
+- [ ] **Phase 8: Auth UI + iOS Validation** — Login page, AuthModal bottom sheet, guest browsing confirmed, real-device iOS PWA test gate
+- [ ] **Phase 9: Social Interactions** — Likes, bookmarks schema + API routes + feed overlay UI
+- [ ] **Phase 10: Comments** — Comment sheet, posting with moderation, author display
+- [ ] **Phase 11: Profile Page** — Display name, avatar, liked and saved tabs
+
+## Phase Details
+
+### Phase 7: Auth Infrastructure
+**Goal**: Session management is working end-to-end so every downstream feature can trust auth state
+**Depends on**: Nothing (first v1.2 phase)
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05
+**Success Criteria** (what must be TRUE):
+  1. A new user can create an account with email and password and land on the feed still signed in
+  2. An existing user can sign in with email/password and their session survives a browser refresh and PWA close/reopen
+  3. A user can sign in with Google OAuth and land back on the feed with an active session
+  4. A user can reset a forgotten password via an email link and sign back in with the new password
+  5. The `profiles` row is automatically created on first sign-in (no manual step); the existing `/api/today` feed path is completely unaffected
+**Plans**: TBD
+
+### Phase 8: Auth UI + iOS Validation
+**Goal**: Users can browse freely as guests and are prompted to sign in only when they attempt a social action, with the entire flow confirmed working on a real iOS device
+**Depends on**: Phase 7
+**Requirements**: AUTH-06, AUTH-07
+**Success Criteria** (what must be TRUE):
+  1. A guest user can open the app, scroll through all videos, and watch every video without any sign-in prompt appearing
+  2. A guest user who taps a like, bookmark, or comment button sees a non-blocking bottom sheet prompting sign-in, and can dismiss it to keep watching
+  3. Google OAuth sign-in from the bottom sheet completes successfully on a real iPhone with the PWA installed to the home screen (Add to Home Screen)
+  4. After signing in via the bottom sheet, the user is returned to the same video they were watching
+**Plans**: TBD
+
+### Phase 9: Social Interactions
+**Goal**: Signed-in users can like and bookmark videos, guests can see like counts, and all social state is persisted correctly with RLS enforced
+**Depends on**: Phase 8
+**Requirements**: SOCL-01, SOCL-02, SOCL-03, SOCL-04
+**Success Criteria** (what must be TRUE):
+  1. A signed-in user can tap the like button to like a video; tapping it again unlikes it; the optimistic count updates instantly and persists on refresh
+  2. A guest user can see the like count on every video without signing in
+  3. A signed-in user can bookmark a video and remove the bookmark; bookmark state is accurate after refresh
+  4. Social mutations return 401 for unauthenticated requests; like and bookmark state is scoped per user (one user's likes are invisible to another's)
+**Plans**: TBD
+
+### Phase 10: Comments
+**Goal**: Signed-in users can post and delete comments on videos; all moderation minimums are enforced; guests can read comments freely
+**Depends on**: Phase 9
+**Requirements**: COMM-01, COMM-02, COMM-03, COMM-04
+**Success Criteria** (what must be TRUE):
+  1. A guest user can open the comment sheet on any video and read all comments without signing in
+  2. A signed-in user can post a comment and see it appear immediately; the author display name and avatar are shown correctly
+  3. A signed-in user can delete their own comment; they cannot delete another user's comment
+  4. Posting more than one comment within 30 seconds is rejected with an informative message; comments over 500 characters cannot be submitted
+**Plans**: TBD
+
+### Phase 11: Profile Page
+**Goal**: Signed-in users have a profile page showing their identity and a complete view of their liked and saved videos
+**Depends on**: Phase 10
+**Requirements**: PROF-01, PROF-02, PROF-03, PROF-04
+**Success Criteria** (what must be TRUE):
+  1. A signed-in user can navigate to their profile, see their display name, and edit it; the updated name is reflected everywhere (comments, header) after save
+  2. A signed-in user can upload a profile photo; the avatar appears in their profile header and on their comments
+  3. A signed-in user can view the Liked tab and see all videos they have liked, in reverse chronological order; an empty state is shown when none exist
+  4. A signed-in user can view the Saved tab and see all their bookmarked videos; tapping one navigates to that video in the feed
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -39,3 +106,8 @@ See full details: [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 | 4. Ship | v1.0 | 3/3 | Complete | 2026-02-26 |
 | 5. Tech Pipeline | v1.1 | 2/2 | Complete | 2026-03-10 |
 | 6. Category UI | v1.1 | 1/1 | Complete | 2026-03-10 |
+| 7. Auth Infrastructure | v1.2 | 0/? | Not started | - |
+| 8. Auth UI + iOS Validation | v1.2 | 0/? | Not started | - |
+| 9. Social Interactions | v1.2 | 0/? | Not started | - |
+| 10. Comments | v1.2 | 0/? | Not started | - |
+| 11. Profile Page | v1.2 | 0/? | Not started | - |

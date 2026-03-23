@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** v1.2 Social + Accounts — defining requirements and roadmap
+**Current focus:** v1.2 Social + Accounts — Phase 7: Auth Infrastructure
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-23 — Milestone v1.2 started
+Phase: 7 of 11 (Auth Infrastructure)
+Plan: 0/? in current phase
+Status: Ready to plan
+Last activity: 2026-03-23 — v1.2 roadmap created (Phases 7-11)
 
-Progress: [██████████] 100% (6/6 phases complete)
+Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + v1.1 done)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14 (v1.0) + 3 (v1.1)
+- Total plans completed: 14 (v1.0) + 3 (v1.1) = 17 total
 - Average duration: ~11 min (v1.0), ~14 min (v1.1 plans avg)
 - Total execution time: ~117 min (v1.0), ~39 min (v1.1)
 
@@ -38,10 +38,6 @@ Progress: [██████████] 100% (6/6 phases complete)
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
 - Trend: Stable
 
-*Updated after each plan completion*
-| Phase 05-tech-pipeline P02 | 1 | 1 tasks | 1 files |
-| Phase 06-category-ui P01 | 35 | 3 tasks | 1 files |
-
 ## Accumulated Context
 
 ### Decisions
@@ -49,20 +45,13 @@ Progress: [██████████] 100% (6/6 phases complete)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v1.1 scope]: Tech only for v1.1 — sports/politics/science deferred to v1.2+
-- [v1.0 arch]: DB has `category` field from day 1 — pipeline is already parameterized for categories
-- [v1.0 arch]: editions UNIQUE constraint dropped — allows multiple pipeline runs per day, each with own UUID
-- [v1.0 arch]: Public GitHub Actions repo — unlimited free minutes (critical for adding a second daily job)
-- [v1.0 arch]: Groq free tier (Llama 3.3) — sufficient at current volume; adding one more category stays within limits
-- [05-01]: FEEDS_BY_CATEGORY dict pattern chosen over if/else for extensibility to future categories
-- [05-01]: DB dedup scoped by editions.category — finance/tech articles can share URLs without cross-category suppression
-- [05-01]: Finance system prompt preserved exactly from v1.0 — zero behavioral regression on existing category
-- [05-02]: Two independent jobs (no needs:) chosen — finance failure must not block tech edition generation
-- [05-02]: Job setup steps duplicated verbatim (no reusable workflow) — simplicity over DRY for a two-job workflow
-- [Phase 06-01]: tabScrollState as useRef not useState — scroll position is imperative state, not render state
-- [Phase 06-01]: Tab bar unconditional (not gated on hasMultipleEditions) — always present per CATUI-01
-- [Phase 06-01]: currentEdition?.id added to play/pause useEffect deps — activeIndex alone does not re-fire when switching at index 0
-- [Phase 06-01]: Feed container always mounted (no early-return empty state) — keeps feedRef stable across category switches
+- [v1.2 arch]: @supabase/ssr required for cookie-based sessions — existing lib/supabase.ts anon singleton preserved unchanged
+- [v1.2 arch]: Social mutations via dedicated Route Handlers (/api/social/*) — Python pipeline stays auth-unaware
+- [v1.2 arch]: Apple Sign In deferred to v1.3 — 6-month key rotation ops burden not justified at current scale
+- [v1.2 arch]: Optimistic UI for likes/bookmarks — Supabase Realtime deferred (200 concurrent connection limit on free tier)
+- [v1.2 arch]: Comments must ship with moderation minimums (rate limit + length cap) — never ship without both
+- [Phase 06-01]: currentEdition?.id in play/pause useEffect deps — prevents stale closure on category switch at index 0
+- [Phase 06-01]: Feed container always mounted — keeps feedRef stable through empty state transitions
 
 ### Pending Todos
 
@@ -70,10 +59,12 @@ None.
 
 ### Blockers/Concerns
 
-None. v1.1 is complete and verified.
+- [Phase 8]: iOS PWA OAuth context isolation — must test on real iPhone with PWA installed before Phase 8 closes; recovery cost is HIGH if auth is broken and social phases are already built on top of it
+- [Phase 7]: Supabase free tier email has 3 OTP emails/hour rate limit — configure custom SMTP (Resend/SendGrid) before Phase 7 ships to production
+- [CVE-2025-29927]: middleware.ts must include static-asset matcher — without it, 9+ Supabase network calls per page load and middleware is bypassable via header spoofing
 
 ## Session Continuity
 
-Last session: 2026-03-10
-Stopped at: Verified 06-category-ui — status: passed, 4/4 truths verified. v1.1 Multi-Category milestone complete.
+Last session: 2026-03-23
+Stopped at: Roadmap created for v1.2 (Phases 7-11). Requirements defined. Ready to plan Phase 7.
 Resume file: None
