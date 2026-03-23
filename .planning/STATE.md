@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 7 of 11 (Auth Infrastructure)
-Plan: 1/3 in current phase
+Plan: 2/3 in current phase
 Status: In progress
-Last activity: 2026-03-23 — Phase 7 Plan 1 complete (SSR session infrastructure)
+Last activity: 2026-03-23 — Phase 7 Plan 2 complete (auth routes + Server Actions)
 
 Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + v1.1 done)
 
@@ -33,7 +33,7 @@ Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + 
 | 04-ship | 3 | ~2 min | ~1 min |
 | 05-tech-pipeline | 2 | ~4 min | ~2 min |
 | 06-category-ui | 1 | ~35 min | ~35 min |
-| 07-auth-infrastructure | 1/3 | ~2 min | ~2 min |
+| 07-auth-infrastructure | 2/3 | ~17 min | ~8.5 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
@@ -53,6 +53,9 @@ Recent decisions affecting current work:
 - [v1.2 arch]: Comments must ship with moderation minimums (rate limit + length cap) — never ship without both
 - [Phase 06-01]: currentEdition?.id in play/pause useEffect deps — prevents stale closure on category switch at index 0
 - [Phase 06-01]: Feed container always mounted — keeps feedRef stable through empty state transitions
+- [Phase 07-02]: signInWithGoogle returns { url } not redirect() — iOS PWA standalone mode requires window.location.href assignment by Client Component
+- [Phase 07-02]: handle_new_user trigger uses ON CONFLICT DO NOTHING safety valve — prevents full signup rollback on duplicate trigger fire
+- [Phase 07-02]: SECURITY DEFINER + SET search_path = '' on trigger function — prevents search-path injection
 
 ### Pending Todos
 
@@ -67,5 +70,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-23
-Stopped at: Completed 07-01-PLAN.md — SSR session infrastructure wired. Ready for 07-02.
+Stopped at: Completed 07-02-PLAN.md — auth routes + Server Actions complete. Ready for 07-03.
 Resume file: None
