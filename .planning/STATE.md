@@ -5,13 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** Planning next milestone — v1.1 archived 2026-03-23
+**Current focus:** v1.2 Social + Accounts — defining requirements and roadmap
 
 ## Current Position
 
-Phase: — (between milestones)
-Status: v1.1 archived. Ready to plan v1.2.
-Last activity: 2026-03-23 — v1.1 milestone archived (2 phases, 3 plans, 6/6 requirements)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-23 — Milestone v1.2 started
 
 Progress: [██████████] 100% (6/6 phases complete)
 

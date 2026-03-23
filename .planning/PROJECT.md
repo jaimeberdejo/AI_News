@@ -12,6 +12,15 @@ v1.1 ships with Finance and Tech. v1.2+ will expand to additional categories (sp
 
 A finite, curated daily briefing in vertical video format — users always know when they're done. No infinite scroll, no algorithmic rabbit holes. Just today's most important stories, consumed in the format people already know how to use.
 
+## Current Milestone: v1.2 Social + Accounts
+
+**Goal:** Add user accounts and a social layer — likes, comments, bookmarks, and a profile page — while keeping the feed fully open to guests.
+
+**Target features:**
+- Auth: Google OAuth + email/password, soft-gated (guests browse freely)
+- Social: likes, bookmarks, per-video flat comments with basic moderation
+- Profile page: display name, avatar, liked videos tab, saved videos tab
+
 ## Requirements
 
 ### Validated
@@ -36,7 +45,12 @@ A finite, curated daily briefing in vertical video format — users always know 
 
 ### Active
 
-(none — define in /gsd:new-milestone for v1.2)
+- [ ] User can sign up / sign in with Google OAuth or email+password (AUTH-01–04)
+- [ ] Guest users browse freely; social actions prompt sign-in (AUTH-06–07)
+- [ ] User can like and unlike videos; like count visible to guests (SOCL-01–02)
+- [ ] User can bookmark and remove bookmarks on videos (SOCL-03–04)
+- [ ] User can post flat comments on videos; rate-limited + capped (COMM-01–04)
+- [ ] Profile page with display name, avatar, liked videos tab, saved videos tab (PROF-01–04)
 
 ### Out of Scope
 
@@ -98,4 +112,4 @@ A finite, curated daily briefing in vertical video format — users always know 
 | Empty state inside feed-container (not early return) | Early return unmounts feedRef, breaking scroll listener on empty → populated transition | ✓ Good — feedRef stable through all state transitions |
 
 ---
-*Last updated: 2026-03-23 after v1.1 milestone complete*
+*Last updated: 2026-03-23 after v1.2 milestone started*
