@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 7 of 11 (Auth Infrastructure)
-Plan: 0/? in current phase
-Status: Ready to plan
-Last activity: 2026-03-23 — v1.2 roadmap created (Phases 7-11)
+Plan: 1/3 in current phase
+Status: In progress
+Last activity: 2026-03-23 — Phase 7 Plan 1 complete (SSR session infrastructure)
 
 Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + v1.1 done)
 
@@ -33,6 +33,7 @@ Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + 
 | 04-ship | 3 | ~2 min | ~1 min |
 | 05-tech-pipeline | 2 | ~4 min | ~2 min |
 | 06-category-ui | 1 | ~35 min | ~35 min |
+| 07-auth-infrastructure | 1/3 | ~2 min | ~2 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
@@ -61,10 +62,10 @@ None.
 
 - [Phase 8]: iOS PWA OAuth context isolation — must test on real iPhone with PWA installed before Phase 8 closes; recovery cost is HIGH if auth is broken and social phases are already built on top of it
 - [Phase 7]: Supabase free tier email has 3 OTP emails/hour rate limit — configure custom SMTP (Resend/SendGrid) before Phase 7 ships to production
-- [CVE-2025-29927]: middleware.ts must include static-asset matcher — without it, 9+ Supabase network calls per page load and middleware is bypassable via header spoofing
+- [CVE-2025-29927]: RESOLVED in Phase 07-01 — middleware.ts created with static-asset matcher, closing bypass vector
 
 ## Session Continuity
 
 Last session: 2026-03-23
-Stopped at: Roadmap created for v1.2 (Phases 7-11). Requirements defined. Ready to plan Phase 7.
+Stopped at: Completed 07-01-PLAN.md — SSR session infrastructure wired. Ready for 07-02.
 Resume file: None
