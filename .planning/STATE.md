@@ -2,17 +2,16 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-10)
+See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** v1.1 Multi-Category — COMPLETE (Phase 6 verified 2026-03-10)
+**Current focus:** Planning next milestone — v1.1 archived 2026-03-23
 
 ## Current Position
 
-Phase: 6 of 6 (Category UI) — COMPLETE, VERIFIED
-Plan: 1 of 1 in current phase — COMPLETE
-Status: v1.1 milestone complete and verified
-Last activity: 2026-03-10 — 06-VERIFICATION.md created (status: passed, 4/4 truths verified)
+Phase: — (between milestones)
+Status: v1.1 archived. Ready to plan v1.2.
+Last activity: 2026-03-23 — v1.1 milestone archived (2 phases, 3 plans, 6/6 requirements)
 
 Progress: [██████████] 100% (6/6 phases complete)
 

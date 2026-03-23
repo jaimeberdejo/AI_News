@@ -2,24 +2,15 @@
 
 ## What This Is
 
-FinFeed is a mobile-first PWA that delivers a finite set of AI-generated financial news videos per day. Users swipe vertically through a curated feed (TikTok/Stories-style) and see a "You're up to date" screen when they're done. All video content is generated automatically by a batch AI pipeline — no human editors.
+FinFeed is a mobile-first PWA that delivers a finite set of AI-generated news videos per day across multiple categories (Finance and Tech). Users swipe vertically through a curated feed (TikTok/Stories-style), switch categories via a tab bar, and see a "You're up to date" screen when they're done. All video content is generated automatically by a batch AI pipeline — no human editors.
 
 The core insight: TikTok has trained a generation to consume information through vertical short-form video. FinFeed applies that learned behaviour to something genuinely informative and useful — news that matters — rather than entertainment optimised for maximum time-on-app.
 
-v1 ships with financial news. v2+ will expand to additional categories (technology, sports, politics, science).
+v1.1 ships with Finance and Tech. v1.2+ will expand to additional categories (sports, politics, science).
 
 ## Core Value
 
 A finite, curated daily briefing in vertical video format — users always know when they're done. No infinite scroll, no algorithmic rabbit holes. Just today's most important stories, consumed in the format people already know how to use.
-
-## Current Milestone: v1.1 Multi-Category
-
-**Goal:** Expand FinFeed from finance-only to a two-category app (Finance + Tech) with a tab bar for switching.
-
-**Target features:**
-- Tech news pipeline: automated daily video generation for the technology category
-- Tab bar UI: Finance | Tech switcher in the PWA frontend
-- Category-aware API and DB queries
 
 ## Requirements
 
@@ -39,17 +30,17 @@ A finite, curated daily briefing in vertical video format — users always know 
 - ✓ Per-story error isolation — if 1 story fails, remaining stories still publish as "partial" — v1.0
 - ✓ 7-day automatic video cleanup on each pipeline run — v1.0
 - ✓ PWA installable — web manifest, apple-touch-icon, standalone display mode — v1.0
+- ✓ Tech news pipeline runs daily via GitHub Actions, producing a full tech edition — v1.1 (TECH-01)
+- ✓ Pipeline uses tech-focused RSS feeds (TechCrunch, HN, Ars Technica) with tech journalist LLM tone — v1.1 (TECH-02, TECH-03)
+- ✓ Finance/Tech tab bar at top of PWA — category switch without page reload, per-tab scroll memory — v1.1 (CATUI-01, CATUI-02, CATUI-03)
 
 ### Active
 
-- [ ] Tech news pipeline runs daily via GitHub Actions, producing a full tech edition (TECH-01)
-- [ ] Pipeline uses tech-focused RSS feeds and appropriate LLM tone for technology news (TECH-02)
-- [ ] Tab bar (Finance | Tech) at top of PWA — user switches category without page reload (TECH-03)
-- [ ] Each category shows its own daily feed with independent edition navigation (TECH-04)
+(none — define in /gsd:new-milestone for v1.2)
 
-### Out of Scope (v1.1)
+### Out of Scope
 
-- Hallucination guard (QUAL-01) — deferred to v1.2+
+- Hallucination guard (QUAL-01) — deferred to v1.2+; cost not justified until scale
 - LLM upgrade (QUAL-02) — deferred to v1.2+; Groq free tier sufficient at current volume
 - TTS upgrade (QUAL-03) — deferred to v1.2+; cost not justified until scale
 - Premium b-roll (QUAL-04) — deferred to v1.2+; Pexels free tier adequate
@@ -65,12 +56,12 @@ A finite, curated daily briefing in vertical video format — users always know 
 
 ## Context
 
-- **Shipped:** v1.0 MVP (2026-02-26) — live at https://autonews-ai.vercel.app
-- **Codebase:** ~1,970 LOC Python + TypeScript (96 files)
+- **Shipped:** v1.1 Multi-Category (2026-03-10) — live at https://autonews-ai.vercel.app
+- **Codebase:** ~2,100 LOC Python + TypeScript (13 files changed in v1.1, +883/-89 lines)
 - **Tech stack:** Python pipeline (Groq + OpenAI TTS + faster-whisper + FFmpeg + Pexels), Supabase (Postgres + Storage), Next.js 16 App Router, Vercel, GitHub Actions
-- **Pipeline runtime:** ~4m40s on GitHub Actions (first warm-cache run)
-- **Cost at v1.0:** ~$0.50–2/month (Groq free, OpenAI TTS minimal, Supabase free, Vercel free, GitHub Actions free)
-- **Key open question:** Is the finite feed concept strong enough to retain users? — validate before v2 investment
+- **Pipeline runtime:** ~4m40s on GitHub Actions per category (finance + tech run in parallel)
+- **Cost at v1.1:** ~$0.50–2/month (Groq free, OpenAI TTS minimal, Supabase free, Vercel free, GitHub Actions free — unchanged from v1.0)
+- **Key open question:** Is the finite feed concept strong enough to retain users across multiple categories? — validate before v1.2 investment
 - **Known limitation:** Android device validation deferred (iOS confirmed, Android not tested)
 
 ## Constraints
@@ -79,7 +70,7 @@ A finite, curated daily briefing in vertical video format — users always know 
 - **Cost (future):** Higher-tier APIs unlock at scale — OpenAI TTS HD, ElevenLabs, premium stock footage, dedicated infrastructure
 - **Stack:** Python pipeline (Groq + OpenAI TTS + FFmpeg), Supabase (Postgres + Storage), Vercel frontend
 - **Pipeline:** Batch processing only — no real-time generation
-- **News sources:** Free RSS feeds only in v1 (Yahoo Finance, CNBC public feeds)
+- **News sources:** Free RSS feeds only (Yahoo Finance, CNBC, TechCrunch, Hacker News, Ars Technica)
 - **Video rendering:** FFmpeg-based (no paid video APIs in v1)
 
 ## Key Decisions
@@ -100,6 +91,11 @@ A finite, curated daily briefing in vertical video format — users always know 
 | Public GitHub Actions repo | Unlimited free minutes (critical cost lever) | ✓ Good — no billing exposure |
 | Pexels API for b-roll (free tier) | Free stock footage with "stock market" fallback | ⚠️ Revisit — free tier quality varies; upgrade to premium at scale |
 | editions UNIQUE constraint dropped (multi-edition per day) | Allows multiple pipeline runs per day for partial recovery | ✓ Good — each edition has its own UUID |
+| FEEDS_BY_CATEGORY dict pattern | Extensible routing to new categories via dict lookup, not if/else | ✓ Good — clean extension point for v1.2+ categories |
+| Two independent GitHub Actions jobs (no needs:) | Finance failure must not block tech edition generation | ✓ Good — TECH-01 success criterion #4 satisfied |
+| tabScrollState as useRef (not useState) | Scroll position is imperative state — no re-render needed on save/restore | ✓ Good — no extra renders on tab switch |
+| currentEdition?.id in play/pause useEffect deps | activeIndex alone doesn't re-fire when switching categories at index 0 | ✓ Good — found during human verification, fixed pre-approval |
+| Empty state inside feed-container (not early return) | Early return unmounts feedRef, breaking scroll listener on empty → populated transition | ✓ Good — feedRef stable through all state transitions |
 
 ---
-*Last updated: 2026-03-10 after v1.1 milestone started*
+*Last updated: 2026-03-23 after v1.1 milestone complete*

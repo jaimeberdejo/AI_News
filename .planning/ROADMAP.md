@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-02-26) — [Archive](milestones/v1.0-ROADMAP.md)
-- ✅ **v1.1 Multi-Category** — Phases 5-6 (shipped 2026-03-10)
+- ✅ **v1.1 Multi-Category** — Phases 5-6 (shipped 2026-03-10) — [Archive](milestones/v1.1-ROADMAP.md)
 
 ## Phases
 
@@ -22,46 +22,12 @@ See full details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 <details>
 <summary>✅ v1.1 Multi-Category (Phases 5-6) — SHIPPED 2026-03-10</summary>
 
-- [x] **Phase 5: Tech Pipeline** - Automated daily tech news edition generation runs on GitHub Actions (completed 2026-03-10)
-  - Plans: 2 plans
-  - [x] 05-01-PLAN.md — DB migration + pipeline parameterization (ingest, script, run)
-  - [x] 05-02-PLAN.md — GitHub Actions second independent job for tech pipeline
-- [x] **Phase 6: Category UI** - Tab bar lets users switch between Finance and Tech feeds without page reload (completed 2026-03-10)
-  - Plans: 1 plan
-  - [x] 06-01-PLAN.md — Tab bar UI, overlay offset adjustments, per-tab scroll position memory
+- [x] Phase 5: Tech Pipeline (2/2 plans) — completed 2026-03-10
+- [x] Phase 6: Category UI (1/1 plan) — completed 2026-03-10
+
+See full details: [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 
 </details>
-
-## Phase Details
-
-### Phase 5: Tech Pipeline
-**Goal**: A new tech news edition is automatically generated and published daily alongside the existing finance edition
-**Depends on**: Phase 4 (existing pipeline and GitHub Actions infrastructure)
-**Requirements**: TECH-01, TECH-02, TECH-03
-**Success Criteria** (what must be TRUE):
-  1. A tech edition appears in Supabase after each scheduled pipeline run
-  2. Tech videos are narrated with a tech-appropriate tone — not the financial influencer style used for finance
-  3. Tech RSS feeds (TechCrunch, Hacker News, Ars Technica, etc.) are the source — not Yahoo Finance or CNBC
-  4. Tech and finance editions are generated independently — a failure in one does not block the other
-**Plans**: 2 plans
-
-Plans:
-- [x] 05-01-PLAN.md — DB migration + pipeline parameterization (ingest, script, run)
-- [x] 05-02-PLAN.md — GitHub Actions second independent job for tech pipeline
-
-### Phase 6: Category UI
-**Goal**: Users can switch between Finance and Tech feeds via a tab bar with no page reload and independent per-tab scroll position
-**Depends on**: Phase 5
-**Requirements**: CATUI-01, CATUI-02, CATUI-03
-**Success Criteria** (what must be TRUE):
-  1. Finance and Tech tabs are visible at the top of the feed on first load
-  2. Tapping a tab switches to that category's feed without a full page reload
-  3. Switching from Tech back to Finance (or vice versa) resumes at the same video position the user left — it does not restart from video 1
-  4. Each tab shows only its own category's videos — no cross-category mixing
-**Plans**: 1 plan
-
-Plans:
-- [x] 06-01-PLAN.md — Tab bar UI, overlay offset adjustments, per-tab scroll position memory
 
 ## Progress
 

@@ -17,3 +17,23 @@
 **Archive:** [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md) | [milestones/v1.0-REQUIREMENTS.md](milestones/v1.0-REQUIREMENTS.md)
 
 ---
+
+## v1.1 Multi-Category (Shipped: 2026-03-10)
+
+**Phases completed:** 2 phases, 3 plans
+**Timeline:** 2026-03-10 (~53 min total execution)
+**Files:** 13 files changed, +883 / -89 lines
+**Git range:** `b84bba7` → `6103040`
+
+**Key accomplishments:**
+- `FEEDS_BY_CATEGORY` dict pattern + SQL migration adding `category` column to editions — extensible routing to future categories (sports, science, etc.) with zero regression on finance pipeline
+- Two distinct Groq system prompts: finance influencer tone (preserved from v1.0) vs tech journalist tone — tech RSS feeds (TechCrunch, Hacker News, Ars Technica) as source
+- Two independent parallel GitHub Actions jobs (`finance-pipeline` + `tech-pipeline`) — failure in one does not block the other
+- Finance/Tech pill tab bar in `VideoFeed.tsx` — correct zIndex stacking (tab bar 60 > edition nav 50 > dots/mute 40), always rendered per CATUI-01
+- Per-tab scroll memory via `tabScrollState useRef` — O(1) save/restore without triggering re-renders
+- Post-human-verify bug fixes: `currentEdition?.id` dep for reliable play/pause on category switch; always-mounted feed container for stable `feedRef` through empty state transitions
+
+**Archive:** [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md) | [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
+
+---
+
