@@ -50,7 +50,12 @@ See full details: [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
   3. A user can sign in with Google OAuth and land back on the feed with an active session
   4. A user can reset a forgotten password via an email link and sign back in with the new password
   5. The `profiles` row is automatically created on first sign-in (no manual step); the existing `/api/today` feed path is completely unaffected
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — @supabase/ssr install + SSR client factories + middleware with static-asset matcher
+- [ ] 07-02-PLAN.md — profiles DB migration + auth route handlers (callback, confirm) + Server Actions
+- [ ] 07-03-PLAN.md — external service config (Resend SMTP, Google OAuth, Supabase dashboard) + smoke test
 
 ### Phase 8: Auth UI + iOS Validation
 **Goal**: Users can browse freely as guests and are prompted to sign in only when they attempt a social action, with the entire flow confirmed working on a real iOS device
@@ -106,7 +111,7 @@ See full details: [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 | 4. Ship | v1.0 | 3/3 | Complete | 2026-02-26 |
 | 5. Tech Pipeline | v1.1 | 2/2 | Complete | 2026-03-10 |
 | 6. Category UI | v1.1 | 1/1 | Complete | 2026-03-10 |
-| 7. Auth Infrastructure | v1.2 | 0/? | Not started | - |
+| 7. Auth Infrastructure | v1.2 | 0/3 | In progress | - |
 | 8. Auth UI + iOS Validation | v1.2 | 0/? | Not started | - |
 | 9. Social Interactions | v1.2 | 0/? | Not started | - |
 | 10. Comments | v1.2 | 0/? | Not started | - |
