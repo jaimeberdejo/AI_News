@@ -1,663 +1,667 @@
-# Architecture Patterns
+# Architecture Research
 
-**Project:** FinFeed — AI-generated financial news PWA
-**Domain:** Faceless AI video pipeline + PWA frontend
-**Researched:** 2026-02-23
-**Overall confidence:** HIGH (all stack choices are well-established, free tier limits verified from public pricing pages as of research date)
+**Domain:** Auth + Social features integration into brownfield Next.js App Router + Supabase PWA
+**Researched:** 2026-03-23
+**Confidence:** HIGH (official Supabase docs + existing codebase inspection)
 
----
-
-## Recommended Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    GITHUB ACTIONS (Batch Runner)                 │
-│  Cron: 0 6,18 * * *  (6am + 6pm UTC)                           │
-│                                                                  │
-│  pipeline/run.py  ←──  Sequential steps with state in Postgres  │
-│                                                                  │
-│  Step 1: RSS Fetch → Step 2: LLM Scripts → Step 3: TTS          │
-│  Step 4: B-roll Download → Step 5: FFmpeg → Step 6: Upload      │
-│  Step 7: DB Publish                                              │
-└───────────────────────────┬─────────────────────────────────────┘
-                             │ writes video files
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    SUPABASE                                      │
-│                                                                  │
-│  PostgreSQL                    Storage Bucket: "videos"          │
-│  ─────────────────             ──────────────────────────        │
-│  editions (table)              editions/2026-02-23/              │
-│  videos (table)                  story-1.mp4                     │
-│  pipeline_runs (table)           story-2.mp4                     │
-│                                  story-3.mp4                     │
-│  Public anon key → read-only     story-4.mp4                     │
-│  Service key → pipeline write    story-5.mp4                     │
-└───────────────────────────┬─────────────────────────────────────┘
-                             │ public URLs / anon API
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    VERCEL (PWA Frontend)                         │
-│                                                                  │
-│  Next.js App Router                                              │
-│  ─────────────────────                                           │
-│  /                  → redirect to /today                         │
-│  /today             → SwipeableFeed component                    │
-│  /api/today         → Server Route → Supabase query              │
-│                                                                  │
-│  PWA: manifest.json + service worker (offline shell)            │
-└─────────────────────────────────────────────────────────────────┘
-```
+> **Scope note:** This document covers the v1.2 auth + social milestone architecture. It extends the
+> original pipeline/frontend architecture (preserved conceptually) with Supabase Auth, profiles,
+> likes, bookmarks, comments, and avatar storage. The existing public feed path is explicitly
+> kept unchanged.
 
 ---
 
-## Component Boundaries
+## Standard Architecture
 
-| Component | Responsibility | Communicates With | Owns |
-|-----------|---------------|-------------------|------|
-| **GitHub Actions Runner** | Orchestrates batch pipeline, retries, logs | Supabase DB (write), Supabase Storage (write), external APIs | Pipeline state machine |
-| **RSS Fetcher** (`pipeline/steps/fetch.py`) | Downloads + deduplicates financial news | Yahoo Finance RSS, Reuters RSS | Raw article list in memory |
-| **LLM Scriptwriter** (`pipeline/steps/script.py`) | Selects top 5 stories, writes 30-45s scripts | Groq API (Llama 3.3) | Script text per story |
-| **TTS Engine** (`pipeline/steps/tts.py`) | Converts script text to MP3 audio files | OpenAI API (tts-1) | Audio files in GH Actions temp dir |
-| **B-roll Downloader** (`pipeline/steps/broll.py`) | Downloads royalty-free stock video clips | Pexels API, Pixabay API | Video clips in GH Actions temp dir |
-| **Video Assembler** (`pipeline/steps/assemble.py`) | Combines audio + b-roll + subtitles → MP4 | FFmpeg (local subprocess) | Final MP4 in GH Actions temp dir |
-| **Uploader** (`pipeline/steps/upload.py`) | Pushes MP4s to Supabase Storage | Supabase Storage API | Public video URLs |
-| **DB Publisher** (`pipeline/steps/publish.py`) | Writes edition + video metadata to Postgres | Supabase PostgreSQL | Edition record marked "published" |
-| **Supabase PostgreSQL** | Source of truth for editions, video metadata, pipeline state | Pipeline (write), Next.js API (read) | All structured data |
-| **Supabase Storage** | File store for generated MP4s | Pipeline (write), browsers/CDN (read) | All video files |
-| **Next.js API Route** (`/api/today`) | Serves daily edition metadata to PWA | Supabase Postgres (read via anon key) | Frontend API contract |
-| **PWA SwipeableFeed** | Renders 5 videos with vertical snap scroll, preload logic | Next.js API, Supabase Storage URLs directly | User session state (current position) |
+### System Overview
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         VERCEL EDGE (middleware.ts)  — NEW                    │
+│  Every request → refresh auth token via @supabase/ssr cookie refresh          │
+│  Protected routes (/profile) → redirect to /login if getUser() returns null   │
+│  Public routes (/, /api/today) → pass through; user may or may not exist      │
+└───────────────────────────────┬──────────────────────────────────────────────┘
+                                │
+        ┌───────────────────────┼───────────────────────┐
+        ▼                       ▼                       ▼
+┌────────────────┐   ┌───────────────────┐   ┌──────────────────────────┐
+│ Server         │   │ Client            │   │ API Route Handlers       │
+│ Components     │   │ Components        │   │                          │
+│                │   │                   │   │ EXISTING (unchanged):    │
+│ page.tsx       │   │ VideoFeed         │   │   /api/today             │
+│ (modified:     │   │ (modified:        │   │   /api/editions/[id]     │
+│  pass user     │   │  user prop +      │   │                          │
+│  prop down)    │   │  SocialOverlay)   │   │ NEW:                     │
+│                │   │                   │   │   /auth/callback         │
+│ profile/       │   │ VideoItem         │   │   /api/social/like       │
+│ page.tsx (NEW) │   │ (modified:        │   │   /api/social/bookmark   │
+│                │   │  SocialOverlay    │   │   /api/social/comments   │
+│ login/         │   │  slot added)      │   │                          │
+│ page.tsx (NEW) │   │                   │   │ Uses createServerClient  │
+│                │   │ SocialOverlay(NEW)│   │ + getUser() for social   │
+│ Uses           │   │ AuthModal (NEW)   │   │ route handlers           │
+│ createServer   │   │ ProfileView (NEW) │   │                          │
+│ Client()       │   │                   │   │                          │
+│                │   │ Uses createBrowser│   │                          │
+│                │   │ Client()          │   │                          │
+└───────┬────────┘   └────────┬──────────┘   └────────────┬─────────────┘
+        │                     │                            │
+        └─────────────────────┴────────────────────────────┘
+                              │
+        ┌─────────────────────▼──────────────────────────────┐
+        │              SUPABASE (free tier)                   │
+        │                                                     │
+        │  Auth          Postgres (RLS)     Storage           │
+        │  ──────────    ──────────────     ────────────────  │
+        │  Google OAuth  editions (keep)    videos/ (keep)    │
+        │  Apple OAuth   videos (keep)      avatars/ (NEW)    │
+        │  Email/Pass    pipeline_runs(keep)                  │
+        │                profiles (NEW)                       │
+        │                likes (NEW)                          │
+        │                bookmarks (NEW)                      │
+        │                comments (NEW)                       │
+        └─────────────────────────────────────────────────────┘
+```
+
+### Component Responsibilities
+
+| Component | Responsibility | Status |
+|-----------|---------------|--------|
+| `middleware.ts` | Refresh auth tokens via `@supabase/ssr` on every request; redirect `/profile` to `/login` when no session | NEW |
+| `lib/supabase/server.ts` | `createServerClient()` factory using `next/headers` cookies — for Server Components, route handlers | NEW |
+| `lib/supabase/client.ts` | `createBrowserClient()` for Client Components (browser only) | NEW |
+| `lib/supabase/middleware.ts` | `updateSession()` helper called by `middleware.ts` | NEW |
+| `lib/supabase.ts` | Existing anon-key singleton — keep unchanged for `/api/today` and `/api/editions/[id]` | KEEP |
+| `app/auth/callback/route.ts` | Handle OAuth code exchange after Google/Apple redirect; set session cookie | NEW |
+| `app/login/page.tsx` | Google OAuth button; email/password form; Apple deferred | NEW |
+| `app/profile/page.tsx` | Server component — reads user + profile + like/bookmark counts; protected route | NEW |
+| `components/SocialOverlay.tsx` | Like/bookmark/comment buttons overlaid on the video area | NEW |
+| `components/AuthModal.tsx` | Bottom sheet prompting sign-in when guest taps a social action | NEW |
+| `components/ProfileView.tsx` | Avatar, display name, like count, bookmark count | NEW |
+| `hooks/useAuth.ts` | `onAuthStateChange` subscription; exposes `user: User \| null` and `loading: boolean` | NEW |
+| `hooks/useSocial.ts` | Like/bookmark/comment mutations; optimistic state per `videoId` | NEW |
+| `app/page.tsx` | Pass `user` as prop to `VideoFeed` (server-side `getUser()`) | MODIFIED |
+| `components/VideoFeed.tsx` | Accept `user` prop; pass down to `VideoItem` — no change to scroll/play logic | MODIFIED |
+| `components/VideoItem.tsx` | Add `SocialOverlay` as absolute-positioned child inside the video div | MODIFIED |
+
+---
+
+## Recommended Project Structure
+
+```
+frontend/
+├── middleware.ts                      # NEW — token refresh + /profile protection
+├── app/
+│   ├── auth/
+│   │   └── callback/
+│   │       └── route.ts              # NEW — OAuth code exchange
+│   ├── login/
+│   │   └── page.tsx                  # NEW — Google/email sign-in UI
+│   ├── profile/
+│   │   └── page.tsx                  # NEW — protected server component
+│   ├── api/
+│   │   ├── today/route.ts            # KEEP unchanged (anon client)
+│   │   ├── editions/[id]/route.ts    # KEEP unchanged (anon client)
+│   │   └── social/
+│   │       ├── like/route.ts         # NEW — POST/DELETE toggle like
+│   │       ├── bookmark/route.ts     # NEW — POST/DELETE toggle bookmark
+│   │       └── comments/route.ts     # NEW — GET list, POST add comment
+│   ├── layout.tsx                    # MODIFIED — add AuthProvider if needed
+│   └── page.tsx                      # MODIFIED — fetch user, pass to VideoFeed
+├── components/
+│   ├── VideoFeed.tsx                 # MODIFIED — accept user prop
+│   ├── VideoItem.tsx                 # MODIFIED — add SocialOverlay slot
+│   ├── SocialOverlay.tsx             # NEW — like/bookmark/comment buttons
+│   ├── AuthModal.tsx                 # NEW — guest sign-in prompt
+│   ├── ProfileView.tsx               # NEW — profile display
+│   ├── EndCard.tsx                   # KEEP unchanged
+│   └── MuteButton.tsx                # KEEP unchanged
+├── hooks/
+│   ├── useEdition.ts                 # KEEP unchanged
+│   ├── useVideoPlayer.ts             # KEEP unchanged
+│   ├── useAuth.ts                    # NEW — session state
+│   └── useSocial.ts                  # NEW — social action mutations
+└── lib/
+    ├── supabase.ts                   # KEEP — anon singleton for existing API routes
+    └── supabase/
+        ├── client.ts                 # NEW — createBrowserClient()
+        ├── server.ts                 # NEW — createServerClient()
+        └── middleware.ts             # NEW — updateSession() helper
+```
+
+### Structure Rationale
+
+- **`lib/supabase.ts` kept unchanged:** The existing anon-key singleton serves `/api/today` and `/api/editions/[id]`. These routes do not need user sessions. Adding auth must not break the existing read path.
+- **`lib/supabase/` subdirectory:** Auth-aware clients live separately to prevent accidentally using the wrong client type. `server.ts` uses `next/headers` cookies; `client.ts` uses browser cookie storage. Never mix them.
+- **`app/api/social/` sub-group:** Social mutations are explicit API routes rather than inline Server Actions, keeping them testable and keeping the Python pipeline completely auth-unaware.
+- **`middleware.ts` at `frontend/` root:** Required location by Next.js — must be at project root, not inside `app/`.
+
+---
+
+## Architectural Patterns
+
+### Pattern 1: Optional Auth — Feed is Public, Social Requires Auth
+
+**What:** The entire video feed is accessible without login. Social actions (like, bookmark, comment) require authentication. A guest tapping a social button sees `AuthModal`. After sign-in the action completes.
+
+**When to use:** Mandatory for FinFeed's validation-phase goal. Removing friction for watching maximizes the reach sample; requiring auth for social signals keeps data meaningful.
+
+**Trade-offs:** User state (`user | null`) must propagate through the component tree. RLS must correctly handle both anon (read) and authenticated (read + write own rows) cases.
+
+**Middleware pattern:**
+```typescript
+// frontend/middleware.ts
+import { updateSession } from './lib/supabase/middleware'
+import { type NextRequest, NextResponse } from 'next/server'
+
+const PROTECTED = ['/profile', '/settings']
+
+export async function middleware(request: NextRequest) {
+  // updateSession refreshes the cookie — required by @supabase/ssr
+  const response = await updateSession(request)
+
+  // UX redirect only — RLS is the real security
+  if (PROTECTED.some(p => request.nextUrl.pathname.startsWith(p))) {
+    const { data: { user } } = await /* supabase from updateSession */ .auth.getUser()
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+  }
+
+  return response
+}
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+}
+```
+
+### Pattern 2: @supabase/ssr Dual-Client — Server vs Browser
+
+**What:** Two separate client factories. `createServerClient` reads/writes cookies via `next/headers` (server components, route handlers). `createBrowserClient` uses browser cookie storage (client components only).
+
+**When to use:** Mandatory whenever Supabase Auth sessions need to persist across the server/client boundary in Next.js App Router. The existing `@supabase/supabase-js` singleton without cookie support cannot maintain sessions.
+
+**Trade-offs:** Slightly more boilerplate. The existing `lib/supabase.ts` singleton remains valid for the anon public read path and must not be replaced there.
+
+```typescript
+// lib/supabase/server.ts
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+export async function createClient() {
+  const cookieStore = await cookies()
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cs) => cs.forEach(({ name, value, options }) =>
+          cookieStore.set(name, value, options)
+        ),
+      },
+    }
+  )
+}
+
+// lib/supabase/client.ts
+import { createBrowserClient } from '@supabase/ssr'
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+```
+
+### Pattern 3: Profiles Table + Trigger (Auth → Public Schema Sync)
+
+**What:** `public.profiles` row is auto-created on first sign-up via a PostgreSQL trigger on `auth.users INSERT`. The app reads profiles from the public schema; it never reads `auth.users` directly (blocked by RLS).
+
+**When to use:** Standard Supabase pattern. Required because `auth.users` is not accessible via the anon or authenticated roles.
+
+**Trade-offs:** Trigger failure blocks signup — test with all three OAuth providers. `SECURITY DEFINER` on the function bypasses RLS so the trigger can insert without an existing RLS policy for the insert.
+
+```sql
+create function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = ''
+as $$
+begin
+  insert into public.profiles (id, display_name, avatar_url)
+  values (
+    new.id,
+    coalesce(
+      new.raw_user_meta_data->>'full_name',
+      new.raw_user_meta_data->>'name',
+      split_part(new.email, '@', 1)
+    ),
+    new.raw_user_meta_data->>'avatar_url'
+  );
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+```
+
+Note on Apple Sign In: Apple's identity token does not include `full_name`. The fallback to `split_part(email, '@', 1)` handles this gracefully.
 
 ---
 
 ## Data Flow
 
-### Pipeline Data Flow (Write Path)
+### Flow 1: Guest Watching Feed (Existing Path — Unchanged)
 
 ```
-[RSS Feeds]
-    │ raw XML/JSON articles
-    ▼
-[RSS Fetcher] → article list (Python dict list, in memory)
-    │
-    ▼
-[LLM Scriptwriter] → 5 x { title, script_text, story_id }
-    │ stores in-progress records to DB: status="generating_audio"
-    ▼
-[TTS Engine] → 5 x audio/*.mp3 files (GitHub Actions $RUNNER_TEMP)
-    │ updates DB: status="generating_video"
-    ▼
-[B-roll Downloader] → 5 x broll/*.mp4 clips (GitHub Actions $RUNNER_TEMP)
-    │
-    ▼
-[Video Assembler] → 5 x output/story-{n}.mp4 (GitHub Actions $RUNNER_TEMP)
-    │ updates DB: status="uploading"
-    ▼
-[Uploader] → Supabase Storage bucket "videos/editions/{date}/story-{n}.mp4"
-    │ returns 5 x public URLs
-    ▼
-[DB Publisher] → Postgres: edition.status="published", video URLs committed
-    │
-    ▼
-[Done — edition is live]
+User opens PWA (no session)
+    ↓
+middleware.ts → updateSession() → no session cookie → pass through (not a protected route)
+    ↓
+app/page.tsx (Server Component)
+    → createServerClient().auth.getUser() → user = null
+    → fetch /api/today (uses anon client, no change)
+    → VideoFeed initialEdition={edition} user={null}
+    ↓
+VideoFeed renders videos with user=null
+    → SocialOverlay shows locked/guest state icons
+    → No social API calls made
 ```
 
-### Frontend Data Flow (Read Path)
+### Flow 2: Authenticated Like Action
 
 ```
-[Browser → GET /api/today]
-    │
-    ▼
-[Next.js Server Route]
-    │ query: SELECT * FROM videos WHERE edition_date = today
-    │         AND editions.status = 'published'
-    ▼
-[Supabase Postgres (anon key, RLS: read-only published only)]
-    │ returns: edition metadata + 5 video records with storage URLs
-    ▼
-[JSON response to browser]
-    │ { edition_date, videos: [{ id, title, video_url, duration, order }] }
-    ▼
-[SwipeableFeed component]
-    │ preloads video[0] and video[1] immediately
-    │ preloads video[n+1] as user scrolls
-    ▼
-[<video> elements with direct Supabase Storage URLs]
-    │ browser streams MP4 directly from Supabase Storage CDN
-    ▼
-["You're up to date" screen after video[4]]
+User (signed in) taps Like button on VideoItem
+    ↓
+SocialOverlay → useSocial.toggleLike(videoId)
+    ↓
+Optimistic update: flip liked=true locally; increment likeCount
+    ↓
+POST /api/social/like  { video_id: "uuid" }
+    ↓
+Route Handler:
+    → createClient() from lib/supabase/server.ts (reads session cookie)
+    → supabase.auth.getUser() → validates token with Supabase Auth server
+    → if no user: return 401
+    → INSERT INTO likes (user_id, video_id)
+      ON CONFLICT (user_id, video_id) DO NOTHING
+      — or DELETE if currently liked (toggle)
+    ↓
+200 OK → confirm optimistic state
+4xx → revert optimistic state, show error toast
+```
+
+### Flow 3: Guest Taps Like (Auth Gate)
+
+```
+Guest taps Like
+    ↓
+SocialOverlay → useSocial.toggleLike(videoId)
+    ↓
+useAuth.user === null → show AuthModal (no API call made)
+    ↓
+User taps "Continue with Google" in AuthModal
+    ↓
+createBrowserClient().auth.signInWithOAuth({
+  provider: 'google',
+  options: { redirectTo: `${origin}/auth/callback` }
+})
+    ↓
+Browser → Google consent screen
+    ↓
+Google → https://[project].supabase.co/auth/v1/callback
+    ↓
+Supabase → /auth/callback?code=abc123
+    ↓
+app/auth/callback/route.ts
+    → exchangeCodeForSession(code) → session cookie set
+    → (first login): on_auth_user_created trigger fires → profiles row created
+    ↓
+NextResponse.redirect('/') — user is now signed in
+    ↓
+VideoFeed re-renders with user set → pending like completes (optional: via URL param)
+```
+
+### Flow 4: Profile Page Load
+
+```
+User navigates to /profile
+    ↓
+middleware.ts → getUser() → user exists → pass through
+    ↓
+app/profile/page.tsx (Server Component)
+    → createServerClient().auth.getUser() → user
+    → SELECT * FROM profiles WHERE id = user.id
+    → SELECT COUNT(*) FROM likes WHERE user_id = user.id (or denormalized count)
+    → SELECT COUNT(*) FROM bookmarks WHERE user_id = user.id
+    ↓
+Render ProfileView with server-fetched data (no client fetch needed)
+```
+
+### State Management
+
+```
+useAuth hook (Client Component, mounted in layout or VideoFeed)
+    ↓ createBrowserClient().auth.getUser() on mount
+    ↓ createBrowserClient().auth.onAuthStateChange() subscription
+    → user: User | null
+    → loading: boolean
+    Passed as prop: VideoFeed → VideoItem → SocialOverlay
+
+useSocial(videoId) hook (per VideoItem)
+    ↓ on mount: GET /api/social/like?video_id=X (if user != null)
+    → liked: boolean (false for guests)
+    → bookmarked: boolean
+    → likeCount: number (public, visible to guests too)
+    Mutations: POST/DELETE /api/social/like|bookmark
+    Strategy: optimistic update → API call → revert on error
 ```
 
 ---
 
-## Data Model
+## DB Schema Changes
 
-### Database Schema
+### New Tables (migration file)
 
 ```sql
--- One record per daily edition
-CREATE TABLE editions (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  edition_date DATE UNIQUE NOT NULL,         -- "2026-02-23"
-  status      TEXT NOT NULL DEFAULT 'pending',
-  -- status: pending | generating_scripts | generating_audio
-  --         generating_video | uploading | published | failed
-  created_at  TIMESTAMPTZ DEFAULT NOW(),
-  published_at TIMESTAMPTZ,
-  pipeline_run_id UUID REFERENCES pipeline_runs(id)
+-- profiles: one row per auth user, auto-created by trigger
+CREATE TABLE public.profiles (
+  id           uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
+  display_name text,
+  avatar_url   text,
+  created_at   timestamptz DEFAULT now(),
+  updated_at   timestamptz DEFAULT now()
 );
 
--- One record per video in the edition (always 5)
-CREATE TABLE videos (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  edition_id   UUID NOT NULL REFERENCES editions(id),
-  position     SMALLINT NOT NULL CHECK (position BETWEEN 1 AND 5),
-  title        TEXT NOT NULL,
-  script_text  TEXT NOT NULL,
-  video_url    TEXT,                         -- null until uploaded
-  duration_s   SMALLINT,                     -- actual duration in seconds
-  status       TEXT NOT NULL DEFAULT 'pending',
-  -- status: pending | script_ready | audio_ready | video_ready | uploaded
-  source_urls  JSONB,                        -- array of RSS article URLs used
-  created_at   TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE (edition_id, position)
+-- likes: per-user per-video
+CREATE TABLE public.likes (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users ON DELETE CASCADE,
+  video_id   uuid NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (user_id, video_id)
 );
 
--- Audit log for pipeline runs
-CREATE TABLE pipeline_runs (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  edition_date DATE NOT NULL,
-  started_at  TIMESTAMPTZ DEFAULT NOW(),
-  finished_at TIMESTAMPTZ,
-  status      TEXT NOT NULL DEFAULT 'running',
-  -- status: running | success | failed | partial
-  error_log   JSONB,                         -- { step, message, traceback }
-  steps_log   JSONB                          -- { step: { started, finished, ok } }
+-- bookmarks: same structure as likes
+CREATE TABLE public.bookmarks (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users ON DELETE CASCADE,
+  video_id   uuid NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (user_id, video_id)
 );
+
+-- comments: text per video, ordered by created_at
+CREATE TABLE public.comments (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users ON DELETE CASCADE,
+  video_id   uuid NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+  body       text NOT NULL CHECK (char_length(body) BETWEEN 1 AND 500),
+  created_at timestamptz DEFAULT now()
+);
+
+-- Indexes
+CREATE INDEX idx_likes_video    ON public.likes(video_id);
+CREATE INDEX idx_bookmarks_user ON public.bookmarks(user_id);
+CREATE INDEX idx_comments_video ON public.comments(video_id, created_at DESC);
 ```
 
-### Storage Layout
-
-```
-Supabase Storage Bucket: "videos" (public)
-
-videos/
-  editions/
-    2026-02-23/
-      story-1.mp4      (~15-20 MB, 30-45s at 720p)
-      story-2.mp4
-      story-3.mp4
-      story-4.mp4
-      story-5.mp4
-    2026-02-24/
-      ...
-```
-
-### API Contract (Frontend-Backend)
-
-```
-GET /api/today
-Response 200:
-{
-  "edition_date": "2026-02-23",
-  "status": "published",
-  "published_at": "2026-02-23T06:31:00Z",
-  "videos": [
-    {
-      "id": "uuid",
-      "position": 1,
-      "title": "Fed Holds Rates Steady",
-      "video_url": "https://[project].supabase.co/storage/v1/object/public/videos/editions/2026-02-23/story-1.mp4",
-      "duration_s": 38
-    },
-    ...
-  ]
-}
-
-Response 404:
-{
-  "error": "no_edition_today",
-  "message": "Today's edition is still being generated. Check back soon."
-}
-
-Response 503:
-{
-  "error": "edition_failed",
-  "message": "Today's edition failed to generate."
-}
-```
-
-**Key decision: Next.js API Route wraps Supabase, NOT direct Supabase client from browser.**
-Reason: Service key stays server-side, Row Level Security (RLS) on anon key is simple (only published editions), and API route enables future caching at Vercel edge.
-
----
-
-## Pipeline Architecture: Sequential Script with State
-
-**Recommendation: Single orchestrator script with sequential steps, state in Postgres.**
-
-Do NOT use a full DAG framework (Airflow, Prefect, Dagster) for this project. The operational overhead is not justified for a 5-video batch job. A well-structured Python script with checkpoint state in Postgres achieves all required properties.
-
-### Why Not a DAG Framework
-
-| DAG Framework | Problem for This Project |
-|---------------|--------------------------|
-| Apache Airflow | Requires always-on server; overkill; $30-100/mo minimum on managed |
-| Prefect Cloud | Free tier limited; adds complexity; unnecessary |
-| Dagster | Same as Prefect; designed for data engineering teams |
-| GitHub Actions matrix jobs | Artifact passing between jobs adds fragile complexity for 5 sequential steps |
-
-### Recommended Pipeline Structure
-
-```python
-# pipeline/run.py — top-level orchestrator
-def run_pipeline(edition_date: str):
-    run_id = db.create_pipeline_run(edition_date)
-
-    steps = [
-        ("fetch",     steps.fetch.run),
-        ("script",    steps.script.run),
-        ("tts",       steps.tts.run),
-        ("broll",     steps.broll.run),
-        ("assemble",  steps.assemble.run),
-        ("upload",    steps.upload.run),
-        ("publish",   steps.publish.run),
-    ]
-
-    state = {}  # passed between steps
-    for step_name, step_fn in steps:
-        try:
-            state = step_fn(state, edition_date, run_id)
-            db.log_step_success(run_id, step_name)
-        except RetryableError as e:
-            # retry up to 3x with exponential backoff
-            state = retry_step(step_fn, state, edition_date, run_id, step_name, e)
-        except FatalError as e:
-            db.mark_run_failed(run_id, step_name, e)
-            raise SystemExit(1)
-
-    db.mark_run_success(run_id)
-```
-
-### Error Handling Strategy
-
-| Error Type | Examples | Strategy |
-|------------|----------|----------|
-| **Retryable / Transient** | Groq API rate limit, OpenAI timeout, Pexels 429 | Retry 3x with exponential backoff (2s, 4s, 8s) |
-| **Fatal / Config** | Invalid API key, Supabase auth failure | Fail immediately, log to DB, alert via GitHub Actions summary |
-| **Partial success** | 4 of 5 videos succeed | Publish 4 videos if at least 3 succeed (configurable threshold) |
-| **Idempotency** | Workflow re-triggered manually | Check `editions.status` — skip completed steps, resume from last checkpoint |
-
-### Idempotency is Critical
-
-Each pipeline run MUST be safe to re-run. The edition_date is the idempotency key:
-
-```python
-# At start of each step, check if already completed
-def run(state, edition_date, run_id):
-    video = db.get_video(edition_date, position=state["position"])
-    if video.status == "audio_ready":
-        return state  # already done, skip
-    # ... proceed
-```
-
-This allows:
-1. Manual re-runs of failed editions without duplicate work
-2. GitHub Actions re-run after a transient failure
-3. Safe testing of individual steps
-
-### State Between Steps
-
-State passes as a Python dict through the orchestrator. Postgres is the persistent checkpoint. GitHub Actions `$RUNNER_TEMP` holds ephemeral file artifacts (audio, video clips, assembled MP4s).
-
-```
-In-memory state dict between steps:
-{
-  "articles": [...],          # from fetch step
-  "scripts": [...],           # from script step
-  "audio_paths": [...],       # from tts step (local file paths)
-  "broll_paths": [...],       # from broll step
-  "assembled_paths": [...],   # from assemble step
-  "video_urls": [...],        # from upload step
-}
-```
-
----
-
-## GitHub Actions Workflow Structure
-
-**Recommendation: Single job, sequential steps. No matrix, no job-to-job artifact passing.**
-
-Rationale: Job-to-job artifact passing (upload-artifact/download-artifact) adds latency and complexity for no benefit when all steps are sequential and share a working directory.
-
-```yaml
-# .github/workflows/pipeline.yml
-name: FinFeed Daily Pipeline
-
-on:
-  schedule:
-    - cron: '0 6 * * *'    # 6am UTC (2am ET, before US market open)
-    - cron: '0 18 * * *'   # 6pm UTC (2pm ET, after US market close)
-  workflow_dispatch:        # allow manual trigger
-    inputs:
-      edition_date:
-        description: 'Override date (YYYY-MM-DD). Defaults to today.'
-        required: false
-
-jobs:
-  generate:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30     # hard cap — pipeline should finish in ~15 min
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg
-
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run pipeline
-        env:
-          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
-          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
-          SUPABASE_URL:       ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          PEXELS_API_KEY:     ${{ secrets.PEXELS_API_KEY }}
-          EDITION_DATE:       ${{ github.event.inputs.edition_date || '' }}
-        run: python -m pipeline.run
-
-      - name: Upload pipeline logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pipeline-logs-${{ github.run_id }}
-          path: /tmp/pipeline-*.log
-          retention-days: 7
-```
-
-### GitHub Actions Free Tier Constraints
-
-**MEDIUM confidence — from knowledge cutoff, verify current limits:**
-
-- Public repos: unlimited minutes on standard runners
-- Private repos: 2,000 minutes/month free (Linux)
-- ubuntu-latest runner: 2-core, 7GB RAM, 14GB SSD
-- Artifact storage: 500 MB per artifact, 90-day retention
-- Cron schedule: minimum 5-minute intervals; may be delayed up to 30 min under load
-
-**Pipeline runtime estimate:**
-- Fetch: ~10s
-- LLM scripts: ~30s (5 stories, parallel Groq calls)
-- TTS: ~60s (5 scripts, sequential due to OpenAI rate limits)
-- B-roll download: ~60s
-- FFmpeg assembly: ~120s (5 x 30-45s videos)
-- Upload: ~30s
-- DB publish: ~5s
-- **Total: ~5-6 minutes per run**
-
-At 2 runs/day x 30 days = 60 runs x 6 min = 360 min/month. Well within free tier.
-
----
-
-## Storage Architecture
-
-### Decision: Supabase Storage (Free Tier)
-
-**Recommendation: Supabase Storage for MVP. Plan migration path to Cloudflare R2 if traffic grows.**
-
-| Service | Free Storage | Free Bandwidth | CDN | Video Serving | Cost at Scale |
-|---------|-------------|----------------|-----|--------------|---------------|
-| **Supabase Storage** | 1 GB | 2 GB/month egress | Via Cloudflare CDN | Good | $0.09/GB after |
-| **Cloudflare R2** | 10 GB | 0 GB egress (free unlimited to browsers via Workers) | Native Cloudflare CDN | Excellent | $0.015/GB storage, $0 egress |
-| **AWS S3** | 5 GB (12 months) | 100 GB/month | Via CloudFront ($) | Good | $0.09/GB storage, $0.085/GB egress |
-
-**Why Supabase Storage for MVP:**
-- Same service as the DB — one integration, one API key, no extra setup
-- 1 GB storage is sufficient for ~50 daily editions of 5 videos at ~15MB each = ~3.75 GB/day x 13 days fills 1 GB. Retention policy needed (delete editions older than 7 days).
-- 2 GB/month egress supports ~130 full views of all 5 videos (5 x 15MB = 75MB per user). For a validation project, this is acceptable.
-
-**CRITICAL STORAGE CONSTRAINT:**
-```
-5 videos x 15-20 MB each = 75-100 MB per edition
-1 GB free storage ÷ 100 MB = 10 editions max without deletion
-2 GB egress ÷ 75 MB per user session = ~26 complete user sessions/month
-
-ACTION REQUIRED: Implement 7-day retention policy in pipeline.
-Delete old editions: pipeline/steps/cleanup.py
-```
-
-**Video file size optimization:**
-- Target: 720p (1280x720), H.264, CRF 28, AAC audio 128kbps
-- Expected output: 10-15 MB per 30-45s video (not 20 MB)
-- Use `-preset fast` for FFmpeg in CI (speed over compression)
-
-### CDN Behavior
-
-Supabase Storage is backed by Cloudflare CDN globally (confirmed in Supabase architecture docs). Public bucket files are cached at Cloudflare edge nodes. After the first request for a video, subsequent requests are served from CDN cache, not Supabase origin. This means bandwidth from Supabase origin is lower than total views — important for the 2 GB limit.
-
-**MEDIUM confidence** on Supabase CDN cache behavior details — verify with Supabase docs.
-
----
-
-## Frontend-Backend Contract
-
-### Architecture Decision: Next.js API Route (NOT direct Supabase from browser)
-
-```
-Browser
-  ↓ GET /api/today
-Next.js API Route (server-side)
-  ↓ Supabase query (anon key, RLS enforced)
-Supabase Postgres
-  ↑ JSON response
-Next.js API Route
-  ↑ Formatted JSON response
-Browser
-  ↓ video_url (direct Supabase Storage public URL)
-Supabase Storage / Cloudflare CDN
-```
-
-**Why NOT direct Supabase from browser:**
-1. Service key never leaves server
-2. RLS rules are simpler ("anon can read published editions")
-3. API route enables Vercel Edge Cache for the metadata response (99% cache hit rate)
-4. Easier to swap backend later without changing PWA
-
-**Why YES to direct video URLs from Supabase Storage:**
-- Video files must be streamed directly to browser — cannot proxy through Next.js (Vercel function 10s timeout, memory limits)
-- Public bucket URLs are safe to expose
-- Browser handles range requests (seeking) natively against Supabase Storage
-
-### Row Level Security Policy
+### RLS Policies
 
 ```sql
--- In Supabase: enable RLS on editions and videos
-ALTER TABLE editions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE videos ENABLE ROW LEVEL SECURITY;
+-- profiles: public read, owner update
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Anon users can only read published editions
-CREATE POLICY "public can read published editions"
-  ON editions FOR SELECT
-  TO anon
-  USING (status = 'published');
+CREATE POLICY "profiles are publicly readable"
+  ON public.profiles FOR SELECT TO anon, authenticated USING (true);
 
-CREATE POLICY "public can read videos of published editions"
-  ON videos FOR SELECT
-  TO anon
-  USING (
-    EXISTS (
-      SELECT 1 FROM editions
-      WHERE editions.id = videos.edition_id
-      AND editions.status = 'published'
-    )
+CREATE POLICY "users can update own profile"
+  ON public.profiles FOR UPDATE TO authenticated
+  USING (id = auth.uid()) WITH CHECK (id = auth.uid());
+
+-- likes: authenticated only, own rows
+ALTER TABLE public.likes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "users can read own likes"
+  ON public.likes FOR SELECT TO authenticated USING (user_id = auth.uid());
+
+CREATE POLICY "users can insert own likes"
+  ON public.likes FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "users can delete own likes"
+  ON public.likes FOR DELETE TO authenticated USING (user_id = auth.uid());
+
+-- bookmarks: same three policies as likes
+ALTER TABLE public.bookmarks ENABLE ROW LEVEL SECURITY;
+-- (insert/select/delete policies mirroring likes)
+
+-- comments: public read, authenticated insert/delete own
+ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "comments are publicly readable"
+  ON public.comments FOR SELECT TO anon, authenticated USING (true);
+
+CREATE POLICY "authenticated users can comment"
+  ON public.comments FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "users can delete own comments"
+  ON public.comments FOR DELETE TO authenticated USING (user_id = auth.uid());
+```
+
+### Storage: Avatars Bucket
+
+A private `avatars` bucket, completely separate from the existing `videos` bucket. Path convention: `avatars/{user_id}/avatar.{ext}`. Profiles store the resulting public URL in `profiles.avatar_url`.
+
+```sql
+-- Create bucket (Supabase dashboard or migration)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', false);
+
+-- Users manage only their own folder
+CREATE POLICY "users can upload own avatar"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
--- Only service role can write
--- (enforced by API key — service key not exposed to browser)
+CREATE POLICY "users can update own avatar"
+  ON storage.objects FOR UPDATE TO authenticated
+  USING (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Avatar URLs readable publicly (for displaying in comments etc.)
+CREATE POLICY "avatars are publicly readable"
+  ON storage.objects FOR SELECT TO anon, authenticated
+  USING (bucket_id = 'avatars');
 ```
 
-### PWA Preloading Strategy
-
-```javascript
-// components/SwipeableFeed.tsx
-// Preload next video when current video starts playing
-useEffect(() => {
-  const nextIndex = currentIndex + 1;
-  if (nextIndex < videos.length) {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'video';
-    link.href = videos[nextIndex].video_url;
-    document.head.appendChild(link);
-  }
-}, [currentIndex]);
-```
-
-**Do not preload all 5 videos at once** — a user on mobile with 100 MB data would exhaust it. Preload current + next only.
+Note: `public = false` on the bucket with a public SELECT policy gives URL-based read access without an open directory listing. Signed URLs are not required for avatar display.
 
 ---
 
-## Anti-Patterns to Avoid
+## Integration Points
 
-### Anti-Pattern 1: Storing Video Files in the Repo or as GitHub Actions Artifacts Long-Term
+### New vs. Existing Code
 
-**What:** Committing generated MP4s to git, or relying on GitHub Actions artifact storage for serving videos to end users.
-**Why bad:** Git LFS has bandwidth limits; GitHub Artifacts are not a CDN; repo size bloat.
-**Instead:** Upload immediately to Supabase Storage; use public URLs for serving.
+| File | Change | Notes |
+|------|--------|-------|
+| `lib/supabase.ts` | KEEP | Serves `/api/today` and `/api/editions/[id]` — anon key, no sessions needed |
+| `app/api/today/route.ts` | KEEP | No auth context needed for reading editions |
+| `app/api/editions/[id]/route.ts` | KEEP | Same — public read |
+| `frontend/package.json` | ADD `@supabase/ssr` | Required for cookie-based session management |
+| `app/page.tsx` | MODIFY | Call `createServerClient().auth.getUser()` server-side; pass `user` to `VideoFeed` |
+| `app/layout.tsx` | OPTIONAL MODIFY | Add `AuthProvider` context if useAuth needs to be available app-wide |
+| `components/VideoFeed.tsx` | MODIFY | Accept `user: User \| null` prop; pass to `VideoItem`; no change to scroll/play/tab logic |
+| `components/VideoItem.tsx` | MODIFY | Add `<SocialOverlay>` as absolute child inside the video container div |
+| Python pipeline | KEEP UNCHANGED | Pipeline uses service_role key, bypasses RLS, has no auth context — stays completely isolated |
 
-### Anti-Pattern 2: Running FFmpeg as a Python API Server
+### External Services
 
-**What:** Spinning up a web server that generates videos on-demand per request.
-**Why bad:** FFmpeg assembly takes 30-120 seconds per video; completely incompatible with web request latency expectations; Vercel functions timeout at 10-60 seconds.
-**Instead:** Batch job only. All videos pre-generated before any user requests.
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| Google OAuth | `signInWithOAuth({ provider: 'google' })` → redirect flow | Easiest provider. Configure in Supabase dashboard + Google Cloud Console. No key rotation. Ship first. |
+| Apple Sign In | `signInWithOAuth({ provider: 'apple' })` → redirect flow | Requires Apple Developer account ($99/yr). Secret key must be regenerated every 6 months — calendar reminder required. Domain verification + Services ID setup needed. Defer to phase 2 of auth work. |
+| Email/Password | `supabase.auth.signUp()` + `signInWithPassword()` | Simple to add but requires email confirmation flow and forgotten-password UI. Include as tertiary option after Google. |
+| Supabase Auth | `@supabase/ssr` cookie-based sessions | Session in HTTP-only cookie. Middleware refreshes on every request. Always call `getUser()` server-side — never `getSession()`. |
+| Supabase Storage (avatars) | Private `avatars` bucket; path `{user_id}/avatar.ext` | Separate from existing `videos` bucket. Upload via `createBrowserClient().storage` from client component. Store resulting public URL in `profiles.avatar_url`. |
 
-### Anti-Pattern 3: Direct Supabase DB Queries from Pipeline Using Anon Key
+### Internal Boundaries
 
-**What:** Using the anon/public key in the pipeline for DB writes.
-**Why bad:** RLS would need to allow anon writes (massive security hole); anon key is read-only by design.
-**Instead:** Service key in GitHub Secrets for pipeline writes; anon key only in frontend.
-
-### Anti-Pattern 4: Single Monolithic Pipeline Script Without Checkpointing
-
-**What:** One Python script with no state persistence — if it crashes at step 6 of 7, restarts from scratch.
-**Why bad:** Wastes API calls (Groq, OpenAI TTS costs money); GitHub Actions minutes consumed; slow recovery.
-**Instead:** Check Postgres status at each step entry; skip completed steps on re-run.
-
-### Anti-Pattern 5: Keeping All Editions in Storage Forever
-
-**What:** Never deleting old MP4 files from Supabase Storage.
-**Why bad:** 1 GB free storage fills in ~10 editions (10 days). After that, uploads fail silently or incur costs.
-**Instead:** Pipeline cleanup step deletes editions older than 7 days before generating new content.
-
-### Anti-Pattern 6: Proxying Video Through Next.js/Vercel Functions
-
-**What:** Routing video file serving through a Next.js API route or edge function.
-**Why bad:** Vercel function response size limits, timeouts, and bandwidth costs; video range requests require stateful streaming incompatible with serverless.
-**Instead:** Direct Supabase Storage public URLs in the video_url field; browser fetches directly.
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| `middleware.ts` ↔ Server Components | Cookies (HTTP) | Middleware refreshes cookie; Server Component reads the refreshed session |
+| Server Components ↔ Route Handlers | HTTP fetch + cookies | Both use `createServerClient()` from `lib/supabase/server.ts` |
+| Client Components ↔ `/api/social/*` | HTTP fetch (JSON) | Mutations go through Next.js route handlers, not directly to Supabase client |
+| Client Components ↔ Supabase Auth | `createBrowserClient()` | Auth state subscription (`onAuthStateChange`) only — data reads go through API routes |
+| Python pipeline ↔ Supabase | `service_role` key (bypasses RLS) | Completely unchanged. Pipeline writes editions/videos. No auth middleware touches it. |
 
 ---
 
-## Build Order (Dependency Graph)
+## Build Order
 
-This is the critical path for development. Each phase has blockers that must exist before the next phase can be meaningfully tested.
+Dependencies drive this sequence. Auth infrastructure must exist before social features can use it.
 
-```
-Phase 1: Data Foundation
-├── Supabase project created
-├── Schema migrated (editions, videos, pipeline_runs tables)
-├── RLS policies applied
-└── Can query DB from Python (service key) and browser (anon key)
-    │
-    ▼ UNBLOCKS: all phases below
+### Phase A: Auth Infrastructure (no social UI)
 
-Phase 2: Pipeline — Script Generation (LLM + TTS)
-├── requires: Phase 1 (Supabase DB)
-├── RSS fetcher → article list
-├── Groq LLM → 5 scripts saved to DB
-├── OpenAI TTS → 5 MP3 files
-└── Can independently test script + audio quality before video
-    │
-    ▼ UNBLOCKS: Phase 3
+1. Install `@supabase/ssr` (`npm install @supabase/ssr`)
+2. Create `lib/supabase/client.ts`, `lib/supabase/server.ts`, `lib/supabase/middleware.ts`
+3. Create `frontend/middleware.ts` (token refresh only — no route protection yet)
+4. Create `app/auth/callback/route.ts` (OAuth code exchange)
+5. Write migration: `public.profiles` table + `handle_new_user` trigger
+6. Enable Google OAuth in Supabase Auth dashboard + Google Cloud Console
+7. **Verify checkpoint:** Sign in with Google → `/auth/callback` → session cookie set → `getUser()` returns user → `profiles` row created automatically
 
-Phase 3: Pipeline — Video Assembly (FFmpeg + B-roll)
-├── requires: Phase 2 (MP3 audio files)
-├── Pexels/Pixabay B-roll downloader
-├── FFmpeg subtitle generation (SRT/ASS format)
-├── FFmpeg assembly: broll + audio + subtitles → MP4
-└── Can independently test video quality, file sizes, FFmpeg flags
-    │
-    ▼ UNBLOCKS: Phase 4
+### Phase B: Auth UI
 
-Phase 4: Pipeline — Storage + Publishing
-├── requires: Phase 3 (MP4 files)
-├── Supabase Storage uploader
-├── DB publisher (edition.status = 'published')
-├── Cleanup step (delete old editions)
-└── Full end-to-end pipeline runnable locally
-    │
-    ▼ UNBLOCKS: Phase 5 + Phase 6
+8. Create `app/login/page.tsx` (Google button minimum; Apple button deferred)
+9. Create `hooks/useAuth.ts` (`onAuthStateChange`, exposes `user`)
+10. Create `components/AuthModal.tsx` (bottom sheet with "Continue with Google")
+11. Add route protection for `/profile` to `middleware.ts`
+12. Modify `app/page.tsx` to call `getUser()` and pass `user` to `VideoFeed`
+13. **Verify checkpoint:** Guest feed works; login flow works; session persists across page reload
 
-Phase 5: GitHub Actions Automation
-├── requires: Phase 4 (working local pipeline)
-├── Workflow YAML with cron schedule
-├── GitHub Secrets configured
-└── First automated run succeeds
+### Phase C: Social Schema + API Routes
 
-Phase 6: PWA Frontend
-├── requires: Phase 4 (published edition in DB with real video URLs)
-├── /api/today endpoint returns real data
-├── SwipeableFeed with real videos (not placeholders)
-├── Preloading, mute/unmute, snap scroll
-└── PWA manifest + service worker
-    │
-    NOTE: Frontend CAN start being scaffolded in parallel with Phase 4
-    using mock data, but cannot be fully tested until real videos exist.
+14. Write migration: `likes`, `bookmarks`, `comments` tables + all RLS policies
+15. Create `app/api/social/like/route.ts` (POST to like, DELETE to unlike; uses `getUser()`)
+16. Create `app/api/social/bookmark/route.ts`
+17. Create `app/api/social/comments/route.ts` (GET paginated + POST)
+18. **Verify checkpoint:** Authenticated request creates like row; unauthenticated request returns 401; user cannot like another user's row
 
-Phase 7: Deployment + Validation
-├── requires: Phase 5 (automated pipeline) + Phase 6 (PWA deployed)
-├── Vercel deployment
-├── Domain / PWA installation testing
-└── First real user session
-```
+### Phase D: Social UI
 
-**Critical path:** Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 + Phase 6 (parallel) → Phase 7
+19. Create `components/SocialOverlay.tsx` (like/bookmark/comment icon buttons)
+20. Create `hooks/useSocial.ts` (optimistic mutation pattern)
+21. Modify `components/VideoItem.tsx` to include `SocialOverlay` as absolute child
+22. Modify `components/VideoFeed.tsx` to propagate `user` prop to `VideoItem`
+23. **Verify checkpoint:** Like toggles with optimistic update; guest tap shows `AuthModal`; comment count visible to all
 
-**Key insight:** Do NOT start the PWA frontend until at least one real video exists in Supabase Storage. Testing a swipeable video feed with placeholder URLs is misleading — video file size, streaming behavior, and load time are the core UX issues that only appear with real videos.
+### Phase E: Profile Page + Avatars
+
+24. Write migration: `avatars` storage bucket + storage RLS policies
+25. Create `app/profile/page.tsx` (server component; protected route)
+26. Create `components/ProfileView.tsx`
+27. Add avatar upload flow to profile page
+28. **Verify checkpoint:** Profile only reachable when signed in; avatar upload writes to `avatars/{user_id}/`; `profiles.avatar_url` updates
+
+### Phase F: Apple Sign In (separate, optional)
+
+29. Configure Apple Developer account: App ID + Services ID + Signing Key + domain verification
+30. Add Apple to Supabase Auth providers; configure redirect URL
+31. Add Apple button to `login/page.tsx` and `AuthModal`
+32. Set recurring 6-month calendar reminder for key rotation
+33. **Verify checkpoint:** Apple sign-in works on iOS Safari PWA; profile created on first sign-in
 
 ---
 
-## Scalability Considerations
+## Anti-Patterns
 
-| Concern | At 26 sessions/mo (free tier ceiling) | At 1K sessions/mo | At 10K sessions/mo |
-|---------|--------------------------------------|-------------------|-------------------|
-| **Storage** | 1 GB free + 7-day retention OK | Upgrade to Supabase Pro ($25/mo) or migrate to R2 | Cloudflare R2 ($0 egress) |
-| **DB queries** | Supabase free (unlimited reads) | Still free tier OK | Still OK |
-| **Bandwidth** | 2 GB/month free (Supabase) | ~75 GB/mo needed → migrate to R2 | R2 ($0 egress from CDN) |
-| **Pipeline cost** | ~$0.50/mo (TTS) | ~$0.50/mo (TTS cost unchanged) | Same — pipeline is fixed cost |
-| **Frontend** | Vercel free tier | Vercel free tier | Vercel Pro |
-| **Video CDN** | Supabase/Cloudflare cache helps | R2 migration | R2 + Cloudflare Stream ($5/1000 min) |
+### Anti-Pattern 1: Using `getSession()` Server-Side
 
-**The bandwidth cliff:** Supabase free tier includes 2 GB egress. At 75 MB per full user session (5 videos x 15 MB), that's only ~26 complete user sessions before hitting the limit. The Cloudflare CDN layer means cached requests don't count against origin bandwidth, but this is not guaranteed for first-views. **Plan migration to Cloudflare R2 as the Phase 2 infrastructure upgrade** if the validation succeeds.
+**What people do:** Call `supabase.auth.getSession()` in middleware, Server Components, or route handlers.
+
+**Why it's wrong:** `getSession()` reads the JWT from the cookie without re-validating it with the Supabase Auth server. The session could be expired, revoked, or crafted. The official docs explicitly warn against this. CVE-2025-29927 demonstrated that middleware session checks can be bypassed.
+
+**Do this instead:** Always use `supabase.auth.getUser()` in server code — it calls the Supabase Auth server to validate. In client components, `getSession()` is acceptable because the JWT is already in a trusted browser context.
+
+### Anti-Pattern 2: Replacing the Existing Anon Client Everywhere
+
+**What people do:** Replace `lib/supabase.ts` with `lib/supabase/server.ts` across all API routes, including `/api/today`.
+
+**Why it's wrong:** `/api/today` and `/api/editions/[id]` do not need user sessions. Forcing them through the SSR client adds cookie overhead and complexity for no benefit. More importantly — these routes work today and the migration should not touch them.
+
+**Do this instead:** Keep `lib/supabase.ts` for the existing public API routes. Use `lib/supabase/server.ts` only in new routes and components that need user context.
+
+### Anti-Pattern 3: Relying on Middleware as the Only Auth Guard
+
+**What people do:** Only check auth in `middleware.ts` and assume protected routes are safe.
+
+**Why it's wrong:** Middleware is an UX layer, not a security layer. The real security is RLS at the database: `auth.uid()` in every policy ensures that even a direct API call with a manipulated session gets nothing. Each social route handler must call `getUser()` independently before any mutation.
+
+**Do this instead:** Middleware redirects for UX. Route handlers call `getUser()` and return 401 if no user. RLS ensures the DB rejects unauthorized operations even if both of the above fail.
+
+### Anti-Pattern 4: Lifting All Social State into VideoFeed
+
+**What people do:** Add `liked[]`, `bookmarked[]`, `likeCount[]` arrays to `VideoFeed` state, parallel to the `videos` array.
+
+**Why it's wrong:** `VideoFeed` is already complex — it owns scroll tracking, play/pause, edition switching, and tab switching. Adding social state to it increases coupling. Every like toggle would re-render the entire feed including all video elements.
+
+**Do this instead:** `SocialOverlay` fetches and owns its social state via `useSocial(videoId)`. State is co-located with the component that displays it. `VideoFeed` only passes `user` down — it has no opinion about social state.
+
+### Anti-Pattern 5: Implementing Apple Sign In in the Same Phase as Google
+
+**What people do:** Build Google + Apple together in one pass.
+
+**Why it's wrong:** Apple OAuth requires a paid Developer account, a 6-month mandatory secret key rotation, domain verification, and a Services ID that must be configured separately from the App ID. If Apple sign-in breaks (most likely: missed key rotation), it blocks all iOS sign-in. Getting it wrong produces cryptic OAuth errors.
+
+**Do this instead:** Ship Google OAuth first. Validate the auth infrastructure works end-to-end across the full social feature set. Add Apple Sign In as a follow-on phase with explicit reminder setup for key rotation.
+
+### Anti-Pattern 6: Storing Avatar Files in the Videos Bucket
+
+**What people do:** Reuse the existing `videos` storage bucket for user avatars.
+
+**Why it's wrong:** The `videos` bucket is public and has no user-scoped RLS. User avatar data would be accessible to anyone with a URL pattern. Cleanup policies intended for video files would interfere with avatar storage.
+
+**Do this instead:** Create a separate `avatars` bucket with its own RLS policies scoped to `auth.uid()`. Keep infrastructure boundaries clear: `videos/` = pipeline content, `avatars/` = user content.
+
+---
+
+## Scaling Considerations
+
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| 0–1k users | Current schema covers all needs. No changes. Free tier handles it. |
+| 1k–10k users | Add denormalized `like_count` column to `videos` table updated by trigger — avoid per-video `COUNT(*)` queries on every feed load. |
+| 10k+ users | Supabase free tier compute limits become a concern. Upgrade to Pro ($25/mo). Consider Upstash Redis for social count caching to reduce DB load. |
+
+### Scaling Priorities
+
+1. **First bottleneck:** `SELECT COUNT(*) FROM likes WHERE video_id = $1` runs on every feed load for every video. Resolve with a `like_count` integer column on `videos`, updated by INSERT/DELETE trigger. Do not add prematurely — only when query metrics show it.
+2. **Second bottleneck:** Supabase free tier has a 60-connection limit (pooled). Resolved by upgrading to Pro or enabling Supabase's built-in PgBouncer connection pooler.
 
 ---
 
 ## Sources
 
-- **Supabase Storage architecture:** HIGH confidence from Supabase public documentation (supabase.com/docs/guides/storage). Confirmed Cloudflare CDN backing, 1 GB free storage, 2 GB egress. **Verify current pricing before launch — limits may have changed.**
-- **GitHub Actions free tier:** HIGH confidence for public repos (unlimited), MEDIUM confidence for private repo limits (2,000 min/month as of knowledge cutoff).
-- **FFmpeg + GitHub Actions:** HIGH confidence — standard pattern, well-documented community use.
-- **Cloudflare R2 pricing:** HIGH confidence — $0 egress to internet is a documented R2 differentiator vs S3.
-- **Supabase RLS patterns:** HIGH confidence — standard Supabase architecture for public/private access control.
-- **Next.js App Router + API Routes:** HIGH confidence — stable, current best practice for Next.js 14+.
-- **Video preloading strategy:** HIGH confidence — standard browser behavior, documented in MDN.
-- **Pipeline state machine pattern:** HIGH confidence — common pattern for batch data pipelines, no external library required for this scale.
+- [Setting up Server-Side Auth for Next.js | Supabase Docs](https://supabase.com/docs/guides/auth/server-side/nextjs) — HIGH confidence, official
+- [Creating a Supabase client for SSR | Supabase Docs](https://supabase.com/docs/guides/auth/server-side/creating-a-client) — HIGH confidence, official
+- [User Management (Profiles Table + Trigger) | Supabase Docs](https://supabase.com/docs/guides/auth/managing-user-data) — HIGH confidence, official
+- [Storage Access Control | Supabase Docs](https://supabase.com/docs/guides/storage/security/access-control) — HIGH confidence, official
+- [Login with Apple | Supabase Docs](https://supabase.com/docs/guides/auth/social-login/auth-apple) — HIGH confidence, official; Apple key rotation requirement confirmed
+- [Login with Google | Supabase Docs](https://supabase.com/docs/guides/auth/social-login/auth-google) — HIGH confidence, official
+- [Row Level Security | Supabase Docs](https://supabase.com/docs/guides/database/postgres/row-level-security) — HIGH confidence, official
+- [How to protect routes using @supabase/ssr? · Discussion #21468](https://github.com/orgs/supabase/discussions/21468) — MEDIUM confidence, community
+- Existing codebase: `frontend/lib/supabase.ts`, `frontend/app/api/today/route.ts`, `frontend/components/VideoFeed.tsx`, `frontend/components/VideoItem.tsx`, `supabase/migrations/` — HIGH confidence, source of truth for existing boundaries
+
+---
+*Architecture research for: FinFeed Auth + Social integration (brownfield Next.js App Router + Supabase)*
+*Researched: 2026-03-23*

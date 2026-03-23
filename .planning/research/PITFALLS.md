@@ -1,237 +1,315 @@
-# Domain Pitfalls: FinFeed (AI Video Pipeline + PWA)
+# Pitfalls Research: Auth + Social Features on Existing Next.js + Supabase PWA
 
-**Domain:** AI video generation pipeline + mobile-first PWA (financial news)
-**Researched:** 2026-02-23
-**Confidence:** MEDIUM — training knowledge (cutoff Aug 2025) on all 10 areas; external verification tools unavailable during this session
+**Domain:** Adding Supabase Auth (Google/Apple OAuth + email) and social features (likes, comments, bookmarks) to a brownfield Next.js 16 App Router PWA already using Supabase for storage/data.
+**Researched:** 2026-03-23
+**Confidence:** HIGH — verified against Supabase official docs, GitHub issue tracker, and known CVEs. iOS Safari PWA pitfalls confirmed by multiple independent community sources.
+
+> **Scope note:** FinFeed v1.0/v1.1 pitfalls (pipeline, FFmpeg, TTS, Groq, RSS) are documented in a prior research pass. This document focuses exclusively on the auth and social feature addition milestone.
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, silent data corruption, or complete MVP failure.
-
 ---
 
-### Pitfall 1: iOS Safari Autoplay — Muted-Then-Unmute Race Condition
+### Pitfall 1: iOS Safari PWA — OAuth Redirect Breaks the Standalone Context
 
-**What goes wrong:** Developers assume `video.muted = true` + `video.play()` always works on iOS Safari. It does — but only under strict conditions. The common failure is calling `video.play()` before the DOM is ready, or calling it outside a user gesture context when trying to unmute. The tap-to-unmute pattern in PROJECT.md ("first video autoplays muted; tap-to-unmute persists audio across session") hits a specific iOS bug: once you unmute a video programmatically (`video.muted = false`) outside of a direct user gesture handler on that exact video element, Safari resets it to muted and the play() promise rejects silently.
+**What goes wrong:**
+When FinFeed is installed as a PWA on iOS (Add to Home Screen), every OAuth flow — Google or Apple — opens a new browser window outside the standalone app. The OAuth provider redirects back to your callback URL, but iOS drops the navigation into Safari (full browser), not back into the installed PWA. The user is now in Safari, authenticated, but the PWA instance never receives the session. The user returns to the home screen icon, opens the PWA, and is still logged out. This is a **complete auth failure** on the most common platform for this app.
 
 **Why it happens:**
-- iOS Safari's autoplay policy: muted autoplay is allowed, but unmuting requires a direct user gesture (touchend/click) on the video element itself or a `play()` call chained directly inside the event handler synchronously.
-- Developers unmute in a timeout, in a promise `.then()`, or in a gesture handler on a *different* element (e.g., an overlay div). Safari treats all of these as "not a user gesture" and silently re-mutes.
-- The preload-next-video pattern exacerbates this: if you call `play()` on a preloaded video that isn't visible, iOS suspends it. When the user swipes to it, calling `play()` again may fail because there's no fresh gesture.
+iOS enforces strict scope rules for standalone PWAs. When a PWA's navigation leaves its declared scope (which happens during an OAuth redirect to `accounts.google.com` or `appleid.apple.com`), iOS opens Safari for the out-of-scope URL. The session cookie, localStorage, and service worker are **not shared** between the Safari browser context and the installed PWA context. The auth callback writes the session into Safari's context, not the PWA's.
 
-**Consequences:** Users hear no audio after tapping unmute. The bug is invisible on desktop Chrome (which is permissive). Developers don't catch it until testing on a real iOS device.
+Additionally, `window.open()` calls inside `async` functions on iOS PWA are silently blocked. Since Supabase's `signInWithOAuth()` is async-aware, it triggers the popup block. The window either never opens or opens disconnected from the PWA's context.
 
-**Prevention:**
-```javascript
-// WRONG — unmuting in a promise chain breaks iOS
-video.addEventListener('click', async () => {
-  video.muted = false;
-  await video.play(); // May reject on iOS
-});
+**How to avoid:**
+Use one of these three approaches (in recommended order):
 
-// CORRECT — synchronous unmute + play inside the gesture handler
-video.addEventListener('click', () => {
-  video.muted = false;
-  const p = video.play();
-  if (p !== undefined) {
-    p.catch(() => {
-      // Autoplay was prevented — show play button UI
-      video.muted = true;
-    });
+1. **Email OTP / Magic Link (recommended for FinFeed's audience):** The magic link flow keeps the user inside the PWA for the entire auth journey. Supabase sends an email with a link; the user taps it from their email app, and the deep link returns to the PWA scope if configured correctly with universal links. Verified working in Supabase community discussions.
+
+2. **Server-side PKCE with redirect (not popup):** Configure `signInWithOAuth` to use `redirectTo` pointing to your callback route rather than opening a popup. The redirect flow is less broken than the popup flow, but the scope-switch issue still applies on iOS. Mitigate by making the redirect callback page minimal and immediately redirecting back to the PWA scope URL after exchanging the code. Add the callback URL to the PWA manifest scope if possible.
+
+3. **Pre-open window synchronously before calling async auth:**
+   ```typescript
+   // Open the window synchronously before any await — iOS allows this
+   const authWindow = window.open('', '_blank');
+   const { data } = await supabase.auth.signInWithOAuth({
+     provider: 'google',
+     options: {
+       redirectTo: `${window.location.origin}/auth/callback`,
+       skipBrowserRedirect: true,
+     },
+   });
+   if (authWindow && data.url) {
+     authWindow.location.href = data.url;
+   }
+   ```
+
+Do NOT implement OAuth as the only auth option if iOS PWA is a primary target. Always offer email as a fallback.
+
+**Warning signs:**
+- QA on desktop Chrome passes, but testers on iPhone report "always logged out" after Google sign-in
+- Network logs show the OAuth callback URL receiving the code but `supabase.auth.getSession()` returning null in the app
+- Users report being prompted to log in again every time they open the app icon
+
+**Phase to address:** Auth foundation phase (first auth phase). This must be resolved before shipping any auth feature — building social features on a broken auth foundation is wasted work.
+
+---
+
+### Pitfall 2: Supabase Middleware Running on Every Request — Performance and CVE Risk
+
+**What goes wrong:**
+The standard Supabase SSR setup for Next.js App Router requires a `middleware.ts` that calls `supabase.auth.getUser()` on every request to refresh the session token. Without a proper `matcher` config, this middleware runs on every static asset request (`_next/static`, images, favicons), triggering a Supabase Auth network call for each. Community reports show this causing 9+ middleware invocations per page load.
+
+A separate but related issue: **CVE-2025-29927** (CVSS 9.1, disclosed March 2025) allows attackers to bypass Next.js middleware entirely by spoofing the `x-middleware-subrequest` header. This means if your auth check lives **only** in middleware, it can be bypassed trivially on unpatched Next.js versions.
+
+**Why it happens:**
+The default Supabase Next.js quickstart template omits the `matcher` config. New integrations copy-paste the template verbatim. The CVE risk exists because developers assume middleware is sufficient for auth enforcement — it is not.
+
+**How to avoid:**
+Add a matcher that excludes static assets:
+```typescript
+// middleware.ts
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};
+```
+
+Never use middleware as the sole auth gate. Always verify the session at the data access point (in Server Components using `supabase.auth.getClaims()`, or in API routes before returning data). Middleware is for session refresh and redirect logic only.
+
+Upgrade Next.js to >= 15.2.3 (or 14.2.25 for v14, 13.5.9 for v13) to patch CVE-2025-29927. FinFeed uses Next.js 16, so verify the version ships with the fix.
+
+**Warning signs:**
+- Vercel function invocation counts are unexpectedly high
+- Page loads are slow — network waterfall shows multiple auth calls before any content
+- Middleware runs on `.png` or `.js` requests (visible in server logs)
+
+**Phase to address:** Auth foundation phase. The matcher must be set up before any load testing or production traffic.
+
+---
+
+### Pitfall 3: Trusting `getSession()` in Server Code Instead of `getClaims()` / `getUser()`
+
+**What goes wrong:**
+`supabase.auth.getSession()` inside Server Components, Route Handlers, or middleware reads the session from cookies without revalidating the JWT signature against the Supabase Auth server. This means a spoofed or expired cookie can pass as a valid session. For FinFeed's social write operations (POST a like, POST a comment), this is a security hole — an attacker could write likes/comments as any `user_id` if the Route Handler trusts `getSession()`.
+
+**Why it happens:**
+`getSession()` is the familiar, simple API. The Supabase docs note this limitation but it's easy to miss in quickstarts and third-party tutorials.
+
+**How to avoid:**
+In any server-side code that gates a write operation, use `getClaims()` (which validates the JWT signature) or `getUser()` (which makes a server-to-server validation call):
+```typescript
+// Route Handler for POST /api/likes
+import { createClient } from '@/utils/supabase/server';
+
+export async function POST(request: Request) {
+  const supabase = await createClient();
+  // Use getClaims() for performance, getUser() for strictest security
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (!user || error) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
-});
+  // user.id is now verified — safe to use in DB write
+}
 ```
 
-For preloading: preload the `<video>` element and set `preload="auto"` but do NOT call `play()` on non-visible videos. Call `play()` only after the snap-scroll animation ends and the video is fully in the viewport.
+**Warning signs:**
+- Route Handlers that read `session.user.id` from `getSession()` without a secondary verification step
+- Auth middleware that passes `session` from cookies directly to downstream components without re-verification
 
-**Detection (warning signs):**
-- Works fine in Chrome desktop/Android but fails on iPhone
-- Audio works on first video but not on videos 2-5 after swiping
-- `video.paused` is true even though `play()` was called
-
-**Phase that should address this:** PWA frontend build phase. Must test on real iOS device (not simulator) before shipping. Add an iOS-specific integration test or manual checklist item.
+**Phase to address:** Auth foundation phase, and enforced during every social feature phase (every write endpoint must be audited).
 
 ---
 
-### Pitfall 2: TTS Timestamp Assumption — OpenAI TTS Returns No Word Timestamps
+### Pitfall 4: RLS Enabled on Social Tables but Missing Policies — Silent Empty Results
 
-**What goes wrong:** The single most common architectural mistake for this type of project. Developers assume TTS APIs return word-level timestamps (like AWS Polly's Speech Marks or Azure's viseme stream). OpenAI `tts-1` and `tts-1-hd` return only an audio file (MP3/Opus/AAC/FLAC/WAV/PCM). No timestamps. No alignment data. Nothing.
+**What goes wrong:**
+Enabling RLS on `likes`, `comments`, or `bookmarks` tables with `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` without immediately adding policies causes all queries to return zero rows — no error, no warning, just empty. If the frontend shows an empty likes count, developers assume the feature isn't working, not that RLS is silently filtering everything. This is especially dangerous during development when you test with the Supabase Dashboard SQL editor, which runs as the `postgres` superuser and **bypasses RLS entirely**, making the feature appear to work.
 
-**Why it happens:** AWS Polly, Azure TTS, Google Cloud TTS, and ElevenLabs all offer timestamp/boundary data. OpenAI is the exception. Developers who have used any other TTS provider expect this feature. The OpenAI docs don't prominently warn about the omission — they just don't mention timestamps.
+**Why it happens:**
+Supabase's RLS model defaults to deny-all when enabled without policies. The SQL editor's superuser context masks this during development. Developers don't notice until they test through the actual client SDK with a real user token.
 
-**Consequences:** Without timestamps, subtitle sync is impossible if you try to generate it from the API. Developers hit this wall after building the TTS step and having to rearchitect subtitle generation. Common bad fix: hardcode subtitle timing based on word count / estimated speech rate — this drifts badly for financial terms (e.g., "quantitative easing" takes longer than its character count suggests).
+**How to avoid:**
+Always add at minimum a permissive read policy when enabling RLS:
+```sql
+-- Enable RLS
+ALTER TABLE public.likes ENABLE ROW LEVEL SECURITY;
 
-**The correct approach — forced alignment:**
-Use Whisper (the open-source speech recognition model) to align the generated audio back to the script text:
+-- Public read (for like counts visible to all users including guests)
+CREATE POLICY "likes_read_public"
+  ON public.likes FOR SELECT
+  USING (true);
 
-```python
-# Step 1: Generate audio with OpenAI TTS
-audio_bytes = openai.audio.speech.create(
-    model="tts-1",
-    voice="onyx",
-    input=script_text
-)
+-- Authenticated write only
+CREATE POLICY "likes_insert_authenticated"
+  ON public.likes FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 
-# Step 2: Run Whisper on the generated audio to get word timestamps
-import whisper
-model = whisper.load_model("base")  # "base" is fast enough for pipeline
-result = model.transcribe(
-    audio_file_path,
-    word_timestamps=True,
-    language="en"
-)
-# result["segments"][i]["words"] contains [{word, start, end}]
+-- Users can only delete their own likes
+CREATE POLICY "likes_delete_own"
+  ON public.likes FOR DELETE
+  USING (auth.uid() = user_id);
 ```
 
-Whisper with `word_timestamps=True` is accurate to ~50ms on clean TTS audio. This approach adds ~10-20 seconds to pipeline runtime using `whisper-base` on CPU (GitHub Actions). Use `whisper-base` not `whisper-large` — the latter is too slow for a batch pipeline and the audio is clean synthetic speech.
+**Never test RLS through the Supabase Dashboard SQL editor.** Use the client SDK with a real user session, or use the RLS testing helper in the dashboard ("Test policies as role: authenticated").
 
-**Detection (warning signs):**
-- Subtitle text appears out of sync at the 10-15 second mark
-- Financial terms ("Fed funds rate") cause subtitles to lag behind audio
-- Subtitle timing is correct at video start but drifts toward the end
+**Warning signs:**
+- Social feature appears to work in SQL editor but returns empty in the app
+- Like counts are 0 even after inserting test rows manually
+- No errors in logs — just empty arrays from the Supabase client
 
-**Phase that should address this:** Pipeline build phase, specifically the TTS + subtitle generation step. Design the pipeline to include the Whisper alignment step from day one — retrofitting it after burning subtitles into 5 videos per day is painful.
+**Phase to address:** Every phase that creates a social table. The RLS policy must be written in the same migration that creates the table — never defer it.
 
 ---
 
-### Pitfall 3: FFmpeg Subtitle Burning — Font Not Embedded, Encoding Failures
+### Pitfall 5: RLS Policy Missing Index — Count Queries at Scale Become Table Scans
 
-**What goes wrong:** Four common FFmpeg subtitle mistakes in this pipeline:
+**What goes wrong:**
+A `likes` table with an RLS policy like `auth.uid() = user_id` performs well at 100 rows. At 100,000 rows, every `SELECT COUNT(*) FROM likes WHERE video_id = $1` triggers a sequential table scan because PostgreSQL evaluates the RLS policy as a row-level filter, not a WHERE clause — unless the column used in the policy is indexed. The Supabase free tier Postgres instance is single-core; a table scan on a 100k-row table can take seconds.
 
-**3a. Font not available in GitHub Actions runner**
-The `subtitles` filter in FFmpeg uses fonts from the host system. GitHub Actions uses Ubuntu runners. If the script specifies `FontName=Roboto` in the ASS subtitle file but Roboto isn't installed, FFmpeg silently falls back to DejaVu Sans or another system font — no error, just wrong font. This causes visual inconsistency across environments.
+**Why it happens:**
+Developers write RLS policies without thinking about the query plan. The RLS policy is invisible at the application layer — it appears to be a simple `SELECT COUNT(*)`, but the actual query plan includes the policy predicate.
 
-**Prevention:** Bundle fonts in the repo and pass them to FFmpeg explicitly:
-```bash
-# Install font in CI runner
-- name: Install fonts
-  run: |
-    mkdir -p ~/.fonts
-    cp ./assets/fonts/Roboto-Bold.ttf ~/.fonts/
-    fc-cache -fv
+**How to avoid:**
+Add composite indexes on every column referenced in RLS policies AND in common query filters:
+```sql
+-- For likes table: index on both columns used in policies and queries
+CREATE INDEX idx_likes_video_id ON public.likes (video_id);
+CREATE INDEX idx_likes_user_id ON public.likes (user_id);
+-- Composite for "did this user like this video?" check
+CREATE INDEX idx_likes_user_video ON public.likes (user_id, video_id);
 
-# OR pass fontsdir to FFmpeg subtitles filter
-ffmpeg -i input.mp4 \
-  -vf "subtitles=subtitles.ass:fontsdir=/repo/assets/fonts" \
-  output.mp4
+-- For comments table
+CREATE INDEX idx_comments_video_id ON public.comments (video_id);
+CREATE INDEX idx_comments_created_at ON public.comments (created_at DESC);
 ```
 
-**3b. ASS subtitle encoding — UTF-8 BOM breaks FFmpeg**
-If the ASS file is saved with a UTF-8 BOM (common when generated by Python on Windows or by certain libraries), FFmpeg fails to parse it on Linux. Always write ASS files with `encoding='utf-8'` (not `'utf-8-sig'`) in Python.
-
-**3c. SRT timing drift when audio length doesn't match script estimate**
-If you generate SRT timing based on estimated word rate and the actual TTS audio is 10% longer, every subtitle after the midpoint drifts. See Pitfall 2 — use Whisper alignment, don't estimate timing.
-
-**3d. `libass` not compiled in GitHub Actions FFmpeg**
-The default `ffmpeg` package on Ubuntu (`apt-get install ffmpeg`) is compiled with libass. However, if the pipeline uses a custom ffmpeg binary or a specific version via action, libass may not be included. The `subtitles` filter silently fails or produces an error about missing filter.
-
-**Prevention:** Verify at pipeline start:
-```bash
-ffmpeg -filters 2>/dev/null | grep subtitles
-# Must show: ... subtitles  V->V  Render text subtitles onto input video.
+Also: wrap `auth.uid()` in a security definer function to prevent re-evaluation per row:
+```sql
+CREATE OR REPLACE FUNCTION auth.uid()
+RETURNS uuid
+LANGUAGE sql STABLE
+AS $$
+  SELECT (current_setting('request.jwt.claims', true)::json->>'sub')::uuid;
+$$;
 ```
+(Supabase handles this internally, but verify with `EXPLAIN ANALYZE` if policies feel slow.)
 
-**Detection (warning signs):**
-- Subtitles render in wrong font on CI but correct locally
-- ASS file parses fine locally but fails on Ubuntu runner
-- Subtitle text appears but is incorrectly timed
+**Warning signs:**
+- Supabase dashboard shows slow queries on social tables
+- Like counts take 1-2 seconds to load when the video has many interactions
+- `EXPLAIN ANALYZE` shows `Seq Scan` instead of `Index Scan` on the likes table
 
-**Phase that should address this:** Pipeline build phase. Add an FFmpeg validation step that checks for libass and font availability before the main render loop.
+**Phase to address:** Social data model phase (when tables are created). Add indexes in the same migration — retrofitting them on a live table with data requires `CREATE INDEX CONCURRENTLY` to avoid locking.
 
 ---
 
-### Pitfall 4: GitHub Actions — Disk Space Exhaustion and Timeout
+### Pitfall 6: Supabase Storage Avatar Upload — RLS Policy Misconfigured for User-Scoped Paths
 
-**What goes wrong:** GitHub Actions free tier hosted runners (ubuntu-latest) have 14 GB of SSD disk space. A pipeline processing 5 videos per run, each with b-roll (300-500MB MP4) plus intermediate files, can easily exhaust disk space mid-run.
+**What goes wrong:**
+Allowing authenticated users to upload avatars to Supabase Storage requires an RLS policy on `storage.objects` that restricts each user to their own path prefix (e.g., `avatars/{user_id}/avatar.jpg`). The most common mistake is writing a policy that checks the bucket name but not the path, allowing any authenticated user to overwrite any other user's avatar.
 
-**Specific limits (as of mid-2025):**
-- Job timeout: 6 hours maximum (free tier)
-- Artifact storage: 500 MB per artifact, 2 GB total per repo (free tier, 90-day retention)
-- Disk space: ~14 GB on ubuntu-latest
-- Concurrent jobs: 20 (free tier)
+A second common mistake: the service role key is used in a Next.js Route Handler to upload avatars server-side, but the RLS policy's metadata timing check fires before the insert completes, causing a 403 even with a valid service role.
 
-**What happens when disk is full:** FFmpeg exits with a cryptic error ("No space left on device") mid-render. The pipeline doesn't fail gracefully — it leaves corrupted output files and may not clean up intermediate files.
+**Why it happens:**
+Storage RLS is on `storage.objects`, not on a regular table. The path structure (`name` column in `storage.objects`) must be part of the policy. Developers who are comfortable with table RLS don't realize Storage has its own policy syntax.
 
-**Why it happens:** Developers download 5 b-roll clips (each 2-4 minutes of 1080p footage) without cleaning up as they go. Plus the tts audio files, the intermediate video files (video without audio, video with audio before subtitle burn), and the final outputs.
+**How to avoid:**
+```sql
+-- Allow authenticated users to upload to their own folder only
+CREATE POLICY "avatar_upload_own_folder"
+  ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
 
-**Prevention:**
-```yaml
-# Clean up intermediate files immediately after each video
-- name: Process videos
-  run: |
-    for i in 1 2 3 4 5; do
-      python pipeline.py --story $i
-      # Delete b-roll and intermediate files immediately
-      rm -f /tmp/broll_$i.mp4 /tmp/raw_$i.mp4 /tmp/audio_$i.mp3
-    done
+-- Allow public reads from avatars bucket
+CREATE POLICY "avatar_read_public"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'avatars');
+
+-- Allow users to update/delete their own avatar
+CREATE POLICY "avatar_update_own"
+  ON storage.objects FOR UPDATE
+  TO authenticated
+  USING ((storage.foldername(name))[1] = auth.uid()::text);
 ```
 
-Use streaming downloads for b-roll (pipe directly into FFmpeg instead of saving to disk):
-```bash
-# Instead of: wget broll.mp4 && ffmpeg -i broll.mp4 ...
-# Do: ffmpeg -i "$(python get_broll_url.py)" -i audio.mp3 ...
-```
+For client-side uploads (preferred for avatars): use the Supabase client SDK directly from the browser with the user's session — no server Route Handler needed. The SDK sends the JWT automatically and the `storage.foldername` check validates the path.
 
-For artifacts: upload final videos directly to Supabase Storage from the runner — don't use GitHub Actions artifacts for video files. 500 MB limit per artifact means a single 1080p video may exceed it.
+**Warning signs:**
+- Any authenticated user can see other users' uploaded files but shouldn't be able to overwrite them — but they can
+- Upload succeeds in Supabase dashboard but returns 403 from the client SDK
+- Error message: "new row violates row-level security policy for table objects"
 
-**Detection (warning signs):**
-- CI job fails at video 3 or 4 but not video 1 or 2
-- Error logs mention "No space left on device" or FFmpeg exits with code 1
-- `df -h` shows less than 2 GB free mid-job
-
-**Phase that should address this:** Pipeline infrastructure phase. Add disk space monitoring early in the job and aggressive cleanup. Set per-job file size targets (each video output < 50 MB for 30-45 second clips at reasonable quality).
+**Phase to address:** User profile / avatar phase.
 
 ---
 
-### Pitfall 5: Groq Free Tier — Rate Limits Kill the Pipeline Mid-Run
+### Pitfall 7: Apple Sign In — 6-Month Secret Key Expiry Causes Silent Auth Failure
 
-**What goes wrong:** Groq free tier rate limits are aggressive and vary by model. For Llama 3.3 (70B), as of 2025 the limits are approximately:
-- 30 requests per minute
-- 14,400 tokens per minute (TPM)
-- 1,000 requests per day (RPD)
+**What goes wrong:**
+Apple OAuth for web (as opposed to native iOS apps) requires a client secret generated from a `.p8` private key file. Apple requires this secret to be **regenerated every 6 months**. When the secret expires, Sign in with Apple returns a cryptic "unknown client" error to users. The app's Google OAuth continues working, creating a confusing half-broken state.
 
-The pipeline runs 1-2x per day and sends approximately 5 LLM calls (one per story script). This is well within RPD limits. However: the script generation prompt includes the news article text (potentially 500-1000 tokens input) plus generates a 30-45 second script (~150-200 words = ~200-250 tokens output). Multiply by 5 stories = ~6,000-7,000 tokens total. This is safe on a single run.
+**Why it happens:**
+This is a mandatory Apple developer requirement that is not surfaced by Supabase or any monitoring. There is no expiry notification — the secret silently stops working on the 183rd day.
 
-**The real risk: Error handling when Groq is unavailable.** Groq free tier has occasional outages (it's a free, rate-limited service). If story 3's script generation fails with a 503 or rate limit error and the pipeline has no retry logic, the entire run fails — 0 videos get uploaded for the day.
+**How to avoid:**
+- Set a recurring calendar reminder at key generation time: "Regenerate Apple OAuth secret — FinFeed" every 5.5 months (ahead of the 6-month deadline)
+- Store the `.p8` file in a secure location (1Password, AWS Secrets Manager) — you need it for every rotation
+- After rotation, update `SUPABASE_AUTH_APPLE_SECRET` in Supabase dashboard immediately
+- Consider implementing a health check endpoint that calls Apple's token validation endpoint to detect expiry before users do
 
-**Consequences:** Users see yesterday's videos instead of today's. No alerting. Pipeline silently fails.
+This pitfall only applies to the web OAuth flow. If FinFeed later adds native iOS/Android via Capacitor, the native flow has a different setup that does not require 6-month rotation.
 
-**Prevention:**
-```python
-import time
-from groq import Groq, RateLimitError, APIError
+**Warning signs:**
+- Sign in with Apple stops working for all users at once
+- Supabase Auth logs show "invalid_client" or "unknown client" from Apple
+- Google sign-in still works but Apple does not
 
-def generate_script(story_text, retries=3, backoff=30):
-    for attempt in range(retries):
-        try:
-            response = groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[...],
-                max_tokens=400,
-            )
-            return response.choices[0].message.content
-        except RateLimitError:
-            if attempt < retries - 1:
-                time.sleep(backoff * (attempt + 1))
-            else:
-                raise
-        except APIError as e:
-            if e.status_code >= 500 and attempt < retries - 1:
-                time.sleep(backoff)
-            else:
-                raise
+**Phase to address:** Apple OAuth setup phase. Document the rotation requirement immediately in the project's ops runbook.
+
+---
+
+### Pitfall 8: Vercel Preview Deployments Break OAuth Redirect URLs
+
+**What goes wrong:**
+Google OAuth and Supabase both require explicit redirect URL whitelisting. Vercel generates a unique URL for every preview deployment (`https://finfeed-abc123-username.vercel.app`). These URLs are not whitelisted in Google Cloud Console (which doesn't support wildcards in Authorized JavaScript Origins) or in Supabase's Redirect URL allow-list. Result: OAuth fails silently on every preview deployment, making it impossible to test auth flows before merging to production.
+
+**Why it happens:**
+Developers configure OAuth for production only and forget that preview URLs are unique per deployment. Google Cloud Console explicitly rejects wildcards in origins.
+
+**How to avoid:**
+Use a dynamic site URL helper for redirect construction:
+```typescript
+// utils/get-url.ts
+export function getURL() {
+  let url =
+    process?.env?.NEXT_PUBLIC_SITE_URL ??         // Production only
+    process?.env?.NEXT_PUBLIC_VERCEL_URL ??        // Preview deployments
+    'http://localhost:3000/';
+  url = url.startsWith('http') ? url : `https://${url}`;
+  url = url.endsWith('/') ? url : `${url}/`;
+  return url;
+}
 ```
 
-Also: if one story fails after retries, generate 4 videos instead of 5 — don't abort the whole run.
+In Supabase dashboard, add `https://*.vercel.app/**` as an allowed redirect URL (Supabase supports wildcards).
 
-**Detection (warning signs):**
-- Pipeline fails consistently at the same story position
-- Groq returns HTTP 429 (rate limit) or 503 (service unavailable)
-- No videos uploaded despite GitHub Actions job appearing to start
+In Google Cloud Console, add your production domain and localhost. For previews, you'll need to test auth on a branch with a stable custom domain, or use the Supabase dashboard to manually test the OAuth flow.
 
-**Phase that should address this:** Pipeline reliability phase. Implement retry + partial-failure logic before first deployment.
+Do NOT set `NEXT_PUBLIC_SITE_URL` in Vercel's preview environment settings — let it fall through to `NEXT_PUBLIC_VERCEL_URL`, which Vercel sets automatically per deployment.
+
+**Warning signs:**
+- Auth works in production and localhost but not on preview URLs
+- Google returns "redirect_uri_mismatch" error
+- Supabase returns "Redirect URL not allowed"
+
+**Phase to address:** Auth foundation phase (environment setup).
 
 ---
 
@@ -239,317 +317,259 @@ Also: if one story fails after retries, generate 4 videos instead of 5 — don't
 
 ---
 
-### Pitfall 6: Pipeline Partial Failure — All-Or-Nothing Anti-Pattern
+### Pitfall 9: Transitioning from Open Access to Optional Auth — Existing RLS-Free Tables Break
 
-**What goes wrong:** A pipeline that treats 5 videos as an atomic unit fails completely if any one story encounters an error. This is the most common pipeline design mistake for batch jobs.
+**What goes wrong:**
+FinFeed's current `videos` and `editions` tables were created without RLS enabled (open access was intentional for v1). When auth is added and `@supabase/ssr` middleware is wired up, the middleware calls `supabase.auth.getUser()` which sets the auth context on the request. This does not break existing open-access tables — as long as RLS remains disabled on them. The risk is accidentally enabling RLS on these tables without policies, which instantly breaks the entire feed for all users.
 
-**Why it happens:** Developers write sequential Python scripts without per-item error isolation:
-```python
-# BAD — one failure kills everything
-for story in stories:
-    audio = generate_tts(story)      # story 3 TTS fails
-    video = assemble_video(audio)    # never reached
-    upload(video)                    # never reached
-```
+**Why it happens:**
+The Supabase dashboard has a one-click "Enable RLS" button on each table. Developers enabling RLS for social tables may reflexively enable it on all tables, or a migration script may target all tables.
 
-**Prevention:** Wrap each story in a try/except, track successes and failures, upload whatever completed:
-```python
-results = []
-for i, story in enumerate(stories):
-    try:
-        audio = generate_tts(story)
-        video = assemble_video(audio)
-        url = upload_to_supabase(video)
-        results.append({"story": i, "status": "ok", "url": url})
-    except Exception as e:
-        results.append({"story": i, "status": "failed", "error": str(e)})
-        continue  # Keep going
+**How to avoid:**
+- Keep RLS **disabled** on `videos`, `editions`, and any other read-only public tables — they serve anonymous users and enabling RLS without policies returns empty results
+- Only enable RLS on the new social tables: `likes`, `comments`, `bookmarks`, `profiles`
+- If you want to enable RLS on `videos`/`editions` for future rate-limiting or access control, add a public read policy at the same time:
+  ```sql
+  ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "videos_public_read" ON public.videos FOR SELECT USING (true);
+  ```
+- Add a migration test that verifies the feed returns > 0 rows after every schema change
 
-# Write results manifest — even if only 3/5 succeeded
-save_manifest_to_supabase(results)
-```
+**Warning signs:**
+- The feed shows 0 videos after a schema migration
+- No error in the console — just an empty state
+- Works in the Supabase SQL editor (superuser bypasses RLS) but not in the app
 
-The frontend reads the manifest and displays however many videos succeeded (minimum: show "fewer videos today" state rather than nothing).
-
-**Detection (warning signs):**
-- Any single failure results in zero videos for the day
-- No per-story progress logging in pipeline output
-- No manifest/results file in Supabase after a failed run
-
-**Phase that should address this:** Pipeline build phase, from the start. Design for partial success.
+**Phase to address:** Auth foundation phase — the migration checklist must include "do not enable RLS on videos/editions without a public read policy."
 
 ---
 
-### Pitfall 7: Supabase Storage — CORS, Public URLs, and Free Tier Bandwidth
+### Pitfall 10: Anonymous User Caching in Next.js Static Pages
 
-**What goes wrong:** Three distinct Supabase Storage issues:
+**What goes wrong:**
+If any page uses ISR (Incremental Static Regeneration) or is statically generated while Supabase anonymous sessions are active, Next.js can cache the page response with a user-specific `Set-Cookie` header. Users who receive a cached page may get another user's anonymous session token baked into their response, appearing as a different anonymous user or hitting stale social data.
 
-**7a. CORS misconfiguration for video streaming**
-Supabase Storage public buckets don't have wildcard CORS by default. When the PWA (served from Vercel) tries to fetch a video from Supabase Storage, browsers block it as a cross-origin request. The video element may appear to load (no network error) but stalls at 0% because preflight OPTIONS requests fail silently on range requests.
+**Why it happens:**
+Next.js static generation evaluates pages at build time or on a revalidation timer. If the page calls Supabase during generation and an anonymous session exists in the request, that session leaks into the cached response.
 
-**Prevention:** Set CORS in Supabase dashboard → Storage → Policies. Add the Vercel domain explicitly, or use `*` for public content:
-```json
-{
-  "AllowedOrigins": ["https://yourapp.vercel.app", "http://localhost:3000"],
-  "AllowedMethods": ["GET", "HEAD"],
-  "AllowedHeaders": ["*"],
-  "ExposeHeaders": ["Content-Length", "Content-Range", "Accept-Ranges"]
-}
+**How to avoid:**
+- Mark any page that accesses Supabase Auth or social data as dynamic: `export const dynamic = 'force-dynamic'`
+- Supabase's official guidance: "The Supabase team has received reports of user metadata being cached across unique anonymous users as a result of Next.js static page rendering. For the best user experience, utilize dynamic page rendering."
+- FinFeed's feed page already needs to be dynamic (daily content changes), so this is likely not a practical risk — but verify after adding auth middleware
+
+**Warning signs:**
+- Users see like/bookmark states from another session
+- `Set-Cookie` header appears in responses served from Vercel's CDN edge cache
+
+**Phase to address:** Auth foundation phase (review page rendering modes).
+
+---
+
+### Pitfall 11: Comment Threads — N+1 Queries and Missing Pagination
+
+**What goes wrong:**
+A naive comments implementation fetches all comments for a video, then for each comment fetches its replies, then for each reply fetches its author profile. This is the classic N+1 query pattern. At 50 comments per video with 3 replies each, this is 1 + 50 + 150 + 200 = 401 queries per page load. Supabase's PostgREST client supports nested selects, but developers often implement the nested fetch in application code instead.
+
+A second issue: no pagination on comments. Loading all 500 comments for a viral video in a single query blocks rendering and saturates the Supabase free tier connection pool.
+
+**Why it happens:**
+`supabase.from('comments').select('*')` is simple and works at 10 comments. Developers don't add pagination or joins until performance is visibly broken.
+
+**How to avoid:**
+Use PostgREST's embedded resource pattern to fetch comments with authors in a single query:
+```typescript
+const { data: comments } = await supabase
+  .from('comments')
+  .select(`
+    id,
+    content,
+    created_at,
+    parent_id,
+    profiles (
+      id,
+      username,
+      avatar_url
+    )
+  `)
+  .eq('video_id', videoId)
+  .is('parent_id', null)          // Top-level only first
+  .order('created_at', { ascending: false })
+  .range(0, 19);                   // 20 per page
 ```
 
-The `Content-Range` and `Accept-Ranges` headers are critical — without them, the browser video player cannot do range requests, causing the entire video to buffer before playing.
+Implement cursor-based pagination from day one — offset pagination (`LIMIT 20 OFFSET 100`) degrades with table size; cursor pagination does not.
 
-**7b. Public URL format changes**
-Supabase changed the public URL format between projects. The pattern is:
-`https://<project-id>.supabase.co/storage/v1/object/public/<bucket>/<path>`
+For nested comments (replies), fetch the first 3 replies per comment only, with a "load more" option. Do not recursively fetch replies at page load time.
 
-Don't hardcode URL formats — use the Supabase client SDK's `getPublicUrl()` method to get the URL.
+**Warning signs:**
+- Comment section loads in 3+ seconds
+- Network tab shows dozens of sequential requests to `/rest/v1/comments`
+- Supabase dashboard shows "Query count" spiking when comment section is opened
 
-**7c. Free tier bandwidth**
-Supabase free tier includes 1 GB storage and 2 GB egress bandwidth per month. At 5 videos/day × ~20 MB per video × 30 days = 3 GB storage/month. You will exceed free tier storage. Options: compress videos aggressively (target < 10 MB per 30-45s clip at 720p), or accept the $25/month Supabase Pro plan.
-
-**Detection (warning signs):**
-- Video plays locally with direct URL but not in PWA
-- Network tab shows `net::ERR_FAILED` on OPTIONS preflight
-- Storage dashboard shows approaching 1 GB limit
-
-**Phase that should address this:** Infrastructure setup phase. Configure CORS before writing any frontend video code. Target video file size in FFmpeg encoding settings.
+**Phase to address:** Comments feature phase. Set pagination limits before shipping.
 
 ---
 
-### Pitfall 8: PWA Service Worker + Video — Range Request Failures
+### Pitfall 12: `auth.uid()` in RLS Policies Without Stable Security Definer Function
 
-**What goes wrong:** Developers add a service worker for PWA installability and cache video files. The service worker intercepts all fetch requests including the range requests browsers use for video streaming. If the service worker doesn't properly handle range requests, it returns the full response with status 200 instead of 206 (Partial Content), which causes:
-- Safari to refuse to play the video
-- Chrome to buffer the entire file before starting playback
-- Memory usage to spike (entire video file loaded into memory)
+**What goes wrong:**
+PostgreSQL evaluates `auth.uid()` on every row in a table scan when used directly in an RLS policy. On large tables (>10k rows), this adds measurable overhead because the JWT claim extraction runs per-row rather than once per query.
 
-**Why it happens:** The default service worker `cache.match()` ignores request headers. A range request for bytes 0-100000 and a range request for bytes 100001-200000 both match the same cache entry, but the response must be the correct byte range.
+**Why it happens:**
+Standard RLS policy documentation uses `auth.uid()` inline, which is correct but not optimally performant. The optimization is a PostgreSQL-specific detail that most documentation omits.
 
-**The correct approach:** Do NOT cache video files in the service worker. Cache the app shell (HTML, CSS, JS) but let video requests pass through to the network with proper range request support:
-
-```javascript
-// service-worker.js
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-
-  // Pass video requests directly to network — don't cache
-  if (url.pathname.includes('/storage/v1/object/') ||
-      event.request.destination === 'video') {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-
-  // Cache app shell normally
-  event.respondWith(cacheFirst(event.request));
-});
+**How to avoid:**
+Supabase wraps `auth.uid()` in a `STABLE` function internally for most cases, but verify your policies use the recommended pattern. For policies that call `auth.uid()` multiple times, extract it:
+```sql
+-- More efficient than calling auth.uid() twice in one policy
+CREATE POLICY "likes_own_delete"
+  ON public.likes FOR DELETE
+  USING (user_id = auth.uid());
+-- Only one auth.uid() call per policy clause — acceptable
 ```
 
-**Detection (warning signs):**
-- Videos play in regular browser tab but not when installed as PWA
-- First load works, subsequent loads (from cache) fail or buffer fully
-- Memory usage climbs with each video view (never freed)
+Use Supabase's built-in Performance Advisor (dashboard → Database → Advisors) to detect "multiple permissive policies" and "missing RLS indexes" automatically.
 
-**Phase that should address this:** PWA frontend phase. Add the video exclusion to the service worker from the start — retrofitting service worker logic is error-prone.
+**Warning signs:**
+- `EXPLAIN ANALYZE` on social queries shows `InitPlan` for `auth.uid()` called multiple times
+- Performance Advisor flags "unindexed foreign keys" on social tables
 
----
-
-### Pitfall 9: LLM Hallucinations in Financial Scripts
-
-**What goes wrong:** Llama 3.3 (and all LLMs) will confidently fabricate specific financial data points: exact stock prices, percentage changes, earnings figures, specific CEO quotes, and interest rate decisions. In a financial news context, this is not just a product quality issue — it exposes the product to reputational and potentially legal risk.
-
-**Why it happens:** The LLM is prompted to write a "financial influencer" script based on a news article. It extrapolates from partial information, fills gaps with plausible-sounding numbers, and sometimes ignores the source text entirely when generating a compelling narrative.
-
-**Common fabrications:**
-- "Apple stock rose 3.7% to $198.42" (wrong price/percentage)
-- "Fed raised rates by 25 basis points to 5.5%" (outdated or wrong)
-- "CEO Elon Musk said..." (wrong CEO or fabricated quote)
-
-**Prevention — prompt engineering:**
-```
-System prompt rules (enforce strictly):
-1. You MUST only include specific numbers (prices, percentages, dates) that appear
-   VERBATIM in the source article provided. Do not calculate, estimate, or extrapolate.
-2. If the article does not include a specific figure, describe the trend generally
-   without numbers: "stocks rose" not "stocks rose 2.4%".
-3. Do not attribute quotes to any person unless the exact quote appears in the source.
-4. Do not reference events not covered in the source article.
-```
-
-Also: use a structured output format and validate it:
-```python
-# After script generation, check for suspicious patterns
-import re
-def validate_script(script, source_article):
-    # Extract all percentages and prices from script
-    script_numbers = re.findall(r'\d+\.?\d*%|\$\d+\.?\d*', script)
-    # Verify each appears in source article
-    for num in script_numbers:
-        if num not in source_article:
-            raise ValueError(f"Hallucinated figure: {num}")
-```
-
-**Detection (warning signs):**
-- Script contains specific stock prices not mentioned in source article
-- Script quotes executives with statements not in the source
-- Same story run twice produces different specific numbers
-
-**Phase that should address this:** Pipeline build phase, specifically prompt engineering and script validation. This is non-negotiable for a financial product.
+**Phase to address:** Social data model phase (when writing initial migrations).
 
 ---
 
-### Pitfall 10: RSS Feed Reliability — Malformed Feeds and Duplicate Stories
+## Technical Debt Patterns
 
-**What goes wrong:** Financial RSS feeds (Yahoo Finance, Reuters) are inconsistent:
-- Feed URLs change without warning (Yahoo Finance has changed its RSS URLs multiple times)
-- Feeds return malformed XML intermittently (unclosed tags, encoding issues)
-- The same story appears in multiple feeds (e.g., Reuters publishes, Yahoo Finance syndicates)
-- Feeds return 200 OK with error HTML instead of XML during outages
-- Story published timestamps are unreliable (some use UTC, some use publisher local time)
-
-**Why it happens:** RSS is a legacy protocol with no enforced schema. Financial news aggregators often syndicate the same AP/Reuters wire stories across multiple feeds.
-
-**Consequences:** Duplicate stories in the same daily batch (5 videos about the same topic), or zero stories when feeds are down, or pipeline crash on malformed XML.
-
-**Prevention:**
-```python
-import feedparser
-import hashlib
-
-def fetch_and_deduplicate(feed_urls):
-    seen = set()
-    stories = []
-
-    for url in feed_urls:
-        try:
-            feed = feedparser.parse(url)
-            if feed.bozo:  # feedparser flag for malformed feed
-                continue   # Skip malformed, don't crash
-            for entry in feed.entries:
-                # Deduplicate by title fingerprint
-                key = hashlib.md5(entry.title.lower().encode()).hexdigest()
-                if key not in seen:
-                    seen.add(key)
-                    stories.append(entry)
-        except Exception:
-            continue  # One feed down doesn't kill the run
-
-    return stories
-```
-
-For URL changes: don't hardcode feed URLs — store them in a config file or Supabase table that can be updated without redeploying.
-
-**Detection (warning signs):**
-- Multiple videos in same batch cover the same story
-- Pipeline fails with XML parse errors
-- `feedparser` `bozo` attribute is True (indicates parse error)
-
-**Phase that should address this:** Pipeline build phase, specifically the RSS ingestion step. Test with all target feeds and handle the malformed-feed case from day one.
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Single Supabase client instance (not per-request on server) | Simpler code | Session leakage between users in SSR context | Never — always create per-request server client |
+| Using `getSession()` instead of `getUser()` for server-side auth checks | One fewer network call | Spoofed cookies bypass auth gates on write endpoints | Only for non-sensitive read operations |
+| Disabling RLS on social tables "temporarily" during dev | Faster iteration | Forgetting to re-enable before shipping; accidental public data access | Never |
+| Storing user.id in comment/like rows without RLS | Simple SQL | Any user can write as any user_id | Never |
+| Skipping the Apple secret rotation reminder | Nothing now | Sign in with Apple breaks silently in 6 months | Never |
+| No pagination on comments from day one | Simpler frontend | Refactor needed as soon as any video gets >50 comments | Only if comments are hidden behind a "load comments" tap |
+| No index on `likes.video_id` | Faster to ship | Table scan on every like count query | Never — add index in the same migration |
 
 ---
 
-## Minor Pitfalls
+## Integration Gotchas
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Supabase Auth + Next.js App Router | Using `@supabase/auth-helpers-nextjs` (deprecated) | Use `@supabase/ssr` — the helpers package is deprecated as of 2024 |
+| Supabase Auth + Next.js middleware | No `matcher` — runs on every static asset | Add matcher to exclude `_next/static`, `_next/image`, images |
+| Google OAuth + Vercel | Hardcoding production redirect URL | Use dynamic URL helper; add Supabase wildcard `https://*.vercel.app/**` |
+| Apple OAuth (web) | No 6-month rotation process | Calendar reminder + documented runbook |
+| iOS PWA + OAuth redirect | Using popup/async `window.open` | Synchronous pre-open window or email OTP instead |
+| Supabase Storage + avatars | Uploading through server Route Handler with service role | Upload directly from browser client with user JWT |
+| RLS + SQL Editor testing | Testing policies in Dashboard SQL editor (bypasses RLS) | Test through client SDK with real user credentials |
+| `@supabase/ssr` server client | Creating one client at module level (singleton) | Create fresh client per request using `cookies()` from `next/headers` |
 
 ---
 
-### Pitfall 11: Video Preloading Memory Leak on Mobile
+## Performance Traps
 
-**What goes wrong:** Preloading 2-3 videos simultaneously on mobile by setting `preload="auto"` on all of them can exhaust mobile browser memory (iOS Safari limits page memory to ~200-400 MB depending on device). When memory pressure occurs, Safari unloads video data, causing buffering on swipe — exactly the problem preloading was meant to solve.
-
-**Prevention:** Preload the next video only (not 2-3 ahead). Use `preload="metadata"` for videos 3+ to get duration without loading media data. Release the previous video's source after the user passes it:
-```javascript
-function onSwipeComplete(newIndex) {
-  // Release previous video memory
-  if (newIndex > 0) {
-    videos[newIndex - 1].src = '';
-    videos[newIndex - 1].load();
-  }
-  // Preload only the next one
-  if (newIndex + 1 < videos.length) {
-    videos[newIndex + 1].preload = 'auto';
-  }
-}
-```
-
-**Phase that should address this:** PWA frontend phase.
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| No middleware matcher | 9+ Supabase auth calls per page load; Vercel function cost spike | Add matcher excluding static assets | Immediately on any traffic |
+| No index on `likes.video_id` | Like counts slow to load | `CREATE INDEX idx_likes_video_id ON likes(video_id)` | ~10k rows |
+| N+1 comment + author queries | Comment section loads in 3-5s | PostgREST embedded select with `profiles(...)` | ~50 comments per video |
+| Unbounded comment query | Loading all 500+ comments at once | `LIMIT 20` + cursor pagination | ~100 comments per video |
+| `getUser()` in middleware without caching | Every navigation triggers Supabase Auth server call | JWT local validation in middleware, `getUser()` only in data handlers | High traffic / slow networks |
+| ISR-cached pages with auth context | Users share session tokens | `export const dynamic = 'force-dynamic'` on authed pages | First user to trigger ISR revalidation |
 
 ---
 
-### Pitfall 12: B-Roll Licensing — Pexels/Pixabay API Rate Limits
+## Security Mistakes
 
-**What goes wrong:** Pexels API free tier allows 200 requests/hour and 20,000 requests/month. Pixabay allows 100 requests/minute. The pipeline searches for relevant b-roll per story — 5 searches per run × 2 runs/day = 300 searches/month. This is safely within limits. However: if the search query returns no results (e.g., obscure financial instrument), the pipeline needs a fallback generic financial b-roll, not a crash.
-
-**Prevention:** Always have 3-5 generic financial b-roll clips in `/assets/fallback/` as a last resort. The Pexels search should fall back to a generic "finance" query before falling back to local assets.
-
-**Phase that should address this:** Pipeline build phase.
-
----
-
-### Pitfall 13: Whisper on GitHub Actions — Model Download Latency
-
-**What goes wrong:** If using `openai-whisper` Python library for forced alignment (see Pitfall 2), the first run downloads the Whisper model (~74 MB for base, ~461 MB for small, ~1.42 GB for medium). On GitHub Actions, this adds 30-60 seconds per run and counts against disk space.
-
-**Prevention:** Cache the Whisper model directory in GitHub Actions:
-```yaml
-- uses: actions/cache@v4
-  with:
-    path: ~/.cache/whisper
-    key: whisper-base-${{ runner.os }}
-```
-
-Alternatively, use `faster-whisper` (CTranslate2 backend) which is faster and uses less memory.
-
-**Phase that should address this:** Pipeline infrastructure phase.
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Trusting `getSession()` for write endpoint auth | Spoofed cookie allows writing likes/comments as any user | Use `getUser()` or `getClaims()` on all write endpoints |
+| RLS policy allows any authenticated user to insert with arbitrary `user_id` | User A can like videos "as" User B | `WITH CHECK (auth.uid() = user_id)` on every INSERT policy |
+| Avatar storage path not user-scoped | Users overwrite each other's avatars | `storage.foldername(name)[1] = auth.uid()::text` in storage policy |
+| No RLS on `bookmarks` table | Any user can see any user's bookmarks | RLS with `USING (auth.uid() = user_id)` on SELECT |
+| Middleware as sole auth gate | CVE-2025-29927 allows bypass via header spoofing | Verify auth at data access layer; upgrade to Next.js >=15.2.3 |
+| NEXT_PUBLIC_ prefix on secret keys | Supabase service role key exposed in client bundle | Service role key must NOT use NEXT_PUBLIC_ prefix; server-only |
 
 ---
 
-## Phase-Specific Warnings
+## UX Pitfalls
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| TTS integration | Assuming OpenAI TTS returns timestamps (Pitfall 2) | Design Whisper alignment step from day one |
-| FFmpeg subtitle burning | Font not available on CI runner (Pitfall 3) | Bundle fonts in repo, verify libass at pipeline start |
-| GitHub Actions setup | Disk exhaustion on 5-video run (Pitfall 4) | Stream b-roll, cleanup after each video, target <15 MB/video |
-| Groq integration | Silent failures on free tier (Pitfall 5) | Retry with backoff, partial success handling |
-| Pipeline reliability | All-or-nothing failure (Pitfall 6) | Per-story try/except, results manifest |
-| Supabase Storage setup | CORS blocking video in PWA (Pitfall 7) | Configure CORS + range request headers before frontend work |
-| PWA service worker | Video range request failures (Pitfall 8) | Exclude video URLs from service worker cache |
-| Script generation | LLM hallucinating financial figures (Pitfall 9) | Prompt constraints + figure validation regex |
-| RSS ingestion | Malformed feeds crashing pipeline (Pitfall 10) | feedparser.bozo check, per-feed try/except |
-| iOS video autoplay | Muted-then-unmute race condition (Pitfall 1) | Synchronous unmute in gesture handler, test on real device |
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Interrupting feed playback with auth modal | User loses current video scroll position and playback state | Use a non-blocking bottom sheet for auth prompt; preserve video state behind the modal |
+| Forcing login before showing like counts | Feed feels broken/empty to guests | Show aggregate counts to all users; gate the "like" tap action only |
+| Redirecting to login page instead of soft gate | High drop-off on first social action | Use an inline modal/sheet prompt, not a full-page redirect |
+| iOS Safari PWA OAuth requiring full Safari context switch | Users think app is broken; many abandon after the Safari detour | Offer email OTP as primary auth; make OAuth secondary with clear UX warning |
+| No feedback after auth on social action intent | User logs in but the like they intended to make is lost | Store intent pre-auth; complete the action immediately after auth callback |
+| Username required at signup interrupts the flow | Signup friction; users abandon | Defer username/profile setup; use email prefix as default display name |
 
 ---
 
-## Confidence Assessment
+## "Looks Done But Isn't" Checklist
 
-| Area | Confidence | Notes |
-|------|------------|-------|
-| iOS Safari autoplay behavior | HIGH | Well-documented WebKit policy, stable since iOS 10 |
-| OpenAI TTS — no timestamps | HIGH | Confirmed absence in API docs through Aug 2025 |
-| Whisper forced alignment approach | HIGH | Standard pattern, well-established in the field |
-| GitHub Actions limits | MEDIUM | Limits may have changed post-Aug 2025; verify at project start |
-| Groq free tier limits | MEDIUM | Free tier limits change frequently; verify current limits at groq.com |
-| Supabase Storage CORS | HIGH | Standard Supabase behavior, unlikely to change |
-| Supabase free tier bandwidth | MEDIUM | 2 GB egress was the limit as of Aug 2025; verify current |
-| PWA service worker video | HIGH | Range request behavior is browser-standard, stable |
-| LLM hallucination patterns | HIGH | General LLM behavior, not version-specific |
-| RSS feed reliability | HIGH | RSS protocol limitations are structural, not version-specific |
+- [ ] **Middleware matcher:** Verify `_next/static` and image paths are excluded — run a page load and count Supabase auth calls in the network tab (should be 1, not 9+)
+- [ ] **iOS PWA auth:** Test the full OAuth flow by adding the app to iPhone home screen and attempting Google sign-in — desktop testing is not sufficient
+- [ ] **RLS silent deny:** After enabling RLS on any table, verify data is still accessible through the client SDK with a real user token — not through the SQL editor
+- [ ] **Apple secret expiry:** Confirm a calendar reminder exists for 5.5 months from Apple credential setup date
+- [ ] **Like count visibility:** Confirm like counts are visible to logged-out guests (public read policy exists on `likes`)
+- [ ] **Write endpoint auth:** Every `POST`/`DELETE` Route Handler that modifies social data calls `getUser()` — not `getSession()`
+- [ ] **Avatar path isolation:** Test that User A cannot overwrite User B's avatar by uploading to `avatars/{user_b_id}/avatar.jpg` — should return 403
+- [ ] **Video feed still works after auth migration:** After adding `@supabase/ssr` middleware, the feed must load without a session (guests must see videos)
+- [ ] **Preview deploy OAuth:** Confirm Supabase redirect allow-list includes `https://*.vercel.app/**` before any auth PR merges
+
+---
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| RLS enabled without policies — feed shows 0 videos | LOW | `ALTER TABLE videos DISABLE ROW LEVEL SECURITY;` or add public read policy immediately |
+| Apple OAuth stops working (expired secret) | LOW | Regenerate secret from `.p8` file, update Supabase dashboard — 15-minute fix if `.p8` is on hand |
+| Social tables missing indexes — slow queries | LOW | `CREATE INDEX CONCURRENTLY` — runs without locking table; takes minutes on small tables |
+| iOS PWA auth broken — OAuth flow wrong from start | HIGH | Must rearchitect to email OTP or server-side PKCE; may require changing how auth modal works |
+| `getSession()` used throughout — security hole | MEDIUM | Grep for `getSession` in server files; replace with `getUser()` in write endpoints — mechanical but requires testing |
+| No pagination on comments — viral video breaks | MEDIUM | Add `LIMIT`/cursor to query + "load more" UI — requires DB index + frontend change |
+| Service role key exposed in client bundle | HIGH | Rotate key immediately in Supabase dashboard; audit git history; add secret scanning CI check |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| iOS PWA OAuth redirect breaks standalone context (P1) | Auth foundation — before any OAuth button ships | Test on real iPhone with PWA installed; email OTP as fallback |
+| Middleware on every request + CVE-2025-29927 (P2) | Auth foundation — middleware setup | Count network tab auth calls per page load; confirm Next.js version |
+| `getSession()` used in server write paths (P3) | Auth foundation + every social feature phase | Grep codebase for `getSession` in server files before each phase ships |
+| RLS enabled without policies (P4) | Social data model phase — every table creation | Test each table through SDK with real user after migration runs |
+| RLS missing indexes — scale queries (P5) | Social data model phase — schema migration | `EXPLAIN ANALYZE` on like count + comment list queries |
+| Avatar storage path not user-scoped (P6) | User profile phase | Attempt cross-user overwrite test in CI |
+| Apple secret expiry (P7) | Apple OAuth setup phase | Calendar reminder + runbook entry |
+| Vercel preview URLs break OAuth (P8) | Auth foundation — environment config | Test auth flow on first preview deployment |
+| Accidentally enabling RLS on public tables (P9) | Auth foundation — migration checklist | Feed smoke test after every schema migration |
+| Anonymous user caching in static pages (P10) | Auth foundation — page rendering audit | Check `dynamic` export on all pages that access auth context |
+| Comment N+1 + no pagination (P11) | Comments feature phase | Load test with 50+ seeded comments; check network tab for sequential requests |
+| Missing `auth.uid()` index optimization (P12) | Social data model phase | Supabase Performance Advisor after creating social tables |
 
 ---
 
 ## Sources
 
-All findings based on training data (knowledge cutoff August 2025). External verification tools were unavailable during this research session.
+- Supabase SSR + Next.js App Router official guide: https://supabase.com/docs/guides/auth/server-side/nextjs
+- Supabase anonymous sign-ins (soft gate pattern): https://supabase.com/docs/guides/auth/auth-anonymous
+- Supabase PKCE flow: https://supabase.com/docs/guides/auth/sessions/pkce-flow
+- Supabase redirect URLs: https://supabase.com/docs/guides/auth/redirect-urls
+- Apple Sign In with Supabase (6-month rotation): https://supabase.com/docs/guides/auth/social-login/auth-apple
+- Supabase RLS official docs: https://supabase.com/docs/guides/database/postgres/row-level-security
+- Supabase Storage access control: https://supabase.com/docs/guides/storage/security/access-control
+- CVE-2025-29927 Next.js middleware bypass: https://www.offsec.com/blog/cve-2025-29927/ (CVSS 9.1, March 2025)
+- iOS PWA OAuth/session isolation: https://github.com/pocketbase/pocketbase/discussions/2429
+- iOS PWA Supabase auth (Add to Home Screen): https://github.com/orgs/supabase/discussions/12227
+- Supabase middleware performance (getUser lag): https://github.com/orgs/supabase/discussions/20905
+- Google OAuth + Vercel preview URLs: https://community.vercel.com/t/google-oauth-redirect-url-with-vercel-preview-urls-supabase/6345
+- Supabase gotrue-js OAuth Safari issue: https://github.com/supabase/gotrue-js/issues/292
+- PWA iOS limitations guide: https://www.magicbell.com/blog/pwa-ios-limitations-safari-support-complete-guide
 
-- WebKit autoplay policy: https://webkit.org/blog/6784/new-video-policies-for-ios/ (policy, stable since iOS 10)
-- OpenAI TTS API: https://platform.openai.com/docs/guides/text-to-speech (no timestamp data)
-- Whisper word timestamps: https://github.com/openai/whisper (word_timestamps parameter)
-- GitHub Actions usage limits: https://docs.github.com/en/actions/administering-github-actions/usage-limits-billing-and-administration
-- Supabase Storage CORS: https://supabase.com/docs/guides/storage/cdn/fundamentals
-- feedparser library: https://feedparser.readthedocs.io/en/latest/bozo.html (bozo flag)
-- faster-whisper: https://github.com/SYSTRAN/faster-whisper
-
-**Verification recommended before implementation:**
-- Groq current rate limits: https://console.groq.com/docs/rate-limits
-- Supabase current free tier limits: https://supabase.com/pricing
-- GitHub Actions current disk space: https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners
+---
+*Pitfalls research for: Adding Supabase Auth + Social features to FinFeed (brownfield Next.js 16 App Router + Supabase PWA)*
+*Researched: 2026-03-23*
