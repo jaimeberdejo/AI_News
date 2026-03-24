@@ -41,7 +41,8 @@ export async function signIn(formData: FormData) {
 // AUTH-04: Initiate Google OAuth sign-in
 // Returns the OAuth redirect URL — the Client Component must do window.location.href = url
 // NEVER use window.open() — it is broken in iOS PWA standalone mode
-export async function signInWithGoogle(): Promise<{ url: string }> {
+// returnPath is encoded into the callback ?next= param so the user returns to the right video
+export async function signInWithGoogle(returnPath: string = '/'): Promise<{ url: string }> {
   const supabase = await createClient()
   const headersList = await headers()
   const origin = headersList.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? ''
@@ -49,7 +50,7 @@ export async function signInWithGoogle(): Promise<{ url: string }> {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(returnPath)}`,
     },
   })
 
