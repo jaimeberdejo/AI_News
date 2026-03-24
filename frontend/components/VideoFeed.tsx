@@ -7,10 +7,14 @@ let globalMuted = true
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import React from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import type { Video, Edition, EditionMeta } from '../hooks/useEdition'
 import { VideoItem } from './VideoItem'
 import { MuteButton } from './MuteButton'
 import { EndCard } from './EndCard'
+import { useAuth } from '../hooks/useAuth'
+import { AuthBottomSheet } from './AuthBottomSheet'
 
 type Category = 'finance' | 'tech'
 
@@ -48,6 +52,11 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   const [isMuted, setIsMuted] = useState(true)
   const [activeIndex, setActiveIndex] = useState(0)
   const [buttonProminent, setButtonProminent] = useState(false)
+  const [sheetAction, setSheetAction] = useState<'like' | 'bookmark' | 'comment' | null>(null)
+
+  const { isGuest, loading: authLoading } = useAuth()
+  const searchParams = useSearchParams()
+  const router = useRouter()
 
   const videos: Video[] = currentEdition?.videos ?? []
 
@@ -192,6 +201,30 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   function handleNewEdition() {
     switchEdition(0)
   }
+
+  function handleSocialAction(action: 'like' | 'bookmark' | 'comment') {
+    if (authLoading) return  // debounce: auth state not yet known
+    if (isGuest) {
+      setSheetAction(action)
+    }
+    // signed-in: no-op for now (Phase 9 adds real handlers)
+  }
+
+  // Scroll restoration after OAuth return — reads ?videoIndex= param, scrolls to
+  // the video the user was watching, then cleans the URL. Runs once after videos load.
+  useEffect(() => {
+    const idx = searchParams.get('videoIndex')
+    if (idx !== null && feedRef.current && videos.length > 0) {
+      const target = parseInt(idx, 10)
+      if (!isNaN(target) && target >= 0 && target < videos.length) {
+        feedRef.current.scrollTop = target * feedRef.current.clientHeight
+        setActiveIndex(target)
+      }
+      router.replace('/', { scroll: false })
+    }
+  }, [videos.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Intentional: only run once after videos load, not on every searchParams change.
+  // router and searchParams are stable references — adding them causes double-fire.
 
   const hasMultipleEditions = editionList.length > 1
   const isLatest = editionIndex === 0
@@ -376,6 +409,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
                 } : undefined}
                 videoRef={videoRefs.current[idx]}
                 editionPublishedAt={currentEdition?.published_at}
+                onSocialAction={handleSocialAction}
               />
             ))}
             {/* End card as a scroll item — reachable by scrolling or auto-scrolled to on last video end */}
@@ -391,6 +425,18 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
           </>
         )}
       </div>
+
+      {/* Auth bottom sheet — one instance at feed level, controlled by sheetAction state */}
+      <AuthBottomSheet
+        isOpen={sheetAction !== null}
+        actionLabel={
+          sheetAction === 'like' ? 'like this' :
+          sheetAction === 'bookmark' ? 'bookmark this' :
+          'comment'
+        }
+        returnPath={`/?videoIndex=${activeIndex}`}
+        onClose={() => setSheetAction(null)}
+      />
     </div>
   )
 }
