@@ -14,8 +14,8 @@ Requirements for the Social + Accounts milestone. Each maps to roadmap phases.
 - [x] **AUTH-03**: User can reset password via email link
 - [x] **AUTH-04**: User can sign in with Google OAuth
 - [x] **AUTH-05**: User session persists across browser refresh and PWA close/reopen
-- [ ] **AUTH-06**: Guest users can browse the full feed without signing in
-- [ ] **AUTH-07**: Tapping a social action (like/comment/bookmark) as a guest shows a sign-in bottom sheet
+- [x] **AUTH-06**: Guest users can browse the full feed without signing in
+- [x] **AUTH-07**: Tapping a social action (like/comment/bookmark) as a guest shows a sign-in bottom sheet
 
 ### Social Interactions
 
@@ -84,8 +84,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-03 | Phase 7 | Complete |
 | AUTH-04 | Phase 7 | Complete |
 | AUTH-05 | Phase 7 | Complete |
-| AUTH-06 | Phase 8 | Pending |
-| AUTH-07 | Phase 8 | Pending |
+| AUTH-06 | Phase 8 | Complete |
+| AUTH-07 | Phase 8 | Complete |
 | SOCL-01 | Phase 9 | Pending |
 | SOCL-02 | Phase 9 | Pending |
 | SOCL-03 | Phase 9 | Pending |

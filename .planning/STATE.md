@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** v1.2 Social + Accounts — Phase 7: Auth Infrastructure
+**Current focus:** v1.2 Social + Accounts — Phase 8: Auth UI + iOS Validation
 
 ## Current Position
 
-Phase: 7 of 11 (Auth Infrastructure)
-Plan: 3/3 in current phase
-Status: Complete
-Last activity: 2026-03-24 — Phase 7 Plan 3 complete (external service config + smoke test passed)
+Phase: 8 of 11 (Auth UI + iOS Validation)
+Plan: 1/3 in current phase
+Status: In Progress
+Last activity: 2026-03-24 — Phase 8 Plan 1 complete (useAuth hook, AuthBottomSheet, signInWithGoogle returnPath)
 
 Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + v1.1 done)
 
@@ -34,6 +34,7 @@ Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + 
 | 05-tech-pipeline | 2 | ~4 min | ~2 min |
 | 06-category-ui | 1 | ~35 min | ~35 min |
 | 07-auth-infrastructure | 3/3 | ~17 min | ~8.5 min |
+| 08-auth-ui-ios-validation | 1/3 | ~2 min | ~2 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
@@ -59,6 +60,9 @@ Recent decisions affecting current work:
 - [Phase 07-03]: Resend chosen for custom SMTP — 3,000 emails/month free tier replaces Supabase 3 OTP/hr rate limit
 - [Phase 07-03]: Google Cloud OAuth consent screen set to External user type — required for use outside Google Workspace; test users added for development phase
 - [Phase 07-03]: Supabase redirect URLs use wildcard pattern for Vercel previews — covers all preview deploy URLs without per-deployment registration
+- [Phase 08-01]: useAuth uses getUser() not getSession() — server-validated auth state for guest-vs-signed-in gate decision
+- [Phase 08-01]: AuthBottomSheet calls signInWithGoogle internally (not via prop) — simpler call site in VideoFeed
+- [Phase 08-01]: signInWithGoogle returnPath defaults to '/' — backward compatible; encodes ?next= in OAuth redirectTo for video position preservation
 
 ### Pending Todos
 
@@ -73,5 +77,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-24
-Stopped at: Completed 07-03-PLAN.md — external service config + smoke test complete. Phase 7 done. Ready for Phase 8.
+Stopped at: Completed 08-01-PLAN.md — useAuth hook, AuthBottomSheet component, signInWithGoogle returnPath. Phase 8 Plan 1 done.
 Resume file: None
