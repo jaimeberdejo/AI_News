@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import type { Edition, EditionMeta } from '../hooks/useEdition'
 import { VideoFeed } from '../components/VideoFeed'
 
@@ -23,7 +24,9 @@ export default async function Home() {
 
   return (
     <main>
-      <VideoFeed initialEdition={edition} allEditions={allEditions} />
+      <Suspense fallback={null}>
+        <VideoFeed initialEdition={edition} allEditions={allEditions} />
+      </Suspense>
     </main>
   )
 }
