@@ -8,6 +8,7 @@ interface VideoItemProps {
   onEnded?: () => void
   videoRef?: React.RefObject<HTMLVideoElement | null>
   editionPublishedAt?: string | null
+  onSocialAction?: (action: 'like' | 'bookmark' | 'comment') => void
 }
 
 function formatDateTime(publishedAt: string | null | undefined): string {
@@ -32,7 +33,7 @@ function formatDateTime(publishedAt: string | null | undefined): string {
 // Pure layout component. Play/pause and activeIndex tracking are handled
 // entirely in VideoFeed (scroll event + useEffect). This keeps VideoItem
 // free of hooks and avoids stale-closure issues with IntersectionObserver.
-export function VideoItem({ video, onEnded, videoRef, editionPublishedAt }: VideoItemProps) {
+export function VideoItem({ video, onEnded, videoRef, editionPublishedAt, onSocialAction }: VideoItemProps) {
   const dateLabel = formatDateTime(editionPublishedAt)
 
   return (
@@ -123,6 +124,82 @@ export function VideoItem({ video, onEnded, videoRef, editionPublishedAt }: Vide
             </svg>
           </a>
         )}
+
+        {/* Social action row — stubs for Phase 8; real mutations added in Phase 9 */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '20px',
+            marginTop: '12px',
+          }}
+        >
+          {/* Like button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onSocialAction?.('like') }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: 'rgba(255,255,255,0.6)',
+              fontSize: '0.82rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            0
+          </button>
+
+          {/* Bookmark button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onSocialAction?.('bookmark') }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: 'rgba(255,255,255,0.6)',
+              fontSize: '0.82rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+            0
+          </button>
+
+          {/* Comment button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onSocialAction?.('comment') }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: 'rgba(255,255,255,0.6)',
+              fontSize: '0.82rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            0
+          </button>
+        </div>
       </div>
     </div>
   )
