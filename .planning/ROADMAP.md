@@ -32,8 +32,8 @@ See full details: [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 
 ### v1.2 Social + Accounts (Phases 7-11)
 
-- [ ] **Phase 7: Auth Infrastructure** — Supabase SSR plumbing, DB schema, Google OAuth + email/password end-to-end
-- [ ] **Phase 8: Auth UI + iOS Validation** — Login page, AuthModal bottom sheet, guest browsing confirmed, real-device iOS PWA test gate
+- [x] **Phase 7: Auth Infrastructure** — Supabase SSR plumbing, DB schema, Google OAuth + email/password end-to-end
+- [x] **Phase 8: Auth UI + iOS Validation** — Login page, AuthModal bottom sheet, guest browsing confirmed, real-device iOS PWA test gate
 - [ ] **Phase 9: Social Interactions** — Likes, bookmarks schema + API routes + feed overlay UI
 - [ ] **Phase 10: Comments** — Comment sheet, posting with moderation, author display
 - [ ] **Phase 11: Profile Page** — Display name, avatar, liked and saved tabs
@@ -53,9 +53,9 @@ See full details: [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 **Plans**: 3 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — @supabase/ssr install + SSR client factories + middleware with static-asset matcher
-- [ ] 07-02-PLAN.md — profiles DB migration + auth route handlers (callback, confirm) + Server Actions
-- [ ] 07-03-PLAN.md — external service config (Resend SMTP, Google OAuth, Supabase dashboard) + smoke test
+- [x] 07-01-PLAN.md — @supabase/ssr install + SSR client factories + middleware with static-asset matcher
+- [x] 07-02-PLAN.md — profiles DB migration + auth route handlers (callback, confirm) + Server Actions
+- [x] 07-03-PLAN.md — external service config (Resend SMTP, Google OAuth, Supabase dashboard) + smoke test
 
 ### Phase 8: Auth UI + iOS Validation
 **Goal**: Users can browse freely as guests and are prompted to sign in only when they attempt a social action, with the entire flow confirmed working on a real iOS device
@@ -66,7 +66,12 @@ Plans:
   2. A guest user who taps a like, bookmark, or comment button sees a non-blocking bottom sheet prompting sign-in, and can dismiss it to keep watching
   3. Google OAuth sign-in from the bottom sheet completes successfully on a real iPhone with the PWA installed to the home screen (Add to Home Screen)
   4. After signing in via the bottom sheet, the user is returned to the same video they were watching
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [x] 08-01-PLAN.md — useAuth hook, AuthBottomSheet component, signInWithGoogle returnPath support
+- [x] 08-02-PLAN.md — social buttons in VideoItem, AuthBottomSheet wired into VideoFeed, scroll restoration, Suspense boundary
+- [x] 08-03-PLAN.md — /auth/auth-error page, /auth/update-password page, iOS PWA real-device validation
 
 ### Phase 9: Social Interactions
 **Goal**: Signed-in users can like and bookmark videos, guests can see like counts, and all social state is persisted correctly with RLS enforced
@@ -111,8 +116,8 @@ Plans:
 | 4. Ship | v1.0 | 3/3 | Complete | 2026-02-26 |
 | 5. Tech Pipeline | v1.1 | 2/2 | Complete | 2026-03-10 |
 | 6. Category UI | v1.1 | 1/1 | Complete | 2026-03-10 |
-| 7. Auth Infrastructure | v1.2 | 0/3 | In progress | - |
-| 8. Auth UI + iOS Validation | 2/3 | In Progress|  | - |
+| 7. Auth Infrastructure | v1.2 | 3/3 | Complete | 2026-03-24 |
+| 8. Auth UI + iOS Validation | v1.2 | 3/3 | Complete | 2026-03-24 |
 | 9. Social Interactions | v1.2 | 0/? | Not started | - |
 | 10. Comments | v1.2 | 0/? | Not started | - |
 | 11. Profile Page | v1.2 | 0/? | Not started | - |

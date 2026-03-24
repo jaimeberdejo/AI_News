@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** v1.2 Social + Accounts — Phase 8: Auth UI + iOS Validation
+**Current focus:** v1.2 Social + Accounts — Phase 9: Social Mutations
 
 ## Current Position
 
-Phase: 8 of 11 (Auth UI + iOS Validation)
-Plan: 2/3 in current phase
+Phase: 9 of 11 (Social Mutations)
+Plan: 0/3 in current phase
 Status: In Progress
-Last activity: 2026-03-24 — Phase 8 Plan 2 complete (social buttons in VideoItem, AuthBottomSheet wired into VideoFeed, scroll restoration, Suspense boundary)
+Last activity: 2026-03-24 — Phase 8 Plan 3 complete (auth-error page, update-password page, iOS PWA real-device validation passed)
 
-Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + v1.1 done)
+Progress: [███████░░░] 64% (7/11 phases complete — v1.0 + v1.1 + Phase 8 done)
 
 ## Performance Metrics
 
@@ -67,6 +67,9 @@ Recent decisions affecting current work:
 - [Phase 08-02]: videos.length dep in scroll restoration useEffect is intentional — avoids double-fire from stable router/searchParams refs
 - [Phase 08-02]: router.replace called unconditionally when ?videoIndex= found — always cleans URL regardless of index validity
 - [Phase 08-02]: Suspense fallback={null} in page.tsx avoids visible loading flash (page already server-rendered before Suspense activates)
+- [Phase 08-03]: auth-error is a pure Server Component — no interactivity needed for a static OAuth error fallback page
+- [Phase 08-03]: update-password validates passwords match client-side before calling Server Action — avoids unnecessary round-trip on obvious input errors
+- [Phase 08-03]: iOS PWA checkpoint passed — Google OAuth via window.location.href (full-page navigation) confirmed working on real iPhone in standalone mode; Phase 8 blocker resolved
 
 ### Pending Todos
 
@@ -74,12 +77,12 @@ None.
 
 ### Blockers/Concerns
 
-- [Phase 8]: iOS PWA OAuth context isolation — must test on real iPhone with PWA installed before Phase 8 closes; recovery cost is HIGH if auth is broken and social phases are already built on top of it
+- [Phase 8 - RESOLVED]: iOS PWA OAuth context isolation — RESOLVED in plan 08-03; all 4 test scenarios passed on real iPhone PWA; Google OAuth via window.location.href confirmed working in standalone mode
 - [Phase 7 - RESOLVED]: Supabase free tier email rate limit — RESOLVED via Resend custom SMTP configured in plan 07-03
 - [CVE-2025-29927]: RESOLVED in Phase 07-01 — middleware.ts created with static-asset matcher, closing bypass vector
 
 ## Session Continuity
 
 Last session: 2026-03-24
-Stopped at: Completed 08-02-PLAN.md — social buttons in VideoItem, AuthBottomSheet wired into VideoFeed, scroll restoration, Suspense boundary. Phase 8 Plan 2 done.
+Stopped at: Completed 08-03-PLAN.md — auth-error page, update-password page, iOS PWA real-device validation passed. Phase 8 complete, all 3/3 plans done.
 Resume file: None
