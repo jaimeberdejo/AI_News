@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 7 of 11 (Auth Infrastructure)
-Plan: 2/3 in current phase
-Status: In progress
-Last activity: 2026-03-23 — Phase 7 Plan 2 complete (auth routes + Server Actions)
+Plan: 3/3 in current phase
+Status: Complete
+Last activity: 2026-03-24 — Phase 7 Plan 3 complete (external service config + smoke test passed)
 
 Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + v1.1 done)
 
@@ -33,7 +33,7 @@ Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + 
 | 04-ship | 3 | ~2 min | ~1 min |
 | 05-tech-pipeline | 2 | ~4 min | ~2 min |
 | 06-category-ui | 1 | ~35 min | ~35 min |
-| 07-auth-infrastructure | 2/3 | ~17 min | ~8.5 min |
+| 07-auth-infrastructure | 3/3 | ~17 min | ~8.5 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
@@ -56,6 +56,9 @@ Recent decisions affecting current work:
 - [Phase 07-02]: signInWithGoogle returns { url } not redirect() — iOS PWA standalone mode requires window.location.href assignment by Client Component
 - [Phase 07-02]: handle_new_user trigger uses ON CONFLICT DO NOTHING safety valve — prevents full signup rollback on duplicate trigger fire
 - [Phase 07-02]: SECURITY DEFINER + SET search_path = '' on trigger function — prevents search-path injection
+- [Phase 07-03]: Resend chosen for custom SMTP — 3,000 emails/month free tier replaces Supabase 3 OTP/hr rate limit
+- [Phase 07-03]: Google Cloud OAuth consent screen set to External user type — required for use outside Google Workspace; test users added for development phase
+- [Phase 07-03]: Supabase redirect URLs use wildcard pattern for Vercel previews — covers all preview deploy URLs without per-deployment registration
 
 ### Pending Todos
 
@@ -64,11 +67,11 @@ None.
 ### Blockers/Concerns
 
 - [Phase 8]: iOS PWA OAuth context isolation — must test on real iPhone with PWA installed before Phase 8 closes; recovery cost is HIGH if auth is broken and social phases are already built on top of it
-- [Phase 7]: Supabase free tier email has 3 OTP emails/hour rate limit — configure custom SMTP (Resend/SendGrid) before Phase 7 ships to production
+- [Phase 7 - RESOLVED]: Supabase free tier email rate limit — RESOLVED via Resend custom SMTP configured in plan 07-03
 - [CVE-2025-29927]: RESOLVED in Phase 07-01 — middleware.ts created with static-asset matcher, closing bypass vector
 
 ## Session Continuity
 
-Last session: 2026-03-23
-Stopped at: Completed 07-02-PLAN.md — auth routes + Server Actions complete. Ready for 07-03.
+Last session: 2026-03-24
+Stopped at: Completed 07-03-PLAN.md — external service config + smoke test complete. Phase 7 done. Ready for Phase 8.
 Resume file: None
