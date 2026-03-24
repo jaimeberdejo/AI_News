@@ -112,7 +112,7 @@ Plans:
 | 5. Tech Pipeline | v1.1 | 2/2 | Complete | 2026-03-10 |
 | 6. Category UI | v1.1 | 1/1 | Complete | 2026-03-10 |
 | 7. Auth Infrastructure | v1.2 | 0/3 | In progress | - |
-| 8. Auth UI + iOS Validation | v1.2 | 0/? | Not started | - |
+| 8. Auth UI + iOS Validation | 2/3 | In Progress|  | - |
 | 9. Social Interactions | v1.2 | 0/? | Not started | - |
 | 10. Comments | v1.2 | 0/? | Not started | - |
 | 11. Profile Page | v1.2 | 0/? | Not started | - |

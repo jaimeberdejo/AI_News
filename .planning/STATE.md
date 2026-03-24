@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 8 of 11 (Auth UI + iOS Validation)
-Plan: 1/3 in current phase
+Plan: 2/3 in current phase
 Status: In Progress
-Last activity: 2026-03-24 — Phase 8 Plan 1 complete (useAuth hook, AuthBottomSheet, signInWithGoogle returnPath)
+Last activity: 2026-03-24 — Phase 8 Plan 2 complete (social buttons in VideoItem, AuthBottomSheet wired into VideoFeed, scroll restoration, Suspense boundary)
 
 Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + v1.1 done)
 
@@ -34,7 +34,7 @@ Progress: [██████░░░░] 55% (6/11 phases complete — v1.0 + 
 | 05-tech-pipeline | 2 | ~4 min | ~2 min |
 | 06-category-ui | 1 | ~35 min | ~35 min |
 | 07-auth-infrastructure | 3/3 | ~17 min | ~8.5 min |
-| 08-auth-ui-ios-validation | 1/3 | ~2 min | ~2 min |
+| 08-auth-ui-ios-validation | 2/3 | ~5 min | ~2.5 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
@@ -63,6 +63,10 @@ Recent decisions affecting current work:
 - [Phase 08-01]: useAuth uses getUser() not getSession() — server-validated auth state for guest-vs-signed-in gate decision
 - [Phase 08-01]: AuthBottomSheet calls signInWithGoogle internally (not via prop) — simpler call site in VideoFeed
 - [Phase 08-01]: signInWithGoogle returnPath defaults to '/' — backward compatible; encodes ?next= in OAuth redirectTo for video position preservation
+- [Phase 08-02]: Social buttons in VideoItem are pure stubs — onSocialAction callback is the only connection to VideoFeed (Phase 9 adds real mutations)
+- [Phase 08-02]: videos.length dep in scroll restoration useEffect is intentional — avoids double-fire from stable router/searchParams refs
+- [Phase 08-02]: router.replace called unconditionally when ?videoIndex= found — always cleans URL regardless of index validity
+- [Phase 08-02]: Suspense fallback={null} in page.tsx avoids visible loading flash (page already server-rendered before Suspense activates)
 
 ### Pending Todos
 
@@ -77,5 +81,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-24
-Stopped at: Completed 08-01-PLAN.md — useAuth hook, AuthBottomSheet component, signInWithGoogle returnPath. Phase 8 Plan 1 done.
+Stopped at: Completed 08-02-PLAN.md — social buttons in VideoItem, AuthBottomSheet wired into VideoFeed, scroll restoration, Suspense boundary. Phase 8 Plan 2 done.
 Resume file: None
