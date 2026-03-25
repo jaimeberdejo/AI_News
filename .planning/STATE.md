@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 9 of 11 (Social Mutations)
-Plan: 0/3 in current phase
+Plan: 1/3 in current phase
 Status: In Progress
-Last activity: 2026-03-24 — Phase 8 Plan 3 complete (auth-error page, update-password page, iOS PWA real-device validation passed)
+Last activity: 2026-03-25 — Phase 9 Plan 1 complete (social schema migration, Video.like_count type, feed APIs extended)
 
-Progress: [███████░░░] 64% (7/11 phases complete — v1.0 + v1.1 + Phase 8 done)
+Progress: [███████░░░] 64% (7/11 phases complete — v1.0 + v1.1 + Phase 8 done; Phase 9 in progress 1/3)
 
 ## Performance Metrics
 
@@ -35,6 +35,7 @@ Progress: [███████░░░] 64% (7/11 phases complete — v1.0 + 
 | 06-category-ui | 1 | ~35 min | ~35 min |
 | 07-auth-infrastructure | 3/3 | ~17 min | ~8.5 min |
 | 08-auth-ui-ios-validation | 2/3 | ~5 min | ~2.5 min |
+| 09-social-interactions | 1/3 | ~2 min | ~2 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
@@ -70,6 +71,9 @@ Recent decisions affecting current work:
 - [Phase 08-03]: auth-error is a pure Server Component — no interactivity needed for a static OAuth error fallback page
 - [Phase 08-03]: update-password validates passwords match client-side before calling Server Action — avoids unnecessary round-trip on obvious input errors
 - [Phase 08-03]: iOS PWA checkpoint passed — Google OAuth via window.location.href (full-page navigation) confirmed working on real iPhone in standalone mode; Phase 8 blocker resolved
+- [Phase 09-01]: like_count denormalized on videos table maintained by AFTER INSERT OR DELETE trigger — consistent with optimistic UI plan; avoids N+1 count queries on feed load
+- [Phase 09-01]: video_likes has anon RLS SELECT (guests see counts on first render); video_bookmarks has no anon SELECT (private by design)
+- [Phase 09-01]: Trigger uses GREATEST(like_count - 1, 0) to prevent negative counts under race conditions
 
 ### Pending Todos
 
@@ -83,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-24
-Stopped at: Completed 08-03-PLAN.md — auth-error page, update-password page, iOS PWA real-device validation passed. Phase 8 complete, all 3/3 plans done.
+Last session: 2026-03-25
+Stopped at: Completed 09-01-PLAN.md — social schema (video_likes, video_bookmarks, like_count trigger), Video type updated, feed APIs extended. Phase 9 Plan 1/3 done.
 Resume file: None

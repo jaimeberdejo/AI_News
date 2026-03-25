@@ -20,8 +20,8 @@ Requirements for the Social + Accounts milestone. Each maps to roadmap phases.
 ### Social Interactions
 
 - [ ] **SOCL-01**: User can like a video (tap to like; tap again to unlike)
-- [ ] **SOCL-02**: Like count is visible to all users including guests
-- [ ] **SOCL-03**: User can bookmark a video to save for later
+- [x] **SOCL-02**: Like count is visible to all users including guests
+- [x] **SOCL-03**: User can bookmark a video to save for later
 - [ ] **SOCL-04**: User can remove a bookmark
 
 ### Comments
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-06 | Phase 8 | Complete |
 | AUTH-07 | Phase 8 | Complete |
 | SOCL-01 | Phase 9 | Pending |
-| SOCL-02 | Phase 9 | Pending |
-| SOCL-03 | Phase 9 | Pending |
+| SOCL-02 | Phase 9 | Complete |
+| SOCL-03 | Phase 9 | Complete |
 | SOCL-04 | Phase 9 | Pending |
 | COMM-01 | Phase 10 | Pending |
 | COMM-02 | Phase 10 | Pending |
