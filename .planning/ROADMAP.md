@@ -82,7 +82,12 @@ Plans:
   2. A guest user can see the like count on every video without signing in
   3. A signed-in user can bookmark a video and remove the bookmark; bookmark state is accurate after refresh
   4. Social mutations return 401 for unauthenticated requests; like and bookmark state is scoped per user (one user's likes are invisible to another's)
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — DB migration: video_likes, video_bookmarks, like_count column + trigger, feed API like_count
+- [ ] 09-02-PLAN.md — Route Handlers: /api/social/like, /api/social/bookmark, /api/social/state
+- [ ] 09-03-PLAN.md — Frontend wiring: VideoItem props, VideoFeed optimistic state + mutations
 
 ### Phase 10: Comments
 **Goal**: Signed-in users can post and delete comments on videos; all moderation minimums are enforced; guests can read comments freely
