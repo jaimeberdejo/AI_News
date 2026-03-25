@@ -9,6 +9,7 @@ export interface Video {
   video_url: string
   duration: number | null
   source_url: string | null
+  like_count: number   // denormalized count maintained by DB trigger
 }
 
 export interface Edition {

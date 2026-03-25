@@ -33,7 +33,8 @@ export async function GET(
         headline,
         source_url,
         video_url,
-        duration
+        duration,
+        like_count
       )
     `)
     .eq('id', id)

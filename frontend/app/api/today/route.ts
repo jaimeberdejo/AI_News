@@ -35,7 +35,8 @@ export async function GET(req: Request) {
         headline,
         source_url,
         video_url,
-        duration
+        duration,
+        like_count
       )
     `)
     .in('status', ['published', 'partial'])
