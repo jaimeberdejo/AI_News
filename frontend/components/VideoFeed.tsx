@@ -54,7 +54,12 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   const [buttonProminent, setButtonProminent] = useState(false)
   const [sheetAction, setSheetAction] = useState<'like' | 'bookmark' | 'comment' | null>(null)
 
-  const { isGuest, loading: authLoading } = useAuth()
+  type SocialState = { likeCount: number; isLiked: boolean; isBookmarked: boolean }
+  const [socialState, setSocialState] = useState<Record<string, SocialState>>({})
+  const [processingLike, setProcessingLike] = useState<Set<string>>(new Set())
+  const [processingBookmark, setProcessingBookmark] = useState<Set<string>>(new Set())
+
+  const { user, isGuest, loading: authLoading } = useAuth()
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -202,12 +207,63 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
     switchEdition(0)
   }
 
-  function handleSocialAction(action: 'like' | 'bookmark' | 'comment') {
+  async function handleLike(videoId: string) {
+    if (processingLike.has(videoId)) return
+    setProcessingLike(s => new Set(s).add(videoId))
+
+    const prev = socialState[videoId] ?? { likeCount: 0, isLiked: false, isBookmarked: false }
+    const optimistic: SocialState = {
+      ...prev,
+      isLiked: !prev.isLiked,
+      likeCount: prev.isLiked ? prev.likeCount - 1 : prev.likeCount + 1,
+    }
+    setSocialState(s => ({ ...s, [videoId]: optimistic }))
+
+    const res = await fetch('/api/social/like', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ videoId }),
+    })
+    if (!res.ok) {
+      setSocialState(s => ({ ...s, [videoId]: prev })) // roll back on failure
+    }
+
+    setProcessingLike(s => { const n = new Set(s); n.delete(videoId); return n })
+  }
+
+  async function handleBookmark(videoId: string) {
+    if (processingBookmark.has(videoId)) return
+    setProcessingBookmark(s => new Set(s).add(videoId))
+
+    const prev = socialState[videoId] ?? { likeCount: 0, isLiked: false, isBookmarked: false }
+    const optimistic: SocialState = {
+      ...prev,
+      isBookmarked: !prev.isBookmarked,
+    }
+    setSocialState(s => ({ ...s, [videoId]: optimistic }))
+
+    const res = await fetch('/api/social/bookmark', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ videoId }),
+    })
+    if (!res.ok) {
+      setSocialState(s => ({ ...s, [videoId]: prev })) // roll back
+    }
+
+    setProcessingBookmark(s => { const n = new Set(s); n.delete(videoId); return n })
+  }
+
+  function handleSocialAction(action: 'like' | 'bookmark' | 'comment', videoId: string) {
     if (authLoading) return  // debounce: auth state not yet known
     if (isGuest) {
       setSheetAction(action)
+      return
     }
-    // signed-in: no-op for now (Phase 9 adds real handlers)
+    // Signed in: dispatch real handlers
+    if (action === 'like') handleLike(videoId)
+    if (action === 'bookmark') handleBookmark(videoId)
+    // 'comment': Phase 10 — no-op for now (guest sheet still works via isGuest branch above)
   }
 
   // Scroll restoration after OAuth return — reads ?videoIndex= param, scrolls to
@@ -225,6 +281,37 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   }, [videos.length]) // eslint-disable-line react-hooks/exhaustive-deps
   // Intentional: only run once after videos load, not on every searchParams change.
   // router and searchParams are stable references — adding them causes double-fire.
+
+  // Load social state (like counts + per-user liked/bookmarked) after auth resolves.
+  // Deps: user?.id (stable string identity, not object ref) + videos.length (triggers after edition switch).
+  // Guests never trigger the per-user queries — server returns empty likes/bookmarks for them.
+  useEffect(() => {
+    if (videos.length === 0) return
+    const ids = videos.map(v => v.id).join(',')
+    fetch(`/api/social/state?videoIds=${ids}`)
+      .then(r => r.json())
+      .then(data => {
+        const map: Record<string, SocialState> = {}
+        videos.forEach(v => {
+          map[v.id] = {
+            likeCount: data.likeCounts?.[v.id] ?? v.like_count ?? 0,
+            isLiked: data.likes?.includes(v.id) ?? false,
+            isBookmarked: data.bookmarks?.includes(v.id) ?? false,
+          }
+        })
+        setSocialState(map)
+      })
+      .catch(() => {
+        // On error, seed from video.like_count so guests still see counts
+        const map: Record<string, SocialState> = {}
+        videos.forEach(v => {
+          map[v.id] = { likeCount: v.like_count ?? 0, isLiked: false, isBookmarked: false }
+        })
+        setSocialState(map)
+      })
+  }, [user?.id, videos.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  // user?.id: string stable identity (not object ref) re-triggers after sign-in / sign-out.
+  // videos.length: triggers after edition switch. Full videos array excluded to avoid re-fetch on every render.
 
   const hasMultipleEditions = editionList.length > 1
   const isLatest = editionIndex === 0
@@ -410,6 +497,9 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
                 videoRef={videoRefs.current[idx]}
                 editionPublishedAt={currentEdition?.published_at}
                 onSocialAction={handleSocialAction}
+                likeCount={socialState[video.id]?.likeCount ?? video.like_count ?? 0}
+                isLiked={socialState[video.id]?.isLiked ?? false}
+                isBookmarked={socialState[video.id]?.isBookmarked ?? false}
               />
             ))}
             {/* End card as a scroll item — reachable by scrolling or auto-scrolled to on last video end */}
