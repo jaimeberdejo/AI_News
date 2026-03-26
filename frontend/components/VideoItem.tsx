@@ -71,7 +71,7 @@ export function VideoItem({ video, onEnded, videoRef, editionPublishedAt, onSoci
           flex: '0 0 auto',
           background: '#111',
           padding: '14px 18px',
-          paddingBottom: 'calc(env(safe-area-inset-bottom) + 14px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 56px + 14px)',
           borderTop: '1px solid rgba(255,255,255,0.07)',
         }}
       >
