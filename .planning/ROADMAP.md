@@ -98,7 +98,12 @@ Plans:
   2. A signed-in user can post a comment and see it appear immediately; the author display name and avatar are shown correctly
   3. A signed-in user can delete their own comment; they cannot delete another user's comment
   4. Posting more than one comment within 30 seconds is rejected with an informative message; comments over 500 characters cannot be submitted
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — DB migration: video_comments table, RLS, comment_count column + trigger, Video interface + feed API
+- [ ] 10-02-PLAN.md — Route Handlers: GET+POST /api/comments, DELETE /api/comments/[id]
+- [ ] 10-03-PLAN.md — CommentSheet component + VideoFeed/VideoItem wiring + end-to-end verification
 
 ### Phase 11: Profile Page
 **Goal**: Signed-in users have a profile page showing their identity and a complete view of their liked and saved videos
