@@ -344,47 +344,50 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         margin: '0 auto',
         overflow: 'hidden',
         background: '#000',
+        display: 'flex',
+        flexDirection: 'column',
       }}
       onClick={handleScreenTap}
     >
-      {/* Category tab bar */}
+      {/* Category tab bar — solid, horizontally scrollable */}
       <div
+        className="category-tab-bar"
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 60,
-          paddingTop: 'calc(env(safe-area-inset-top) + 8px)',
-          paddingBottom: '8px',
-          paddingLeft: '16px',
-          paddingRight: '16px',
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, transparent 100%)',
-        }}
+          flexShrink: 0,
+          background: '#000',
+          paddingTop: 'env(safe-area-inset-top)',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          height: 'calc(44px + env(safe-area-inset-top))',
+          display: 'flex',
+          alignItems: 'flex-end',
+          overflowX: 'auto',
+          scrollbarWidth: 'none', /* Firefox scrollbar hide */
+          WebkitOverflowScrolling: 'touch',
+        } as React.CSSProperties}
       >
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(([cat, label]) => (
-            <button
-              key={cat}
-              onClick={e => { e.stopPropagation(); switchCategory(cat) }}
-              disabled={isLoadingEdition}
-              style={{
-                border: 'none',
-                borderRadius: '20px',
-                padding: '5px 14px',
-                fontSize: '0.82rem',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-                cursor: 'pointer',
-                background: cat === category ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.15)',
-                color: cat === category ? '#000' : '#fff',
-                fontWeight: cat === category ? 600 : 400,
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(([cat, label]) => (
+          <button
+            key={cat}
+            onClick={e => { e.stopPropagation(); switchCategory(cat) }}
+            disabled={isLoadingEdition}
+            style={{
+              flexShrink: 0,
+              background: 'none',
+              border: 'none',
+              borderBottom: cat === category ? '2px solid white' : '2px solid transparent',
+              padding: '10px 18px',
+              fontSize: '0.88rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              fontWeight: cat === category ? 600 : 400,
+              color: cat === category ? 'white' : '#888',
+              cursor: 'pointer',
+            }}
+          >
+            {CATEGORY_LABELS[cat]}
+          </button>
+        ))}
       </div>
+      <style>{`.category-tab-bar::-webkit-scrollbar { display: none; }`}</style>
 
       {/* Edition navigation bar */}
       {hasMultipleEditions && (
@@ -394,7 +397,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
             top: 0,
             left: 0,
             right: 0,
-            paddingTop: 'calc(env(safe-area-inset-top) + 50px)',
+            paddingTop: '8px',
             paddingBottom: '8px',
             paddingLeft: '12px',
             paddingRight: '12px',
@@ -446,19 +449,17 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         </div>
       )}
 
-      {/* Progress dots */}
+      {/* Progress dots — vertical column at right edge */}
       {videos.length > 1 && (
         <div
           style={{
             position: 'absolute',
-            top: hasMultipleEditions
-              ? 'calc(env(safe-area-inset-top) + 96px)'
-              : 'calc(env(safe-area-inset-top) + 58px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            right: '12px',
+            top: '16px',
             zIndex: 40,
             display: 'flex',
-            gap: '5px',
+            flexDirection: 'column',
+            gap: '4px',
             alignItems: 'center',
             pointerEvents: 'none',
           }}
@@ -467,11 +468,11 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
             <div
               key={idx}
               style={{
-                width: idx === activeIndex ? '20px' : '6px',
-                height: '3px',
+                width: '3px',
+                height: idx === activeIndex ? '20px' : '6px',
                 borderRadius: '2px',
                 background: idx === activeIndex ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.35)',
-                transition: 'width 0.25s ease, background 0.25s ease',
+                transition: 'height 0.25s ease, background 0.25s ease',
               }}
             />
           ))}
@@ -482,9 +483,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
       <div
         style={{
           position: 'absolute',
-          top: hasMultipleEditions
-            ? 'calc(env(safe-area-inset-top) + 90px)'
-            : 'calc(env(safe-area-inset-top) + 52px)',
+          top: '12px',
           right: '12px',
           zIndex: 40,
         }}
@@ -493,7 +492,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
       </div>
 
       {/* Scroll container — always mounted so feedRef + scroll listener are stable */}
-      <div ref={feedRef} className="feed-container">
+      <div ref={feedRef} className="feed-container" style={{ flex: 1 }}>
         {isEmpty ? (
           /* Empty state as a single snap-item so the container still has content */
           <div className="feed-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
