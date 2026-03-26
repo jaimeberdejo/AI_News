@@ -52,7 +52,7 @@ PlayResY: 1280
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, Bold, Alignment, MarginV
-Style: Default,Arial,52,&H00FFFFFF,1,2,300
+Style: Default,Arial,52,&H00FFFFFF,1,2,520
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"""
@@ -71,8 +71,8 @@ def _words_to_ass(words: list[dict], output_path: Path) -> None:
     """
     Group words into 3-word chunks, write one Dialogue line per chunk.
     Alignment=2 is bottom-center in ASS spec. MarginV=300 on 1280px places the
-    subtitle ~300px above the bottom frame edge — just above the article overlay zone
-    (~287px from bottom), matching TikTok-style lower-third elevated positioning.
+    subtitle ~520px above the bottom frame edge — upper-middle of the video,
+    well clear of the article overlay zone (~287px from bottom).
     """
     chunks: list[list[dict]] = []
     chunk: list[dict] = []

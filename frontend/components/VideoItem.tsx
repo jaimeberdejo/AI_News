@@ -69,7 +69,7 @@ export function VideoItem({ video, onEnded, videoRef, editionPublishedAt, onSoci
           position: 'absolute',
           bottom: 0,
           left: 0,
-          right: '72px',
+          right: '16px',
           padding: '16px 16px calc(env(safe-area-inset-bottom) + 56px + 16px) 16px',
           background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 40%, transparent 100%)',
           zIndex: 10,
@@ -132,12 +132,13 @@ export function VideoItem({ video, onEnded, videoRef, editionPublishedAt, onSoci
         )}
       </div>
 
-      {/* Right-rail social column — like → bookmark → comment */}
+      {/* Right-rail social column — like → bookmark → comment, vertically centered */}
       <div
         style={{
           position: 'absolute',
           right: '12px',
-          bottom: 'calc(env(safe-area-inset-bottom) + 56px + 80px)',
+          top: '50%',
+          transform: 'translateY(-50%)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
