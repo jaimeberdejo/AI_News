@@ -139,7 +139,7 @@ export function VideoGrid({
         >
           <video
             src={video.video_url}
-            preload="none"
+            preload="metadata"
             muted
             playsInline
             style={{

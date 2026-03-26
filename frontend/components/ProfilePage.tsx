@@ -273,7 +273,8 @@ export function ProfilePage() {
   return (
     <div
       style={{
-        minHeight: '100dvh',
+        height: '100dvh',
+        overflowY: 'auto',
         background: '#000',
         paddingBottom: '80px', // clear TabBar height + safe area
       }}
