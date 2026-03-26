@@ -15,6 +15,7 @@ import { MuteButton } from './MuteButton'
 import { EndCard } from './EndCard'
 import { useAuth } from '../hooks/useAuth'
 import { AuthBottomSheet } from './AuthBottomSheet'
+import { CommentSheet } from './CommentSheet'
 
 type Category = 'finance' | 'tech'
 
@@ -53,6 +54,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [buttonProminent, setButtonProminent] = useState(false)
   const [sheetAction, setSheetAction] = useState<'like' | 'bookmark' | 'comment' | null>(null)
+  const [commentVideoId, setCommentVideoId] = useState<string | null>(null)
 
   type SocialState = { likeCount: number; isLiked: boolean; isBookmarked: boolean }
   const [socialState, setSocialState] = useState<Record<string, SocialState>>({})
@@ -263,7 +265,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
     // Signed in: dispatch real handlers
     if (action === 'like') handleLike(videoId)
     if (action === 'bookmark') handleBookmark(videoId)
-    // 'comment': Phase 10 — no-op for now (guest sheet still works via isGuest branch above)
+    if (action === 'comment') setCommentVideoId(videoId)
   }
 
   // Scroll restoration after OAuth return — reads ?videoIndex= param, scrolls to
@@ -500,6 +502,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
                 likeCount={socialState[video.id]?.likeCount ?? video.like_count ?? 0}
                 isLiked={socialState[video.id]?.isLiked ?? false}
                 isBookmarked={socialState[video.id]?.isBookmarked ?? false}
+                commentCount={video.comment_count}
               />
             ))}
             {/* End card as a scroll item — reachable by scrolling or auto-scrolled to on last video end */}
@@ -526,6 +529,14 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         }
         returnPath={`/?videoIndex=${activeIndex}`}
         onClose={() => setSheetAction(null)}
+      />
+
+      {/* Comment sheet — one instance at feed level, opens for signed-in users */}
+      <CommentSheet
+        isOpen={commentVideoId !== null}
+        videoId={commentVideoId}
+        currentUserId={user?.id ?? null}
+        onClose={() => setCommentVideoId(null)}
       />
     </div>
   )
