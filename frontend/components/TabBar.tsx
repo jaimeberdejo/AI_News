@@ -18,7 +18,7 @@ export function TabBar() {
         right: 0,
         zIndex: 200,
         background: '#000',
-        height: '56px',
+        height: 'calc(56px + env(safe-area-inset-bottom))',
         paddingBottom: 'env(safe-area-inset-bottom)',
         display: 'flex',
         flexDirection: 'row',
