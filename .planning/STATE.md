@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 12 of 12 (Mobile UI)
-Plan: 2/3 in current phase — In Progress
-Status: Phase 12 Plan 2 Complete — Solid category tab bar, vertical progress dots, flex column layout (MOB-03, MOB-05)
-Last activity: 2026-03-26 — Phase 12 Plan 2 executed; solid tab bar replaces gradient pills, CSS variable for snap heights, vertical dots
+Plan: 3/3 in current phase — Awaiting Human Checkpoint
+Status: Phase 12 Plan 3 Tasks 1-2 Complete — Thumbnail pipeline (FFmpeg JPEG, Supabase upload, DB write), VideoGrid img+placeholder, ProfilePage sticky tab bar + safe-area paddingBottom (MOB-06, MOB-07); Task 3 checkpoint awaiting human verification
+Last activity: 2026-03-26 — Phase 12 Plan 3 executed; DB migration, 4 pipeline files, 4 frontend files; TypeScript clean
 
-Progress: [██████████] 100% (12 phases started, 2/3 plans in Phase 12 done)
+Progress: [██████████] 100% (12 phases started, 3/3 plans in Phase 12 complete)
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Progress: [██████████] 100% (12 phases started, 2/3 plans in
 | Phase 11 P03 | 30min | 3 tasks | 2 files |
 | Phase 12-mobile-ui P01 | 2 | 2 tasks | 2 files |
 | Phase 12-mobile-ui P02 | 2 | 2 tasks | 2 files |
+| Phase 12-mobile-ui P03 | 3 | 2 tasks (auto) | 9 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,10 @@ Recent decisions affecting current work:
 - [Phase 12-02]: --category-bar-height: 44px CSS variable in :root — single source of truth; both feed-container and feed-item use same calc() so snap math is correct
 - [Phase 12-02]: Tab bar as real flex child (not absolute) — occupies physical space so feed-container starts below it with no overlap and no safe-area offset needed
 - [Phase 12-02]: Progress dots vertical column right:12px top:16px — top is relative to feed-container (below tab bar), no safe-area offset needed
+- [Phase 12-03]: extract_thumbnail uses -ss 0.5 to skip common black first frame from b-roll; 0.5s offset is safe for all assembled videos
+- [Phase 12-03]: thumbnail upload is non-fatal — pipeline still publishes video even if FFmpeg thumbnail extraction fails
+- [Phase 12-03]: GridVideo.thumbnail_url is optional (?) so existing callers don't need to provide it; VideoGrid shows placeholder for null/undefined
+- [Phase 12-03]: ProfilePage paddingBottom updated from 80px to calc(env(safe-area-inset-bottom) + 56px + 16px) for safe-area-correct TabBar clearance on iPhone 14+
 
 ### Pending Todos
 
@@ -128,5 +133,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 12-02-PLAN.md — solid category tab bar + vertical progress dots; MOB-03, MOB-05 satisfied
+Stopped at: 12-03 Task 3 checkpoint — awaiting human verification of Phase 12 mobile UI (19-point checklist); thumbnail pipeline and ProfilePage layout fixes committed
 Resume file: None
