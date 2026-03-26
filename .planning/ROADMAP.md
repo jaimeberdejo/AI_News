@@ -4,7 +4,8 @@
 
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-02-26) — [Archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Multi-Category** — Phases 5-6 (shipped 2026-03-10) — [Archive](milestones/v1.1-ROADMAP.md)
-- 🔄 **v1.2 Social + Accounts** — Phases 7-11 (in progress)
+- ✅ **v1.2 Social + Accounts** — Phases 7-11 (completed 2026-03-26)
+- 🔄 **v1.3 Mobile UI** — Phase 12 (next)
 
 ## Phases
 
