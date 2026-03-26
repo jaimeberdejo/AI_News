@@ -2,19 +2,18 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-23)
+See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** v1.3 Mobile UI — Phase 12: Mobile UI Overhaul
+**Current focus:** Planning next milestone (v1.3)
 
 ## Current Position
 
-Phase: 12 of 12 (Mobile UI)
-Plan: 3/3 in current phase — Awaiting Human Checkpoint
-Status: Phase 12 Plan 3 Tasks 1-2 Complete — Thumbnail pipeline (FFmpeg JPEG, Supabase upload, DB write), VideoGrid img+placeholder, ProfilePage sticky tab bar + safe-area paddingBottom (MOB-06, MOB-07); Task 3 checkpoint awaiting human verification
-Last activity: 2026-03-26 — Phase 12 Plan 3 executed; DB migration, 4 pipeline files, 4 frontend files; TypeScript clean
+Phase: v1.2 milestone complete — all 12 phases shipped
+Status: Ready for next milestone planning
+Last activity: 2026-03-27 — v1.2 Social + Accounts milestone archived
 
-Progress: [██████████] 100% (12 phases started, 3/3 plans in Phase 12 complete)
+Progress: [██████████] 100% — v1.2 complete
 
 ## Performance Metrics
 

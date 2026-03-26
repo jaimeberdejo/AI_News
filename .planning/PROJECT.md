@@ -2,24 +2,13 @@
 
 ## What This Is
 
-FinFeed is a mobile-first PWA that delivers a finite set of AI-generated news videos per day across multiple categories (Finance and Tech). Users swipe vertically through a curated feed (TikTok/Stories-style), switch categories via a tab bar, and see a "You're up to date" screen when they're done. All video content is generated automatically by a batch AI pipeline — no human editors.
+FinFeed is a mobile-first PWA that delivers a finite set of AI-generated news videos per day across multiple categories (Finance and Tech). Users swipe vertically through a curated feed (TikTok/Stories-style), sign in to like, comment, and bookmark videos, and manage their identity through a profile page. All video content is generated automatically by a batch AI pipeline — no human editors.
 
 The core insight: TikTok has trained a generation to consume information through vertical short-form video. FinFeed applies that learned behaviour to something genuinely informative and useful — news that matters — rather than entertainment optimised for maximum time-on-app.
-
-v1.1 ships with Finance and Tech. v1.2+ will expand to additional categories (sports, politics, science).
 
 ## Core Value
 
 A finite, curated daily briefing in vertical video format — users always know when they're done. No infinite scroll, no algorithmic rabbit holes. Just today's most important stories, consumed in the format people already know how to use.
-
-## Current Milestone: v1.2 Social + Accounts
-
-**Goal:** Add user accounts and a social layer — likes, comments, bookmarks, and a profile page — while keeping the feed fully open to guests.
-
-**Target features:**
-- Auth: Google OAuth + email/password, soft-gated (guests browse freely)
-- Social: likes, bookmarks, per-video flat comments with basic moderation
-- Profile page: display name, avatar, liked videos tab, saved videos tab
 
 ## Requirements
 
@@ -42,47 +31,59 @@ A finite, curated daily briefing in vertical video format — users always know 
 - ✓ Tech news pipeline runs daily via GitHub Actions, producing a full tech edition — v1.1 (TECH-01)
 - ✓ Pipeline uses tech-focused RSS feeds (TechCrunch, HN, Ars Technica) with tech journalist LLM tone — v1.1 (TECH-02, TECH-03)
 - ✓ Finance/Tech tab bar at top of PWA — category switch without page reload, per-tab scroll memory — v1.1 (CATUI-01, CATUI-02, CATUI-03)
+- ✓ User can sign up / sign in with Google OAuth or email+password; session persists across refresh — v1.2 (AUTH-01–05)
+- ✓ Guest users browse freely; social actions prompt sign-in via bottom sheet — v1.2 (AUTH-06–07)
+- ✓ User can like/unlike videos; like count visible to guests — v1.2 (SOCL-01–02)
+- ✓ User can bookmark and remove bookmarks on videos — v1.2 (SOCL-03–04)
+- ✓ User can post flat comments on videos; rate-limited (30s) + 500-char cap — v1.2 (COMM-01–04)
+- ✓ Profile page with display name, avatar, liked videos tab, saved videos tab — v1.2 (PROF-01–04)
+- ✓ Full-screen TikTok-style video layout with right-rail social buttons — v1.2 (MOB-01–02)
+- ✓ Solid scrollable category tab bar, vertical progress dots, safe-area-correct TabBar — v1.2 (MOB-03–05)
+- ✓ Pipeline generates JPEG thumbnails; VideoGrid uses static `<img>` for iOS PWA — v1.2 (MOB-06–07)
 
 ### Active
 
-- [ ] User can sign up / sign in with Google OAuth or email+password (AUTH-01–04)
-- [ ] Guest users browse freely; social actions prompt sign-in (AUTH-06–07)
-- [ ] User can like and unlike videos; like count visible to guests (SOCL-01–02)
-- [ ] User can bookmark and remove bookmarks on videos (SOCL-03–04)
-- [ ] User can post flat comments on videos; rate-limited + capped (COMM-01–04)
-- [ ] Profile page with display name, avatar, liked videos tab, saved videos tab (PROF-01–04)
+- [ ] Cross-edition video navigation (tap in profile → navigate to any edition's video)
+- [ ] Android device validation — deferred since v1.1; iOS confirmed, Android untested
 
 ### Out of Scope
 
-- Hallucination guard (QUAL-01) — deferred to v1.2+; cost not justified until scale
-- LLM upgrade (QUAL-02) — deferred to v1.2+; Groq free tier sufficient at current volume
-- TTS upgrade (QUAL-03) — deferred to v1.2+; cost not justified until scale
-- Premium b-roll (QUAL-04) — deferred to v1.2+; Pexels free tier adequate
-- Push notifications (PUSH-01) — deferred to v1.2+
-- User accounts / authentication — open access sufficient for validation; v1.2+
-- Sports, politics, science categories — v1.1 adds tech only; expand in v1.2+
+- Hallucination guard (QUAL-01) — deferred to v1.3+; cost not justified until scale
+- LLM upgrade (QUAL-02) — deferred; Groq free tier sufficient at current volume
+- TTS upgrade (QUAL-03) — deferred; cost not justified until scale
+- Premium b-roll (QUAL-04) — deferred; Pexels free tier adequate
+- Push notifications (PUSH-01) — deferred to v1.3+
+- Apple Sign In — requires Apple Developer account ($99/yr) + 6-month key rotation; defer to v1.3
+- Nested/threaded comments — anti-pattern on mobile; flat comments are simpler and better UX
+- Watch history — not selected for v1.2/v1.3 scope
+- Following other users — not aligned with FinFeed's curated finite feed model
+- Real-time like counts — Supabase free tier: 200 concurrent connections; optimistic UI sufficient
+- Sports, politics, science categories — expand after v1.2 validation
 - Native mobile app — PWA web-first only
 - Multiple languages — English only
 - Personalized feeds — one curated feed per category for all users
 - Monetization / subscriptions — validation phase only
-- Social features (comments, likes) — not core to finite feed value proposition
 - Infinite scroll — defeats the core "finite" product promise
 
 ## Context
 
-- **Shipped:** v1.1 Multi-Category (2026-03-10) — live at https://autonews-ai.vercel.app
-- **Codebase:** ~2,100 LOC Python + TypeScript (13 files changed in v1.1, +883/-89 lines)
-- **Tech stack:** Python pipeline (Groq + OpenAI TTS + faster-whisper + FFmpeg + Pexels), Supabase (Postgres + Storage), Next.js 16 App Router, Vercel, GitHub Actions
+- **Shipped:** v1.2 Social + Accounts (2026-03-27) — live at https://autonews-ai.vercel.app
+- **Codebase:** ~5,767 LOC Python + TypeScript
+- **Tech stack:** Python pipeline (Groq + OpenAI TTS + faster-whisper + FFmpeg + Pexels), Supabase (Postgres + Storage + Auth), Next.js 16 App Router, Vercel, GitHub Actions
 - **Pipeline runtime:** ~4m40s on GitHub Actions per category (finance + tech run in parallel)
-- **Cost at v1.1:** ~$0.50–2/month (Groq free, OpenAI TTS minimal, Supabase free, Vercel free, GitHub Actions free — unchanged from v1.0)
-- **Key open question:** Is the finite feed concept strong enough to retain users across multiple categories? — validate before v1.2 investment
-- **Known limitation:** Android device validation deferred (iOS confirmed, Android not tested)
+- **Cost at v1.2:** ~$0.50–2/month (Groq free, OpenAI TTS minimal, Supabase free, Vercel free, GitHub Actions free, Resend 3k emails/mo free)
+- **Auth:** Google OAuth + email/password via Supabase Auth; Resend custom SMTP to bypass free-tier OTP rate limit
+- **Known tech debt:**
+  - Pre-existing users (before trigger deploy) needed a one-time profiles backfill SQL
+  - Comment count does not update in real-time — requires feed refresh
+  - `?videoId=` cross-edition navigation falls back to top of feed (deferred to v1.3)
+  - VideoGrid uses `preload=metadata` for thumbnails — switch to `poster` attribute if CDN provides them
 
 ## Constraints
 
 - **Cost (v1):** Pipeline must run for ~$1–5/month total
 - **Cost (future):** Higher-tier APIs unlock at scale — OpenAI TTS HD, ElevenLabs, premium stock footage, dedicated infrastructure
-- **Stack:** Python pipeline (Groq + OpenAI TTS + FFmpeg), Supabase (Postgres + Storage), Vercel frontend
+- **Stack:** Python pipeline (Groq + OpenAI TTS + FFmpeg), Supabase (Postgres + Storage + Auth), Vercel frontend
 - **Pipeline:** Batch processing only — no real-time generation
 - **News sources:** Free RSS feeds only (Yahoo Finance, CNBC, TechCrunch, Hacker News, Ars Technica)
 - **Video rendering:** FFmpeg-based (no paid video APIs in v1)
@@ -110,6 +111,18 @@ A finite, curated daily briefing in vertical video format — users always know 
 | tabScrollState as useRef (not useState) | Scroll position is imperative state — no re-render needed on save/restore | ✓ Good — no extra renders on tab switch |
 | currentEdition?.id in play/pause useEffect deps | activeIndex alone doesn't re-fire when switching categories at index 0 | ✓ Good — found during human verification, fixed pre-approval |
 | Empty state inside feed-container (not early return) | Early return unmounts feedRef, breaking scroll listener on empty → populated transition | ✓ Good — feedRef stable through all state transitions |
+| @supabase/ssr with getAll/setAll cookie adapter | Required for ssr 0.2+; singular get/set deprecated; PKCE + session refresh work correctly | ✓ Good — clean session management across SSR/client |
+| CVE-2025-29927-safe middleware matcher | Static-asset exclusion prevents 9+ auth calls per page load and closes bypass vector | ✓ Good — standard pattern now in all new projects |
+| signInWithGoogle returns { url } not redirect() | iOS PWA standalone mode breaks when Server Action calls redirect() to external OAuth URL | ✓ Good — confirmed on real device in Phase 8 |
+| handle_new_user trigger with SECURITY DEFINER + search_path='' | Prevents search-path injection; ON CONFLICT DO NOTHING prevents rollback on duplicate | ✓ Good — production-safe, no issues in smoke test |
+| Resend for custom SMTP | 3,000 emails/month free vs Supabase 3 OTP/hour; unblocks auth for real users | ✓ Good — configured in 07-03, no rate limit issues |
+| Soft-gated auth (guest-first) | Guests browse freely; social actions prompt sign-in — max reach, min friction | ✓ Good — AUTH-06/07 confirmed on real device |
+| Denormalized like_count + DB trigger | Avoids N+1 count queries; GREATEST(count-1, 0) guards against negative counts | ✓ Good — consistent with comment_count pattern in Phase 10 |
+| video_likes has anon RLS SELECT; video_bookmarks does not | Like counts are public (social signal); bookmarks are private by design | ✓ Good — SOCL-02/03 requirements explicitly captured this |
+| video_comments FK to profiles (not auth.users) | Enables Supabase embedded join syntax for fetching comments with author data | ✓ Good — profiles join works cleanly in CommentSheet |
+| Comments rate-limit 30s via two-index query | (video_id, created_at) for feed; (user_id, created_at DESC) for rate limit check | ✓ Good — COMM-04 satisfied with O(log n) query |
+| storage.foldername(name)[1] for avatars RLS | User-scoped upload policy without storing user_id separately — path encodes ownership | ✓ Good — upload/read/update/delete all work correctly |
+| Phase 12 grouped into v1.2 milestone | Mobile UI shipped in same sprint as social; natural milestone boundary | ✓ Good — all 6 phases shipped together |
 
 ---
-*Last updated: 2026-03-23 after v1.2 milestone started*
+*Last updated: 2026-03-27 after v1.2 milestone*

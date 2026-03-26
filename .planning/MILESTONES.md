@@ -37,3 +37,23 @@
 
 ---
 
+
+## v1.2 Social + Accounts (Shipped: 2026-03-26)
+
+**Phases completed:** 6 phases (7–12), 18 plans
+**Timeline:** 2026-03-23 → 2026-03-26 (4 days)
+**Files:** 72 files changed, +10,132 / -69 lines
+**Git range:** `feat(07-01)` → `feat(12-03)`
+
+**Key accomplishments:**
+- Supabase SSR auth infrastructure — @supabase/ssr with three client factories, Google OAuth + email/password, Resend SMTP, PKCE callback route, CVE-2025-29927-safe middleware
+- Auth UI with soft guest gating — AuthBottomSheet bottom sheet, guest browse freely, social action sign-in prompts, iOS PWA real-device validation passed on real iPhone
+- Social interactions — video likes/bookmarks with denormalized `like_count` DB trigger, optimistic UI, per-user RLS, guest like count visibility
+- Flat comments with moderation — `video_comments` with rate limit (30s), 500-char cap, author display name + avatar via profiles join, CommentSheet component
+- Profile page — display name (editable), avatar upload to Supabase Storage, liked and saved video grids with tap-to-navigate to feed
+- Mobile UI (TikTok-style) — full-screen VideoItem overlay, right-rail social button column, solid scrollable category tab bar, vertical progress dots, safe-area-correct TabBar, pipeline JPEG thumbnail generation
+
+**Archive:** [milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md) | [milestones/v1.2-REQUIREMENTS.md](milestones/v1.2-REQUIREMENTS.md) | [milestones/v1.2-MILESTONE-AUDIT.md](milestones/v1.2-MILESTONE-AUDIT.md)
+
+---
+
