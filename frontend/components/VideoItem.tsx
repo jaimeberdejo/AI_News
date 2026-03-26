@@ -43,36 +43,36 @@ export function VideoItem({ video, onEnded, videoRef, editionPublishedAt, onSoci
   const dateLabel = formatDateTime(editionPublishedAt)
 
   return (
-    <div className="feed-item">
-      {/* Video — fills all height above the info panel */}
-      <div style={{ flex: '1 1 0', overflow: 'hidden', position: 'relative', minHeight: 0 }}>
-        <video
-          ref={videoRef}
-          src={`${video.video_url}#t=0.001`}
-          muted
-          playsInline
-          preload="auto"
-          loop={false}
-          onEnded={onEnded}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block',
-          }}
-        />
-      </div>
+    <div className="feed-item" style={{ position: 'relative' }}>
+      {/* Video — fills entire viewport, absolutely positioned */}
+      <video
+        ref={videoRef}
+        src={`${video.video_url}#t=0.001`}
+        muted
+        playsInline
+        preload="auto"
+        loop={false}
+        onEnded={onEnded}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+        }}
+      />
 
-      {/* Info panel — date/time, headline, link to original article */}
+      {/* Bottom overlay — date, headline, article link */}
       <div
         style={{
-          flex: '0 0 auto',
-          background: '#111',
-          padding: '14px 18px',
-          paddingBottom: 'calc(env(safe-area-inset-bottom) + 56px + 14px)',
-          borderTop: '1px solid rgba(255,255,255,0.07)',
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: '72px',
+          padding: '16px 16px calc(env(safe-area-inset-bottom) + 56px + 16px) 16px',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)',
+          zIndex: 10,
         }}
       >
         {dateLabel && (
@@ -130,80 +130,82 @@ export function VideoItem({ video, onEnded, videoRef, editionPublishedAt, onSoci
             </svg>
           </a>
         )}
+      </div>
 
-        {/* Social action row — stubs for Phase 8; real mutations added in Phase 9 */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '20px',
-            marginTop: '12px',
-          }}
-        >
-          {/* Like button */}
+      {/* Right-rail social column — like → bookmark → comment */}
+      <div
+        style={{
+          position: 'absolute',
+          right: '12px',
+          bottom: 'calc(env(safe-area-inset-bottom) + 56px + 80px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '24px',
+          zIndex: 10,
+        }}
+      >
+        {/* Like button */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
           <button
             onClick={(e) => { e.stopPropagation(); onSocialAction?.('like', video.id) }}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              color: isLiked ? '#ef4444' : 'rgba(255,255,255,0.6)',
-              fontSize: '0.82rem',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-            }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill={isLiked ? '#ef4444' : 'none'}
+              stroke={isLiked ? '#ef4444' : 'rgba(255,255,255,0.9)'}
+              strokeWidth="2"
+            >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
             </svg>
-            {likeCount ?? 0}
           </button>
+          <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.85)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+            {likeCount ?? 0}
+          </span>
+        </div>
 
-          {/* Bookmark button */}
+        {/* Bookmark button */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
           <button
             onClick={(e) => { e.stopPropagation(); onSocialAction?.('bookmark', video.id) }}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              color: isBookmarked ? '#facc15' : 'rgba(255,255,255,0.6)',
-              fontSize: '0.82rem',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-            }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill={isBookmarked ? '#facc15' : 'none'}
+              stroke={isBookmarked ? '#facc15' : 'rgba(255,255,255,0.9)'}
+              strokeWidth="2"
+            >
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
             </svg>
           </button>
+        </div>
 
-          {/* Comment button */}
+        {/* Comment button */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
           <button
             onClick={(e) => { e.stopPropagation(); onSocialAction?.('comment', video.id) }}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              color: 'rgba(255,255,255,0.6)',
-              fontSize: '0.82rem',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-            }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="rgba(255,255,255,0.9)"
+              strokeWidth="2"
+            >
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
-            {commentCount ?? 0}
           </button>
+          <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.85)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+            {commentCount ?? 0}
+          </span>
         </div>
       </div>
     </div>
