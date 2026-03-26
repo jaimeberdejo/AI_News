@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 10 of 11 (Comments)
-Plan: 1/3 in current phase — In Progress
-Status: Phase 10 Plan 1 Complete
-Last activity: 2026-03-26 — Phase 10 Plan 1 complete (comments data foundation: video_comments table, RLS, comment_count trigger, Video interface + feed API updated)
+Plan: 2/3 in current phase — In Progress
+Status: Phase 10 Plan 2 Complete
+Last activity: 2026-03-26 — Phase 10 Plan 2 complete (comments API route handlers: GET+POST /api/comments, DELETE /api/comments/[id])
 
 Progress: [████████░░] 73% (8/11 phases complete — v1.0 + v1.1 + Phase 8 + Phase 9 done; Phase 10 in progress)
 
@@ -36,7 +36,7 @@ Progress: [████████░░] 73% (8/11 phases complete — v1.0 + 
 | 07-auth-infrastructure | 3/3 | ~17 min | ~8.5 min |
 | 08-auth-ui-ios-validation | 2/3 | ~5 min | ~2.5 min |
 | 09-social-interactions | 3/3 | ~4 min | ~2 min |
-| 10-comments | 1/3 | ~15 min | ~15 min |
+| 10-comments | 2/3 | ~17 min | ~8.5 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
@@ -85,6 +85,9 @@ Recent decisions affecting current work:
 - [Phase 10-01]: video_comments FK references profiles (not auth.users) — enables Supabase embedded join syntax for fetching comments with author data
 - [Phase 10-01]: Two indexes: (video_id, created_at) for comment feed queries; (user_id, created_at DESC) for rate limit enforcement in Phase 10-02
 - [Phase 10-01]: RLS grants anon + authenticated SELECT on video_comments (comments are public); authenticated-only INSERT/DELETE with auth.uid() check
+- [Phase 10-02]: Two-client pattern for GET /api/comments — anon client so guests always receive comments without cookie overhead; SSR client for auth-gated POST/DELETE
+- [Phase 10-02]: Rate limit query filters only user_id + created_at (no video_id filter) — cross-video per-user 30s enforcement (COMM-04)
+- [Phase 10-02]: DELETE /api/comments/[id] returns 404 (not 403) for non-owner — consistent project error pattern covering both not-found and unauthorized cases
 
 ### Pending Todos
 
@@ -99,5 +102,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 10-01-PLAN.md — comments data foundation (video_comments table, RLS, comment_count trigger, Video interface + feed API). Phase 10 Plan 1 complete (1/3).
+Stopped at: Completed 10-02-PLAN.md — comments API route handlers (GET+POST /api/comments, DELETE /api/comments/[id]). Phase 10 Plan 2 complete (2/3).
 Resume file: None
