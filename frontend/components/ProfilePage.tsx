@@ -49,6 +49,7 @@ export function ProfilePage() {
   const [cropBlob, setCropBlob] = useState<Blob | null>(null)
   const [cropPreviewUrl, setCropPreviewUrl] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   // Hidden file input ref for avatar upload
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -144,12 +145,13 @@ export function ProfilePage() {
       .upload(path, cropBlob, { contentType: 'image/jpeg', upsert: true })
 
     if (uploadError) {
-      console.error('Avatar upload failed:', uploadError)
+      setUploadError(uploadError.message ?? 'Upload failed. Check Supabase Storage bucket exists.')
       setIsUploading(false)
       setCropBlob(null)
       setCropPreviewUrl(null)
       return
     }
+    setUploadError(null)
 
     const { data } = supabase.storage.from('avatars').getPublicUrl(path)
     const publicUrl = data.publicUrl
@@ -550,6 +552,18 @@ export function ProfilePage() {
               {isUploading ? 'Uploading...' : 'Use This Photo'}
             </button>
           </div>
+          {uploadError && (
+            <p style={{
+              color: '#ef4444',
+              fontSize: '0.8rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              textAlign: 'center',
+              marginTop: '8px',
+              padding: '0 16px',
+            }}>
+              {uploadError}
+            </p>
+          )}
         </div>
       )}
 
