@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 12 of 12 (Mobile UI)
-Plan: 1/3 in current phase — In Progress
-Status: Phase 12 Plan 1 Complete — Full-screen VideoItem overlay layout + TabBar safe-area fix (MOB-01, MOB-02, MOB-04)
-Last activity: 2026-03-26 — Phase 12 Plan 1 executed; full-screen video overlay, right-rail social column, TabBar height fix
+Plan: 2/3 in current phase — In Progress
+Status: Phase 12 Plan 2 Complete — Solid category tab bar, vertical progress dots, flex column layout (MOB-03, MOB-05)
+Last activity: 2026-03-26 — Phase 12 Plan 2 executed; solid tab bar replaces gradient pills, CSS variable for snap heights, vertical dots
 
-Progress: [██████████] 100% (12 phases started, 1/3 plans in Phase 12 done)
+Progress: [██████████] 100% (12 phases started, 2/3 plans in Phase 12 done)
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Progress: [██████████] 100% (12 phases started, 1/3 plans in
 | Phase 11-profile P02 | 3 | 4 tasks | 6 files |
 | Phase 11 P03 | 30min | 3 tasks | 2 files |
 | Phase 12-mobile-ui P01 | 2 | 2 tasks | 2 files |
+| Phase 12-mobile-ui P02 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,9 @@ Recent decisions affecting current work:
 - [Phase 11]: VideoItem paddingBottom extended to calc(safe-area + 56px + 14px) — 56px TabBar height must be included to prevent social buttons being hidden behind floating tab bar
 - [Phase 12-mobile-ui]: VideoItem root position:relative — feed-item CSS owns snap height, overlays anchor to root
 - [Phase 12-mobile-ui]: TabBar height calc(56px + env(safe-area-inset-bottom)) — safe-area-correct pattern for fixed bars on iPhone 14+
+- [Phase 12-02]: --category-bar-height: 44px CSS variable in :root — single source of truth; both feed-container and feed-item use same calc() so snap math is correct
+- [Phase 12-02]: Tab bar as real flex child (not absolute) — occupies physical space so feed-container starts below it with no overlap and no safe-area offset needed
+- [Phase 12-02]: Progress dots vertical column right:12px top:16px — top is relative to feed-container (below tab bar), no safe-area offset needed
 
 ### Pending Todos
 
@@ -124,5 +128,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 12-01-PLAN.md — full-screen VideoItem overlay layout + TabBar safe-area fix; MOB-01, MOB-02, MOB-04 satisfied
+Stopped at: Completed 12-02-PLAN.md — solid category tab bar + vertical progress dots; MOB-03, MOB-05 satisfied
 Resume file: None

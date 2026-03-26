@@ -146,7 +146,7 @@ Plans:
   5. Progress dots are a vertical column on the right edge of the video
   6. Profile page: header scrolls away, Liked/Saved tab bar sticks; grid fills full screen width; content clears the bottom TabBar
   7. Pipeline generates JPEG thumbnails via FFmpeg; VideoGrid uses `<img>` (not `<video>`) for reliable iOS PWA rendering; existing videos show a placeholder
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 12-01-PLAN.md — VideoItem full-screen layout + right-rail social buttons + TabBar safe-area fix
