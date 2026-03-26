@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** v1.2 Social + Accounts — Phase 11: Profile Page
+**Current focus:** v1.3 Mobile UI — Phase 12: Mobile UI Overhaul
 
 ## Current Position
 
-Phase: 11 of 11 (Profile Page)
-Plan: 3/3 in current phase — Complete
-Status: Phase 11 Complete — All PROF requirements satisfied: display name edit, avatar upload, liked/saved grids, tap-to-navigate
-Last activity: 2026-03-26 — Phase 11 Plan 3 executed; avatar upload flow, ?videoId= navigation, human verification passed; tab bar regression fixed
+Phase: 12 of 12 (Mobile UI)
+Plan: 1/3 in current phase — In Progress
+Status: Phase 12 Plan 1 Complete — Full-screen VideoItem overlay layout + TabBar safe-area fix (MOB-01, MOB-02, MOB-04)
+Last activity: 2026-03-26 — Phase 12 Plan 1 executed; full-screen video overlay, right-rail social column, TabBar height fix
 
-Progress: [██████████] 100% (11/11 phases, 2/2 plans in Phase 11 done)
+Progress: [██████████] 100% (12 phases started, 1/3 plans in Phase 12 done)
 
 ## Performance Metrics
 
@@ -46,6 +46,7 @@ Progress: [██████████] 100% (11/11 phases, 2/2 plans in Phas
 | Phase 11-profile P01 | 2 | 3 tasks | 4 files |
 | Phase 11-profile P02 | 3 | 4 tasks | 6 files |
 | Phase 11 P03 | 30min | 3 tasks | 2 files |
+| Phase 12-mobile-ui P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,8 @@ Recent decisions affecting current work:
 - [Phase 11]: cropToSquare() defined outside component as pure function; Canvas crops to Math.min(width,height) square for consistent avatar shape regardless of photo orientation
 - [Phase 11]: ?videoId= handled in VideoFeed (not page.tsx) — extends existing ?videoIndex= searchParams pattern with ~10 lines, no new prop drilling; video not found falls back to index 0
 - [Phase 11]: VideoItem paddingBottom extended to calc(safe-area + 56px + 14px) — 56px TabBar height must be included to prevent social buttons being hidden behind floating tab bar
+- [Phase 12-mobile-ui]: VideoItem root position:relative — feed-item CSS owns snap height, overlays anchor to root
+- [Phase 12-mobile-ui]: TabBar height calc(56px + env(safe-area-inset-bottom)) — safe-area-correct pattern for fixed bars on iPhone 14+
 
 ### Pending Todos
 
@@ -121,5 +124,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 11-03-PLAN.md — Phase 11 profile page fully complete; all 4 PROF requirements satisfied; v1.2 Social + Accounts milestone complete
+Stopped at: Completed 12-01-PLAN.md — full-screen VideoItem overlay layout + TabBar safe-area fix; MOB-01, MOB-02, MOB-04 satisfied
 Resume file: None
