@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 11 of 11 (Profile Page)
-Plan: 2/2 in current phase — Complete
-Status: Phase 11 Plan 2 Complete — TabBar, ProfilePage, VideoGrid, EditNameSheet all built; PROF-01/03/04 satisfied
-Last activity: 2026-03-26 — Phase 11 Plan 2 executed; TabBar + layout, VideoGrid, EditNameSheet, ProfilePage + /profile route all committed; TypeScript clean
+Plan: 3/3 in current phase — Complete
+Status: Phase 11 Complete — All PROF requirements satisfied: display name edit, avatar upload, liked/saved grids, tap-to-navigate
+Last activity: 2026-03-26 — Phase 11 Plan 3 executed; avatar upload flow, ?videoId= navigation, human verification passed; tab bar regression fixed
 
 Progress: [██████████] 100% (11/11 phases, 2/2 plans in Phase 11 done)
 
@@ -37,7 +37,7 @@ Progress: [██████████] 100% (11/11 phases, 2/2 plans in Phas
 | 08-auth-ui-ios-validation | 2/3 | ~5 min | ~2.5 min |
 | 09-social-interactions | 3/3 | ~4 min | ~2 min |
 | 10-comments | 3/3 | ~19 min | ~6.3 min |
-| 11-profile-page | 2/2 | ~5 min | ~2.5 min |
+| 11-profile-page | 3/3 | ~35 min | ~11.7 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
@@ -45,6 +45,7 @@ Progress: [██████████] 100% (11/11 phases, 2/2 plans in Phas
 | Phase 10-comments P03 | 19 | 3 tasks | 3 files |
 | Phase 11-profile P01 | 2 | 3 tasks | 4 files |
 | Phase 11-profile P02 | 3 | 4 tasks | 6 files |
+| Phase 11 P03 | 30min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,9 @@ Recent decisions affecting current work:
 - [Phase 11-02]: paddingBottom: 80px on ProfilePage content areas clears floating TabBar height + safe area
 - [Phase 11-02]: Liked videos fetched eagerly on mount; saved videos fetched lazily on first tab switch — avoids double-fetch on initial load
 - [Phase 11-02]: avatarVersion counter state in ProfilePage for cache-busting avatar URL after upload (Plan 03 wires actual upload)
+- [Phase 11]: cropToSquare() defined outside component as pure function; Canvas crops to Math.min(width,height) square for consistent avatar shape regardless of photo orientation
+- [Phase 11]: ?videoId= handled in VideoFeed (not page.tsx) — extends existing ?videoIndex= searchParams pattern with ~10 lines, no new prop drilling; video not found falls back to index 0
+- [Phase 11]: VideoItem paddingBottom extended to calc(safe-area + 56px + 14px) — 56px TabBar height must be included to prevent social buttons being hidden behind floating tab bar
 
 ### Pending Todos
 
@@ -117,5 +121,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Phase 11 Plan 2 complete — TabBar, ProfilePage, VideoGrid, EditNameSheet all built. v1.2 Profile Page phase complete; PROF-01/03/04 satisfied. PROF-02 (avatar upload) targeted for Plan 03 if planned.
+Stopped at: Completed 11-03-PLAN.md — Phase 11 profile page fully complete; all 4 PROF requirements satisfied; v1.2 Social + Accounts milestone complete
 Resume file: None
