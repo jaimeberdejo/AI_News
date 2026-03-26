@@ -62,8 +62,8 @@ export function ProfilePage() {
       .then(r => r.json())
       .then(data => {
         setProfile({
-          display_name: data.display_name ?? null,
-          avatar_url: data.avatar_url ?? null,
+          display_name: data.profile?.display_name ?? null,
+          avatar_url: data.profile?.avatar_url ?? null,
         })
       })
       .catch(() => {
