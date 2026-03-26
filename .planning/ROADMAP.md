@@ -34,7 +34,7 @@ See full details: [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
 
 - [x] **Phase 7: Auth Infrastructure** — Supabase SSR plumbing, DB schema, Google OAuth + email/password end-to-end
 - [x] **Phase 8: Auth UI + iOS Validation** — Login page, AuthModal bottom sheet, guest browsing confirmed, real-device iOS PWA test gate
-- [ ] **Phase 9: Social Interactions** — Likes, bookmarks schema + API routes + feed overlay UI
+- [x] **Phase 9: Social Interactions** — Likes, bookmarks schema + API routes + feed overlay UI (completed 2026-03-26)
 - [ ] **Phase 10: Comments** — Comment sheet, posting with moderation, author display
 - [ ] **Phase 11: Profile Page** — Display name, avatar, liked and saved tabs
 
@@ -123,6 +123,6 @@ Plans:
 | 6. Category UI | v1.1 | 1/1 | Complete | 2026-03-10 |
 | 7. Auth Infrastructure | v1.2 | 3/3 | Complete | 2026-03-24 |
 | 8. Auth UI + iOS Validation | v1.2 | 3/3 | Complete | 2026-03-24 |
-| 9. Social Interactions | 2/3 | In Progress|  | - |
+| 9. Social Interactions | 3/3 | Complete   | 2026-03-26 | - |
 | 10. Comments | v1.2 | 0/? | Not started | - |
 | 11. Profile Page | v1.2 | 0/? | Not started | - |

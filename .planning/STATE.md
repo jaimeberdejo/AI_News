@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 9 of 11 (Social Mutations)
-Plan: 2/3 in current phase
-Status: In Progress
-Last activity: 2026-03-25 — Phase 9 Plan 2 complete (social mutation Route Handlers: like, bookmark, state)
+Plan: 3/3 in current phase — COMPLETE
+Status: Phase 9 Complete
+Last activity: 2026-03-26 — Phase 9 Plan 3 complete (social interactions UI: optimistic like/bookmark in VideoItem + VideoFeed; all 7 test scenarios verified)
 
-Progress: [███████░░░] 64% (7/11 phases complete — v1.0 + v1.1 + Phase 8 done; Phase 9 in progress 2/3)
+Progress: [████████░░] 73% (8/11 phases complete — v1.0 + v1.1 + Phase 8 + Phase 9 done)
 
 ## Performance Metrics
 
@@ -76,6 +76,10 @@ Recent decisions affecting current work:
 - [Phase 09-01]: Trigger uses GREATEST(like_count - 1, 0) to prevent negative counts under race conditions
 - [Phase 09-02]: Two-client pattern in GET /api/social/state — anon client for public likeCounts, SSR client for per-user state; guests always receive like counts
 - [Phase 09-02]: Check-then-act toggle pattern (SELECT maybeSingle → INSERT or DELETE) — Supabase/PostgreSQL does not support ON CONFLICT DO DELETE
+- [Phase 09-03]: onSocialAction signature extended to (action, videoId) atomically — interface + destructure + all 3 call sites updated in one edit; TypeScript catches mismatch at compile time
+- [Phase 09-03]: socialState seeded from video.like_count on fetch error — guests see counts even when /api/social/state is unreachable
+- [Phase 09-03]: processingLike/processingBookmark as Set<string> per-video debounce — rapid double-taps on one video do not block other videos
+- [Phase 09-03]: Social state useEffect deps [user?.id, videos.length] — avoids object reference instability while re-triggering on auth change or edition switch
 
 ### Pending Todos
 
@@ -89,6 +93,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-25
-Stopped at: Completed 09-02-PLAN.md — social Route Handlers (like, bookmark, state), full social API in place. Phase 9 Plan 2/3 done.
+Last session: 2026-03-26
+Stopped at: Completed 09-03-PLAN.md — social interactions UI (optimistic like/bookmark in VideoItem + VideoFeed). Phase 9 complete (3/3).
 Resume file: None
