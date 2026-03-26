@@ -11,6 +11,7 @@ export interface Video {
   source_url: string | null
   like_count: number   // denormalized count maintained by DB trigger
   comment_count: number // denormalized count maintained by DB trigger
+  thumbnail_url: string | null
 }
 
 export interface Edition {

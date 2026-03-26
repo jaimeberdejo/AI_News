@@ -276,7 +276,7 @@ export function ProfilePage() {
         height: '100dvh',
         overflowY: 'auto',
         background: '#000',
-        paddingBottom: '80px', // clear TabBar height + safe area
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 56px + 16px)', // clear TabBar height + safe area
       }}
     >
       {/* Profile header */}
@@ -430,6 +430,10 @@ export function ProfilePage() {
       <div
         style={{
           display: 'flex',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          background: '#000',
           borderBottom: '1px solid rgba(255,255,255,0.08)',
         }}
       >

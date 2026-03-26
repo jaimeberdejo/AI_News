@@ -8,6 +8,7 @@ export interface GridVideo {
   video_url: string
   likedAt?: string
   savedAt?: string
+  thumbnail_url?: string | null
 }
 
 interface VideoGridProps {
@@ -135,23 +136,45 @@ export function VideoGrid({
             aspectRatio: '1',
             cursor: 'pointer',
             overflow: 'hidden',
+            background: '#111',
           }}
         >
-          <video
-            src={video.video_url}
-            preload="metadata"
-            muted
-            playsInline
-            style={{
-              objectFit: 'cover',
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              background: '#111',
-            }}
-          />
+          {video.thumbnail_url ? (
+            <img
+              src={video.thumbnail_url}
+              alt={video.headline}
+              loading="lazy"
+              style={{
+                objectFit: 'cover',
+                width: '100%',
+                height: '100%',
+                display: 'block',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                background: '#1a1a1a',
+                display: 'flex',
+                alignItems: 'flex-end',
+              }}
+            >
+              <p
+                style={{
+                  padding: '6px',
+                  fontSize: '0.65rem',
+                  color: '#555',
+                  lineHeight: 1.2,
+                  margin: 0,
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                }}
+              >
+                {video.headline}
+              </p>
+            </div>
+          )}
         </div>
       ))}
     </div>
