@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+:root {
+  --category-bar-height: 44px;
+}
+
 html,
 body {
   margin: 0;
@@ -15,7 +19,7 @@ body {
 
 .feed-container {
   width: 100%;
-  height: 100dvh;
+  height: calc(100dvh - env(safe-area-inset-top) - var(--category-bar-height));
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   -webkit-overflow-scrolling: touch;
@@ -30,7 +34,7 @@ body {
 
 .feed-item {
   width: 100%;
-  height: 100dvh;
+  height: calc(100dvh - env(safe-area-inset-top) - var(--category-bar-height));
   scroll-snap-align: start;
   scroll-snap-stop: always;
   display: flex;
