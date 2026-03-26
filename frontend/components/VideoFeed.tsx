@@ -270,14 +270,30 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
 
   // Scroll restoration after OAuth return — reads ?videoIndex= param, scrolls to
   // the video the user was watching, then cleans the URL. Runs once after videos load.
+  // Also handles ?videoId= from profile grid tap-to-navigate (Plan 11-03).
   useEffect(() => {
     const idx = searchParams.get('videoIndex')
-    if (idx !== null && feedRef.current && videos.length > 0) {
-      const target = parseInt(idx, 10)
-      if (!isNaN(target) && target >= 0 && target < videos.length) {
+    const videoId = searchParams.get('videoId')
+
+    if ((idx !== null || videoId !== null) && feedRef.current && videos.length > 0) {
+      let target = -1
+
+      if (idx !== null) {
+        const parsed = parseInt(idx, 10)
+        if (!isNaN(parsed) && parsed >= 0 && parsed < videos.length) {
+          target = parsed
+        }
+      } else if (videoId !== null) {
+        const found = videos.findIndex(v => v.id === videoId)
+        if (found !== -1) target = found
+        // If not found in current edition, fall back to top (target stays -1 → scroll to 0)
+      }
+
+      if (target >= 0) {
         feedRef.current.scrollTop = target * feedRef.current.clientHeight
         setActiveIndex(target)
       }
+
       router.replace('/', { scroll: false })
     }
   }, [videos.length]) // eslint-disable-line react-hooks/exhaustive-deps
