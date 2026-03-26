@@ -38,8 +38,10 @@ key-decisions:
   - "commentVideoId state separate from sheetAction — clean separation: sheetAction drives AuthBottomSheet (guest gate), commentVideoId drives CommentSheet (signed-in flow)"
   - "formatRelativeTime utility inline in component — simple arithmetic, no library needed for this use case"
 
+requirements-completed: [COMM-01, COMM-02, COMM-03, COMM-04]
+
 # Metrics
-duration: ~2min
+duration: ~19min (including human verification checkpoint)
 completed: 2026-03-26
 ---
 
@@ -52,7 +54,7 @@ completed: 2026-03-26
 - **Duration:** ~2 min
 - **Started:** 2026-03-26T11:05:09Z
 - **Completed:** 2026-03-26T11:07:16Z
-- **Tasks:** 2 of 3 complete (Task 3 is checkpoint:human-verify)
+- **Tasks:** 3 of 3 complete (Task 3 checkpoint:human-verify — approved by user)
 - **Files modified:** 3
 
 ## Accomplishments
@@ -67,6 +69,7 @@ Each task was committed atomically:
 
 1. **Task 1: Create CommentSheet component** - `5c16b34` (feat)
 2. **Task 2: Wire CommentSheet into VideoFeed and VideoItem** - `1e78333` (feat)
+3. **Task 3: End-to-end verification** - checkpoint:human-verify (approved — "it works")
 
 ## Files Created/Modified
 
@@ -85,6 +88,10 @@ Each task was committed atomically:
 
 None - plan executed exactly as written.
 
+## Issues Encountered
+
+- **Data issue (not a code bug):** Pre-existing auth users created before the handle_new_user trigger (Phase 07-02) had no corresponding profiles row. This caused comment POST to fail for those users (FK constraint violation on video_comments.user_id → profiles). Fix: one-time SQL backfill in Supabase dashboard to insert missing profile rows for pre-existing auth users. No code change required — the trigger correctly handles all new users going forward.
+
 ## Self-Check: PASSED
 
 - `frontend/components/CommentSheet.tsx` — file exists, exports `CommentSheet`
@@ -92,9 +99,10 @@ None - plan executed exactly as written.
 - `frontend/components/VideoItem.tsx` — commentCount prop in interface, `{commentCount ?? 0}` in JSX
 - Commits `5c16b34` and `1e78333` verified in git log
 - TypeScript compiles without errors (npx tsc --noEmit returned no output)
+- Human verification passed: all 4 Phase 10 criteria confirmed working end-to-end
 
 ## Next Phase Readiness
 
-- CommentSheet is ready for end-to-end human verification (Task 3 checkpoint)
-- All four Phase 10 success criteria are implementable: guest read, signed-in post, own-comment delete, rate limit + char cap
-- Phase 11 (final) can begin after human verification passes
+- Phase 10 (Comments) complete — all 4 criteria verified end-to-end by user
+- comment_count, like_count, and bookmark counts are all live and accurate
+- Phase 11 (polish/final) can begin; no blockers
