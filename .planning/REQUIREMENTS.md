@@ -33,10 +33,10 @@ Requirements for the Social + Accounts milestone. Each maps to roadmap phases.
 
 ### Profile
 
-- [ ] **PROF-01**: User can set a display name (editable after signup)
-- [ ] **PROF-02**: User can upload a profile photo (avatar)
-- [ ] **PROF-03**: User can view all their liked videos in a profile tab
-- [ ] **PROF-04**: User can view all their saved/bookmarked videos in a profile tab
+- [x] **PROF-01**: User can set a display name (editable after signup)
+- [x] **PROF-02**: User can upload a profile photo (avatar)
+- [x] **PROF-03**: User can view all their liked videos in a profile tab
+- [x] **PROF-04**: User can view all their saved/bookmarked videos in a profile tab
 
 ## Future Requirements (v1.3+)
 
@@ -94,10 +94,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COMM-02 | Phase 10 | Complete |
 | COMM-03 | Phase 10 | Complete |
 | COMM-04 | Phase 10 | Complete |
-| PROF-01 | Phase 11 | Pending |
-| PROF-02 | Phase 11 | Pending |
-| PROF-03 | Phase 11 | Pending |
-| PROF-04 | Phase 11 | Pending |
+| PROF-01 | Phase 11 | Complete |
+| PROF-02 | Phase 11 | Complete |
+| PROF-03 | Phase 11 | Complete |
+| PROF-04 | Phase 11 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 19 total

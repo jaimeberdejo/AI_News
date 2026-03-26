@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** v1.2 Social + Accounts — Phase 10: Comments
+**Current focus:** v1.2 Social + Accounts — Phase 11: Profile Page
 
 ## Current Position
 
-Phase: 10 of 11 (Comments)
-Plan: 3/3 in current phase — Complete
-Status: Phase 10 Complete — all plans executed and verified
-Last activity: 2026-03-26 — Phase 10 Plan 3 human verification passed ("it works"); CommentSheet end-to-end verified: guest read, signed-in post + persistence, own-comment delete, rate limit + 500-char cap all confirmed
+Phase: 11 of 11 (Profile Page)
+Plan: 1/2 in current phase — Complete
+Status: Phase 11 Plan 1 Complete — avatars bucket migration + 3 profile API routes (GET/PATCH profile, liked, saved)
+Last activity: 2026-03-26 — Phase 11 Plan 1 executed; avatars storage bucket SQL migration + /api/profile GET+PATCH + /api/profile/liked + /api/profile/saved all committed; TypeScript clean
 
-Progress: [█████████░] 82% (9/11 phases complete — v1.0 + v1.1 + Phase 8 + Phase 9 + Phase 10 done; Phase 11 next)
+Progress: [█████████░] 91% (10/11 phases, 1/2 plans in Phase 11 done)
 
 ## Performance Metrics
 
@@ -37,11 +37,13 @@ Progress: [█████████░] 82% (9/11 phases complete — v1.0 + 
 | 08-auth-ui-ios-validation | 2/3 | ~5 min | ~2.5 min |
 | 09-social-interactions | 3/3 | ~4 min | ~2 min |
 | 10-comments | 3/3 | ~19 min | ~6.3 min |
+| 11-profile-page | 1/2 | ~2 min | ~2 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
 - Trend: Stable
 | Phase 10-comments P03 | 19 | 3 tasks | 3 files |
+| Phase 11-profile P01 | 2 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -92,6 +94,10 @@ Recent decisions affecting current work:
 - [Phase 10-03]: CommentSheet receives currentUserId as prop (not useAuth internally) — VideoFeed already owns auth state; avoids duplicate hook calls
 - [Phase 10-03]: Separate commentVideoId state from sheetAction — sheetAction drives AuthBottomSheet guest gate, commentVideoId drives CommentSheet for signed-in users; clean separation of concerns
 - [Phase 10-03]: formatRelativeTime inline utility — simple arithmetic, no library dependency needed for relative time formatting
+- [Phase 11-01]: storage.foldername(name)[1] extracts first path segment from {user_id}/avatar.jpg — scopes upload RLS to user's own folder
+- [Phase 11-01]: PATCH /api/profile uses explicit field whitelist (not body spread) — prevents mass-assignment vulnerabilities
+- [Phase 11-01]: row.videos cast through unknown in liked/saved routes — Supabase embedded join infers ambiguous TS type; cast through unknown required without changing runtime behavior
+- [Phase 11-01]: video_likes/video_bookmarks use Supabase embedded join syntax (.select('created_at, videos(...)')) — FK from video_id to public.videos.id enables automatic join inference
 
 ### Pending Todos
 
@@ -106,5 +112,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Phase 10 complete — all 3 plans executed and verified. Phase 11 (polish) is next.
+Stopped at: Phase 11 Plan 1 complete — avatars bucket migration + profile/liked/saved API routes. Phase 11 Plan 2 (Profile UI) is next.
 Resume file: None
