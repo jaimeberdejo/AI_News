@@ -99,6 +99,10 @@ def cleanup_old_editions(days: int = 7) -> None:
     """
     VIDEO-04: Delete editions older than `days` from Supabase Storage
     and mark DB records as deleted.
+
+    Derives the storage folder from the actual video_url in the DB so it
+    handles both the old path format ({date}-{shortid}/) and the current
+    format (editions/{category}-{date}-{shortid}/).
     """
     db = get_db()
     cutoff = str(date.today() - timedelta(days=days))
@@ -118,8 +122,36 @@ def cleanup_old_editions(days: int = 7) -> None:
 
     for edition in old_editions:
         ed_date = edition['edition_date']
-        ed_category = edition.get('category', 'finance')
-        storage_prefix = f"editions/{ed_category}-{ed_date}-{edition['id'][:8]}"
+
+        # Derive storage folder from the actual video_url stored in the DB.
+        # This handles old path format ({date}-{shortid}/) and current format
+        # (editions/{category}-{date}-{shortid}/) without hardcoding either.
+        videos = (
+            db.table("videos")
+            .select("video_url")
+            .eq("edition_id", edition["id"])
+            .not_.is_("video_url", "null")
+            .limit(1)
+            .execute()
+            .data
+        )
+
+        storage_prefix = None
+        if videos and videos[0].get("video_url"):
+            url = videos[0]["video_url"]
+            # URL format: .../storage/v1/object/public/{bucket}/{path}/{file}
+            # Extract everything after /public/{bucket}/ up to the last slash
+            marker = f"/public/{BUCKET}/"
+            idx = url.find(marker)
+            if idx != -1:
+                path_in_bucket = url[idx + len(marker):]
+                storage_prefix = path_in_bucket.rsplit("/", 1)[0]
+
+        if not storage_prefix:
+            # Fallback to current naming convention
+            ed_category = edition.get('category', 'finance')
+            storage_prefix = f"editions/{ed_category}-{ed_date}-{edition['id'][:8]}"
+
         try:
             files = db.storage.from_(BUCKET).list(path=storage_prefix)
             if files:
@@ -128,6 +160,8 @@ def cleanup_old_editions(days: int = 7) -> None:
                 logger.info(
                     "Deleted %d files from storage: %s", len(paths), storage_prefix
                 )
+            else:
+                logger.info("Cleanup: no files found at %s", storage_prefix)
         except Exception as e:
             logger.warning("Storage cleanup failed for %s: %s", ed_date, e)
 
