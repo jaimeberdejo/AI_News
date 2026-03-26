@@ -38,6 +38,25 @@ def upload_video(local_path: Path, edition_id: str, position: int, edition_date:
     return url
 
 
+def upload_thumbnail(local_path: Path, edition_id: str, position: int, edition_date: str, category: str = "finance") -> str:
+    """
+    Upload JPEG thumbnail to Supabase Storage at editions/{folder}/{position}_thumb.jpg.
+    Returns the public CDN URL.
+    """
+    db = get_db()
+    folder = f"{category}-{edition_date}-{edition_id[:8]}"
+    storage_path = f"editions/{folder}/{position}_thumb.jpg"
+    with open(local_path, "rb") as f:
+        db.storage.from_(BUCKET).upload(
+            storage_path,
+            f,
+            {"content-type": "image/jpeg", "upsert": "true"},
+        )
+    url = db.storage.from_(BUCKET).get_public_url(storage_path)
+    logger.info("Uploaded thumbnail %s → %s", local_path.name, url)
+    return url
+
+
 def publish_edition(
     edition_id: str,
     edition_date: str,
@@ -53,10 +72,10 @@ def publish_edition(
 
     for result in results:
         if result.status == "ready" and result.video_url:
-            db.table("videos").update({
-                "video_url": result.video_url,
-                "status": "ready",
-            }).eq("id", result.story_id).execute()
+            update_data = {"video_url": result.video_url, "status": "ready"}
+            if result.thumbnail_url:
+                update_data["thumbnail_url"] = result.thumbnail_url
+            db.table("videos").update(update_data).eq("id", result.story_id).execute()
         else:
             db.table("videos").update({
                 "status": "failed",

@@ -39,3 +39,4 @@ class VideoResult:
     status: str             # 'ready' or 'failed'
     video_url: Optional[str] = None
     error: Optional[str] = None
+    thumbnail_url: Optional[str] = None

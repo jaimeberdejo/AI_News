@@ -161,3 +161,24 @@ def assemble(
             logger.warning("Still over 10 MB after CRF 32 — proceeding (high-motion b-roll)")
 
     return output_path
+
+
+def extract_thumbnail(mp4_path: Path, tmp_dir: Path, position: int) -> Path:
+    """
+    Extract a single JPEG frame at 0.5s from assembled MP4.
+    Returns path to JPEG thumbnail. Raises RuntimeError on FFmpeg failure.
+    Uses -ss 0.5 to skip the common black first frame from b-roll videos.
+    """
+    thumb_path = tmp_dir / f"story_{position}_thumb.jpg"
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", str(mp4_path),
+        "-ss", "0.5",
+        "-vframes", "1",
+        "-q:v", "2",
+        str(thumb_path),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"Thumbnail extraction failed for position {position}:\n{result.stderr[-1000:]}")
+    return thumb_path

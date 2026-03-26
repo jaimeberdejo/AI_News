@@ -106,6 +106,15 @@ def run() -> None:
                 # Video: FFmpeg assembly
                 mp4_path = video.assemble(broll_path, mp3_path, ass_path, tmp_dir, story.position)
 
+                # Extract thumbnail (Phase 12: static JPEG for iOS PWA grid)
+                thumb_url: str | None = None
+                try:
+                    thumb_path = video.extract_thumbnail(mp4_path, tmp_dir, story.position)
+                    thumb_url = storage.upload_thumbnail(thumb_path, edition_id, story.position, edition_date, category)
+                except Exception as thumb_err:
+                    logger.warning("Thumbnail extraction failed for position %d: %s", story.position, thumb_err)
+                    # Non-fatal: video publishes without thumbnail; VideoGrid shows placeholder
+
                 # Upload to Supabase Storage
                 url = storage.upload_video(mp4_path, edition_id, story.position, edition_date, category)
 
@@ -114,6 +123,7 @@ def run() -> None:
                     position=story.position,
                     status="ready",
                     video_url=url,
+                    thumbnail_url=thumb_url,
                 ))
                 logger.info("Story %d complete: %s", story.position, url)
 
