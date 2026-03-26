@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 10 of 11 (Comments)
-Plan: 2/3 in current phase — In Progress
-Status: Phase 10 Plan 2 Complete
-Last activity: 2026-03-26 — Phase 10 Plan 2 complete (comments API route handlers: GET+POST /api/comments, DELETE /api/comments/[id])
+Plan: 3/3 in current phase — Awaiting Human Verification
+Status: Phase 10 Plan 3 Tasks Complete (checkpoint:human-verify pending)
+Last activity: 2026-03-26 — Phase 10 Plan 3 tasks complete (CommentSheet UI + VideoFeed/VideoItem wiring); awaiting end-to-end human verification
 
 Progress: [████████░░] 73% (8/11 phases complete — v1.0 + v1.1 + Phase 8 + Phase 9 done; Phase 10 in progress)
 
@@ -36,7 +36,7 @@ Progress: [████████░░] 73% (8/11 phases complete — v1.0 + 
 | 07-auth-infrastructure | 3/3 | ~17 min | ~8.5 min |
 | 08-auth-ui-ios-validation | 2/3 | ~5 min | ~2.5 min |
 | 09-social-interactions | 3/3 | ~4 min | ~2 min |
-| 10-comments | 2/3 | ~17 min | ~8.5 min |
+| 10-comments | 3/3 | ~19 min | ~6.3 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
@@ -88,6 +88,9 @@ Recent decisions affecting current work:
 - [Phase 10-02]: Two-client pattern for GET /api/comments — anon client so guests always receive comments without cookie overhead; SSR client for auth-gated POST/DELETE
 - [Phase 10-02]: Rate limit query filters only user_id + created_at (no video_id filter) — cross-video per-user 30s enforcement (COMM-04)
 - [Phase 10-02]: DELETE /api/comments/[id] returns 404 (not 403) for non-owner — consistent project error pattern covering both not-found and unauthorized cases
+- [Phase 10-03]: CommentSheet receives currentUserId as prop (not useAuth internally) — VideoFeed already owns auth state; avoids duplicate hook calls
+- [Phase 10-03]: Separate commentVideoId state from sheetAction — sheetAction drives AuthBottomSheet guest gate, commentVideoId drives CommentSheet for signed-in users; clean separation of concerns
+- [Phase 10-03]: formatRelativeTime inline utility — simple arithmetic, no library dependency needed for relative time formatting
 
 ### Pending Todos
 
@@ -102,5 +105,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 10-02-PLAN.md — comments API route handlers (GET+POST /api/comments, DELETE /api/comments/[id]). Phase 10 Plan 2 complete (2/3).
+Stopped at: 10-03 checkpoint:human-verify — CommentSheet UI tasks complete (Tasks 1+2 committed); awaiting end-to-end verification of full Phase 10 comment system.
 Resume file: None
