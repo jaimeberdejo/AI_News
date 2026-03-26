@@ -154,9 +154,9 @@ def run() -> None:
         logger.info("=== Stage 4: Publishing Edition ===")
         storage.publish_edition(edition_id, edition_date, results)
 
-        # Stage 5: 7-day cleanup
+        # Stage 5: 14-day cleanup
         logger.info("=== Stage 5: Cleanup Old Editions ===")
-        storage.cleanup_old_editions(days=7)
+        storage.cleanup_old_editions(days=14)
         steps_log.append({"step": "cleanup", "status": "done"})
 
         # Determine final pipeline status
