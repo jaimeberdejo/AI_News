@@ -132,3 +132,23 @@ Plans:
 | 9. Social Interactions | 3/3 | Complete   | 2026-03-26 | - |
 | 10. Comments | 3/3 | Complete    | 2026-03-26 | - |
 | 11. Profile Page | 3/3 | Complete    | 2026-03-26 | - |
+
+### Phase 12: Mobile UI
+
+**Goal:** Full-screen TikTok-style feed with right-rail social buttons, solid scrollable category tab bar, vertical progress dots, safe-area-correct tab bar, and a fixed profile page (sticky inner tab bar, full-width grid, static JPEG thumbnails via pipeline)
+**Depends on:** Phase 11
+**Requirements:** MOB-01, MOB-02, MOB-03, MOB-04, MOB-05, MOB-06, MOB-07
+**Success Criteria** (what must be TRUE):
+  1. Video fills the full viewport — no info panel below the video
+  2. Title and article link are always visible, overlaid at bottom-left with a gradient; social buttons (like, bookmark, comment) are in a vertical right-rail column
+  3. Category navigation is a solid horizontally-scrollable tab bar at the top; active tab has a white underline; scroll position per tab is preserved
+  4. TabBar icons and labels are never cut off on iPhone notch/home indicator devices
+  5. Progress dots are a vertical column on the right edge of the video
+  6. Profile page: header scrolls away, Liked/Saved tab bar sticks; grid fills full screen width; content clears the bottom TabBar
+  7. Pipeline generates JPEG thumbnails via FFmpeg; VideoGrid uses `<img>` (not `<video>`) for reliable iOS PWA rendering; existing videos show a placeholder
+**Plans:** 3 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — VideoItem full-screen layout + right-rail social buttons + TabBar safe-area fix
+- [ ] 12-02-PLAN.md — VideoFeed solid scrollable category tab bar + vertical progress dots + globals.css height adjustment
+- [ ] 12-03-PLAN.md — Pipeline thumbnail generation + DB migration + ProfilePage sticky tab bar + VideoGrid img thumbnails + human checkpoint
