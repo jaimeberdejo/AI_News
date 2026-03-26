@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 11 of 11 (Profile Page)
-Plan: 1/2 in current phase — Complete
-Status: Phase 11 Plan 1 Complete — avatars bucket migration + 3 profile API routes (GET/PATCH profile, liked, saved)
-Last activity: 2026-03-26 — Phase 11 Plan 1 executed; avatars storage bucket SQL migration + /api/profile GET+PATCH + /api/profile/liked + /api/profile/saved all committed; TypeScript clean
+Plan: 2/2 in current phase — Complete
+Status: Phase 11 Plan 2 Complete — TabBar, ProfilePage, VideoGrid, EditNameSheet all built; PROF-01/03/04 satisfied
+Last activity: 2026-03-26 — Phase 11 Plan 2 executed; TabBar + layout, VideoGrid, EditNameSheet, ProfilePage + /profile route all committed; TypeScript clean
 
-Progress: [█████████░] 91% (10/11 phases, 1/2 plans in Phase 11 done)
+Progress: [██████████] 100% (11/11 phases, 2/2 plans in Phase 11 done)
 
 ## Performance Metrics
 
@@ -37,13 +37,14 @@ Progress: [█████████░] 91% (10/11 phases, 1/2 plans in Phase
 | 08-auth-ui-ios-validation | 2/3 | ~5 min | ~2.5 min |
 | 09-social-interactions | 3/3 | ~4 min | ~2 min |
 | 10-comments | 3/3 | ~19 min | ~6.3 min |
-| 11-profile-page | 1/2 | ~2 min | ~2 min |
+| 11-profile-page | 2/2 | ~5 min | ~2.5 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
 - Trend: Stable
 | Phase 10-comments P03 | 19 | 3 tasks | 3 files |
 | Phase 11-profile P01 | 2 | 3 tasks | 4 files |
+| Phase 11-profile P02 | 3 | 4 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,10 @@ Recent decisions affecting current work:
 - [Phase 11-01]: PATCH /api/profile uses explicit field whitelist (not body spread) — prevents mass-assignment vulnerabilities
 - [Phase 11-01]: row.videos cast through unknown in liked/saved routes — Supabase embedded join infers ambiguous TS type; cast through unknown required without changing runtime behavior
 - [Phase 11-01]: video_likes/video_bookmarks use Supabase embedded join syntax (.select('created_at, videos(...)')) — FK from video_id to public.videos.id enables automatic join inference
+- [Phase 11-02]: TabBar z-index 200; EditNameSheet z-index 300/301 to float above TabBar when open
+- [Phase 11-02]: paddingBottom: 80px on ProfilePage content areas clears floating TabBar height + safe area
+- [Phase 11-02]: Liked videos fetched eagerly on mount; saved videos fetched lazily on first tab switch — avoids double-fetch on initial load
+- [Phase 11-02]: avatarVersion counter state in ProfilePage for cache-busting avatar URL after upload (Plan 03 wires actual upload)
 
 ### Pending Todos
 
@@ -112,5 +117,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Phase 11 Plan 1 complete — avatars bucket migration + profile/liked/saved API routes. Phase 11 Plan 2 (Profile UI) is next.
+Stopped at: Phase 11 Plan 2 complete — TabBar, ProfilePage, VideoGrid, EditNameSheet all built. v1.2 Profile Page phase complete; PROF-01/03/04 satisfied. PROF-02 (avatar upload) targeted for Plan 03 if planned.
 Resume file: None
