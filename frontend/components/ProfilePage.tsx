@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import { VideoGrid, type GridVideo } from './VideoGrid'
 import { EditNameSheet } from './EditNameSheet'
 import { createClient } from '../lib/supabase/client'
+import { signOut } from '../app/auth/actions'
 
 function cropToSquare(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -424,6 +425,24 @@ export function ProfilePage() {
           style={{ display: 'none' }}
           onChange={handleFileChange}
         />
+
+        {/* Sign out button */}
+        <button
+          onClick={() => signOut()}
+          style={{
+            background: 'none',
+            border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: '8px',
+            color: 'rgba(255,255,255,0.5)',
+            fontSize: '13px',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            padding: '6px 12px',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          Sign out
+        </button>
       </div>
 
       {/* Tab bar */}
