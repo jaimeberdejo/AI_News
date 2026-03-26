@@ -5,6 +5,30 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../hooks/useAuth'
 import { VideoGrid, type GridVideo } from './VideoGrid'
 import { EditNameSheet } from './EditNameSheet'
+import { createClient } from '../lib/supabase/client'
+
+function cropToSquare(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const size = Math.min(img.width, img.height)
+      const canvas = document.createElement('canvas')
+      canvas.width = size
+      canvas.height = size
+      const ctx = canvas.getContext('2d')!
+      const offsetX = (img.width - size) / 2
+      const offsetY = (img.height - size) / 2
+      ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size)
+      canvas.toBlob(
+        blob => blob ? resolve(blob) : reject(new Error('crop failed')),
+        'image/jpeg',
+        0.9
+      )
+    }
+    img.onerror = reject
+    img.src = URL.createObjectURL(file)
+  })
+}
 
 export function ProfilePage() {
   const router = useRouter()
@@ -21,9 +45,12 @@ export function ProfilePage() {
   const [isLoadingTab, setIsLoadingTab] = useState(false)
   const [editSheetOpen, setEditSheetOpen] = useState(false)
   const [savedLoaded, setSavedLoaded] = useState(false)
-  const [avatarVersion, setAvatarVersion] = useState(0)
+  const [avatarVersion, setAvatarVersion] = useState(Date.now())
+  const [cropBlob, setCropBlob] = useState<Blob | null>(null)
+  const [cropPreviewUrl, setCropPreviewUrl] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
 
-  // Hidden file input ref for future avatar upload (Plan 03)
+  // Hidden file input ref for avatar upload
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch profile + initial liked videos on mount when signed in
@@ -94,6 +121,57 @@ export function ProfilePage() {
       // Rollback on failure
       setProfile(prev => (prev ? { ...prev, display_name: previousName } : prev))
     }
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const blob = await cropToSquare(file)
+    const url = URL.createObjectURL(blob)
+    setCropBlob(blob)
+    setCropPreviewUrl(url)
+  }
+
+  async function handleConfirmCrop() {
+    if (!cropBlob || !user) return
+    setIsUploading(true)
+
+    const supabase = createClient()
+
+    const path = `${user.id}/avatar.jpg`
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, cropBlob, { contentType: 'image/jpeg', upsert: true })
+
+    if (uploadError) {
+      console.error('Avatar upload failed:', uploadError)
+      setIsUploading(false)
+      setCropBlob(null)
+      setCropPreviewUrl(null)
+      return
+    }
+
+    const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+    const publicUrl = data.publicUrl
+
+    await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ avatar_url: publicUrl }),
+    })
+
+    setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : prev)
+    setAvatarVersion(Date.now())
+
+    setCropBlob(null)
+    setCropPreviewUrl(null)
+    setIsUploading(false)
+  }
+
+  function handleCancelCrop() {
+    setCropBlob(null)
+    setCropPreviewUrl(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const displayName =
@@ -208,8 +286,11 @@ export function ProfilePage() {
           borderBottom: '1px solid rgba(255,255,255,0.08)',
         }}
       >
-        {/* Avatar circle with camera badge hint */}
-        <div style={{ position: 'relative', flexShrink: 0 }}>
+        {/* Avatar circle with camera badge hint — tappable to open file picker */}
+        <div
+          style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
+          onClick={() => fileInputRef.current?.click()}
+        >
           {profile?.avatar_url ? (
             <img
               src={`${profile.avatar_url}?t=${avatarVersion}`}
@@ -332,16 +413,13 @@ export function ProfilePage() {
           )}
         </div>
 
-        {/* Hidden file input for avatar upload (wired in Plan 03) */}
+        {/* Hidden file input for avatar upload */}
         <input
           type="file"
           accept="image/*"
           ref={fileInputRef}
           style={{ display: 'none' }}
-          onChange={() => {
-            // Plan 03: handle upload here
-            setAvatarVersion(v => v + 1)
-          }}
+          onChange={handleFileChange}
         />
       </div>
 
@@ -398,6 +476,82 @@ export function ProfilePage() {
           />
         )}
       </div>
+
+      {/* Crop preview modal */}
+      {cropPreviewUrl && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 400,
+            background: 'rgba(0,0,0,0.85)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '20px',
+            padding: '32px',
+          }}
+        >
+          <img
+            src={cropPreviewUrl}
+            alt="Avatar preview"
+            style={{
+              width: '200px',
+              height: '200px',
+              borderRadius: '50%',
+              objectFit: 'cover',
+            }}
+          />
+          <p
+            style={{
+              color: 'rgba(255,255,255,0.75)',
+              fontSize: '15px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              textAlign: 'center',
+              margin: 0,
+            }}
+          >
+            This is how your avatar will look
+          </p>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={handleCancelCrop}
+              style={{
+                background: 'rgba(255,255,255,0.12)',
+                border: 'none',
+                borderRadius: '10px',
+                color: 'white',
+                fontSize: '15px',
+                fontWeight: 500,
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                padding: '12px 24px',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmCrop}
+              disabled={isUploading}
+              style={{
+                background: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                color: '#000',
+                fontSize: '15px',
+                fontWeight: 600,
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                padding: '12px 24px',
+                cursor: isUploading ? 'default' : 'pointer',
+                opacity: isUploading ? 0.7 : 1,
+              }}
+            >
+              {isUploading ? 'Uploading...' : 'Use This Photo'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Edit name sheet */}
       <EditNameSheet
