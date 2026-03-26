@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** v1.2 Social + Accounts — Phase 9: Social Mutations
+**Current focus:** v1.2 Social + Accounts — Phase 10: Comments
 
 ## Current Position
 
-Phase: 9 of 11 (Social Mutations)
-Plan: 3/3 in current phase — COMPLETE
-Status: Phase 9 Complete
-Last activity: 2026-03-26 — Phase 9 Plan 3 complete (social interactions UI: optimistic like/bookmark in VideoItem + VideoFeed; all 7 test scenarios verified)
+Phase: 10 of 11 (Comments)
+Plan: 1/3 in current phase — In Progress
+Status: Phase 10 Plan 1 Complete
+Last activity: 2026-03-26 — Phase 10 Plan 1 complete (comments data foundation: video_comments table, RLS, comment_count trigger, Video interface + feed API updated)
 
-Progress: [████████░░] 73% (8/11 phases complete — v1.0 + v1.1 + Phase 8 + Phase 9 done)
+Progress: [████████░░] 73% (8/11 phases complete — v1.0 + v1.1 + Phase 8 + Phase 9 done; Phase 10 in progress)
 
 ## Performance Metrics
 
@@ -35,7 +35,8 @@ Progress: [████████░░] 73% (8/11 phases complete — v1.0 + 
 | 06-category-ui | 1 | ~35 min | ~35 min |
 | 07-auth-infrastructure | 3/3 | ~17 min | ~8.5 min |
 | 08-auth-ui-ios-validation | 2/3 | ~5 min | ~2.5 min |
-| 09-social-interactions | 2/3 | ~4 min | ~2 min |
+| 09-social-interactions | 3/3 | ~4 min | ~2 min |
+| 10-comments | 1/3 | ~15 min | ~15 min |
 
 **Recent Trend:**
 - Phase 6 took longer due to human verification checkpoint and post-checkpoint bug fixes
@@ -80,6 +81,10 @@ Recent decisions affecting current work:
 - [Phase 09-03]: socialState seeded from video.like_count on fetch error — guests see counts even when /api/social/state is unreachable
 - [Phase 09-03]: processingLike/processingBookmark as Set<string> per-video debounce — rapid double-taps on one video do not block other videos
 - [Phase 09-03]: Social state useEffect deps [user?.id, videos.length] — avoids object reference instability while re-triggering on auth change or edition switch
+- [Phase 10-01]: comment_count denormalized on videos table maintained by AFTER INSERT OR DELETE trigger — consistent with like_count pattern; avoids N+1 count queries on feed load
+- [Phase 10-01]: video_comments FK references profiles (not auth.users) — enables Supabase embedded join syntax for fetching comments with author data
+- [Phase 10-01]: Two indexes: (video_id, created_at) for comment feed queries; (user_id, created_at DESC) for rate limit enforcement in Phase 10-02
+- [Phase 10-01]: RLS grants anon + authenticated SELECT on video_comments (comments are public); authenticated-only INSERT/DELETE with auth.uid() check
 
 ### Pending Todos
 
@@ -94,5 +99,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 09-03-PLAN.md — social interactions UI (optimistic like/bookmark in VideoItem + VideoFeed). Phase 9 complete (3/3).
+Stopped at: Completed 10-01-PLAN.md — comments data foundation (video_comments table, RLS, comment_count trigger, Video interface + feed API). Phase 10 Plan 1 complete (1/3).
 Resume file: None

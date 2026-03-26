@@ -26,10 +26,10 @@ Requirements for the Social + Accounts milestone. Each maps to roadmap phases.
 
 ### Comments
 
-- [ ] **COMM-01**: User can post a flat comment on a video (no nested replies)
-- [ ] **COMM-02**: User can delete their own comment
-- [ ] **COMM-03**: Comment shows author display name and avatar
-- [ ] **COMM-04**: Comments are rate-limited (max 1 per 30s) and capped at 500 characters
+- [x] **COMM-01**: User can post a flat comment on a video (no nested replies)
+- [x] **COMM-02**: User can delete their own comment
+- [x] **COMM-03**: Comment shows author display name and avatar
+- [x] **COMM-04**: Comments are rate-limited (max 1 per 30s) and capped at 500 characters
 
 ### Profile
 
@@ -90,10 +90,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SOCL-02 | Phase 9 | Complete |
 | SOCL-03 | Phase 9 | Complete |
 | SOCL-04 | Phase 9 | Complete |
-| COMM-01 | Phase 10 | Pending |
-| COMM-02 | Phase 10 | Pending |
-| COMM-03 | Phase 10 | Pending |
-| COMM-04 | Phase 10 | Pending |
+| COMM-01 | Phase 10 | Complete |
+| COMM-02 | Phase 10 | Complete |
+| COMM-03 | Phase 10 | Complete |
+| COMM-04 | Phase 10 | Complete |
 | PROF-01 | Phase 11 | Pending |
 | PROF-02 | Phase 11 | Pending |
 | PROF-03 | Phase 11 | Pending |
