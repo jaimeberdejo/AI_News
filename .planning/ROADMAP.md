@@ -129,5 +129,5 @@ Plans:
 | 7. Auth Infrastructure | v1.2 | 3/3 | Complete | 2026-03-24 |
 | 8. Auth UI + iOS Validation | v1.2 | 3/3 | Complete | 2026-03-24 |
 | 9. Social Interactions | 3/3 | Complete   | 2026-03-26 | - |
-| 10. Comments | 3/3 | Complete   | 2026-03-26 | - |
+| 10. Comments | 3/3 | Complete    | 2026-03-26 | - |
 | 11. Profile Page | v1.2 | 0/? | Not started | - |
