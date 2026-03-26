@@ -282,7 +282,7 @@ export function ProfilePage() {
       {/* Profile header */}
       <div
         style={{
-          padding: '20px 18px 16px',
+          padding: 'calc(env(safe-area-inset-top) + 20px) 18px 16px',
           display: 'flex',
           alignItems: 'center',
           gap: '14px',

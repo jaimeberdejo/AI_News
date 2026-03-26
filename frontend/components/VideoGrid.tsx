@@ -9,6 +9,7 @@ export interface GridVideo {
   likedAt?: string
   savedAt?: string
   thumbnail_url?: string | null
+  edition_id?: string
 }
 
 interface VideoGridProps {
@@ -128,15 +129,23 @@ export function VideoGrid({
       }}
     >
       {videos.map(video => (
-        <div
+        <button
           key={video.id}
-          onClick={() => router.push(`/?videoId=${video.id}`)}
+          onClick={() => {
+            const params = new URLSearchParams({ videoId: video.id })
+            if (video.edition_id) params.set('editionId', video.edition_id)
+            router.push(`/?${params.toString()}`)
+          }}
           style={{
             position: 'relative',
             aspectRatio: '1',
             cursor: 'pointer',
             overflow: 'hidden',
             background: '#111',
+            border: 'none',
+            padding: 0,
+            display: 'block',
+            width: '100%',
           }}
         >
           {video.thumbnail_url ? (
@@ -175,7 +184,7 @@ export function VideoGrid({
               </p>
             </div>
           )}
-        </div>
+        </button>
       ))}
     </div>
   )

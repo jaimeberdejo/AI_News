@@ -55,6 +55,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   const [buttonProminent, setButtonProminent] = useState(false)
   const [sheetAction, setSheetAction] = useState<'like' | 'bookmark' | 'comment' | null>(null)
   const [commentVideoId, setCommentVideoId] = useState<string | null>(null)
+  const [pendingVideoId, setPendingVideoId] = useState<string | null>(null)
 
   type SocialState = { likeCount: number; isLiked: boolean; isBookmarked: boolean }
   const [socialState, setSocialState] = useState<Record<string, SocialState>>({})
@@ -270,10 +271,12 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
 
   // Scroll restoration after OAuth return — reads ?videoIndex= param, scrolls to
   // the video the user was watching, then cleans the URL. Runs once after videos load.
-  // Also handles ?videoId= from profile grid tap-to-navigate (Plan 11-03).
+  // Also handles ?videoId= from profile grid tap-to-navigate.
+  // If ?editionId= is provided and video not in current edition, fetches that edition first.
   useEffect(() => {
     const idx = searchParams.get('videoIndex')
     const videoId = searchParams.get('videoId')
+    const editionId = searchParams.get('editionId')
 
     if ((idx !== null || videoId !== null) && feedRef.current && videos.length > 0) {
       let target = -1
@@ -285,8 +288,16 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         }
       } else if (videoId !== null) {
         const found = videos.findIndex(v => v.id === videoId)
-        if (found !== -1) target = found
-        // If not found in current edition, fall back to top (target stays -1 → scroll to 0)
+        if (found !== -1) {
+          target = found
+        } else if (editionId && editionId !== currentEdition?.id) {
+          // Video is in a different edition — fetch it, then scroll once it loads
+          setPendingVideoId(videoId)
+          fetch(`/api/editions/${editionId}`)
+            .then(r => r.json())
+            .then(data => { if (data.edition) setCurrentEdition(data.edition) })
+            .catch(() => {/* stay on current edition */})
+        }
       }
 
       if (target >= 0) {
@@ -299,6 +310,16 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   }, [videos.length]) // eslint-disable-line react-hooks/exhaustive-deps
   // Intentional: only run once after videos load, not on every searchParams change.
   // router and searchParams are stable references — adding them causes double-fire.
+
+  // When a cross-edition navigation is pending, scroll to video once the edition loads.
+  useEffect(() => {
+    if (!pendingVideoId || !feedRef.current || videos.length === 0) return
+    const found = videos.findIndex(v => v.id === pendingVideoId)
+    if (found === -1) return
+    feedRef.current.scrollTop = found * feedRef.current.clientHeight
+    setActiveIndex(found)
+    setPendingVideoId(null)
+  }, [pendingVideoId, currentEdition?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load social state (like counts + per-user liked/bookmarked) after auth resolves.
   // Deps: user?.id (stable string identity, not object ref) + videos.length (triggers after edition switch).
