@@ -52,7 +52,7 @@ PlayResY: 1280
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, Bold, Alignment, MarginV
-Style: Default,Arial,52,&H00FFFFFF,1,2,120
+Style: Default,Arial,52,&H00FFFFFF,1,8,460
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"""
@@ -70,7 +70,8 @@ def _ts(seconds: float) -> str:
 def _words_to_ass(words: list[dict], output_path: Path) -> None:
     """
     Group words into 3-word chunks, write one Dialogue line per chunk.
-    Alignment=2 is bottom-center in ASS spec.
+    Alignment=8 is top-center in ASS spec. MarginV=460 on 1280px places text at
+    ~36% from top — middle of the video, clear of top UI overlays and bottom article overlay.
     """
     chunks: list[list[dict]] = []
     chunk: list[dict] = []
