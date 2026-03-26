@@ -389,12 +389,12 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
       </div>
       <style>{`.category-tab-bar::-webkit-scrollbar { display: none; }`}</style>
 
-      {/* Edition navigation bar */}
+      {/* Edition navigation bar — offset below category bar */}
       {hasMultipleEditions && (
         <div
           style={{
             position: 'absolute',
-            top: 0,
+            top: 'calc(44px + env(safe-area-inset-top))',
             left: 0,
             right: 0,
             paddingTop: '8px',
@@ -449,13 +449,13 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         </div>
       )}
 
-      {/* Progress dots — vertical column at right edge */}
+      {/* Progress dots — vertical column at right edge, below mute button */}
       {videos.length > 1 && (
         <div
           style={{
             position: 'absolute',
             right: '12px',
-            top: '16px',
+            top: 'calc(44px + env(safe-area-inset-top) + 96px)',
             zIndex: 40,
             display: 'flex',
             flexDirection: 'column',
@@ -479,11 +479,11 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
         </div>
       )}
 
-      {/* Mute button */}
+      {/* Mute button — below category bar and edition nav */}
       <div
         style={{
           position: 'absolute',
-          top: '12px',
+          top: 'calc(44px + env(safe-area-inset-top) + 48px)',
           right: '12px',
           zIndex: 40,
         }}

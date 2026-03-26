@@ -71,7 +71,7 @@ export function VideoItem({ video, onEnded, videoRef, editionPublishedAt, onSoci
           left: 0,
           right: '72px',
           padding: '16px 16px calc(env(safe-area-inset-bottom) + 56px + 16px) 16px',
-          background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 40%, transparent 100%)',
           zIndex: 10,
         }}
       >
