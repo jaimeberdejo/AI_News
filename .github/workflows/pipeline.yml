@@ -2,11 +2,18 @@ name: AI News Pipeline
 
 on:
   schedule:
-    - cron: '0 11 * * *'   # 6am EST / 11am UTC — morning briefing
-  workflow_dispatch:         # Manual trigger for testing
+    - cron: '0 11 * * *'   # 6am EST / 11am UTC — finance morning briefing
+    - cron: '0 23 * * *'   # 6pm EST / 11pm UTC — tech evening briefing
+  workflow_dispatch:
+    inputs:
+      category:
+        description: 'Category to run (finance, tech, or both)'
+        required: false
+        default: 'both'
 
 jobs:
   finance-pipeline:
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.category == 'finance' || github.event.inputs.category == 'both') || github.event.schedule == '0 11 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -50,6 +57,7 @@ jobs:
         run: python -m pipeline.run finance
 
   tech-pipeline:
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.category == 'tech' || github.event.inputs.category == 'both') || github.event.schedule == '0 23 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
