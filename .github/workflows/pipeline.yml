@@ -1,4 +1,4 @@
-name: FinFeed Pipeline
+name: AInews Pipeline
 
 on:
   schedule:

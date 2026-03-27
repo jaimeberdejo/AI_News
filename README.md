@@ -1,4 +1,4 @@
-# FinFeed
+# AInews
 
 A mobile-first Progressive Web App that delivers a finite set of AI-generated news videos twice a day across two categories: **Finance** and **Tech**. Users swipe vertically through a curated feed — when the last video ends, a "You're up to date" card appears. No infinite scroll, no algorithmic rabbit holes. Just today's briefing.
 
@@ -43,7 +43,7 @@ The **Next.js frontend** on Vercel reads from Supabase and serves the feed. Auth
 ## Project Structure
 
 ```
-FinFeed/
+AInews/
 ├── pipeline/               # Python batch pipeline
 │   ├── run.py              # entry point — python -m pipeline.run [finance|tech]
 │   ├── ingest.py           # RSS ingestion + deduplication (category-aware feeds)
@@ -122,8 +122,8 @@ FinFeed/
 ### 1. Clone and configure environment
 
 ```bash
-git clone https://github.com/jaimeberdejo/FinFeed.git
-cd FinFeed
+git clone https://github.com/jaimeberdejo/ainews.git
+cd ainews
 cp .env.example .env
 ```
 
@@ -204,7 +204,7 @@ Open http://localhost:3000. If the pipeline ran successfully, you should see tod
 
 ### Vercel (frontend)
 
-1. Go to [vercel.com/new](https://vercel.com/new) → Import `FinFeed`
+1. Go to [vercel.com/new](https://vercel.com/new) → Import `ainews`
 2. Set **Root Directory** to `frontend`
 3. Set **Framework Preset** to **Next.js**
 4. Add these environment variables under **Project Settings → Environment Variables**:

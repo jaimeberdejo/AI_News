@@ -42,7 +42,7 @@ export default function LoginPage() {
             margin: '0 0 8px',
           }}
         >
-          Sign in to FinFeed
+          Sign in to AInews
         </p>
         <p
           style={{

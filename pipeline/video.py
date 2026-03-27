@@ -1,5 +1,5 @@
 """
-B-roll download (Pexels) and FFmpeg video assembly for FinFeed pipeline.
+B-roll download (Pexels) and FFmpeg video assembly for AInews pipeline.
 
 Public API:
     download_broll(keyword, tmp_dir) -> Path
@@ -142,7 +142,8 @@ def assemble(
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
-            raise RuntimeError(f"FFmpeg failed (CRF {crf}):\n{result.stderr[-2000:]}")
+            logger.error("FFmpeg stderr (CRF %d):\n%s", crf, result.stderr)
+            raise RuntimeError(f"FFmpeg failed (CRF {crf}) — see logs for full stderr")
 
     _run_ffmpeg(crf=28)
     size_bytes = output_path.stat().st_size

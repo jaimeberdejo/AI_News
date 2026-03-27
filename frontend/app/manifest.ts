@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'FinFeed',
-    short_name: 'FinFeed',
-    description: 'Your daily financial briefing in 5 videos',
+    name: 'AInews',
+    short_name: 'AInews',
+    description: 'Your daily AI-generated news briefing in 5 videos',
     start_url: '/',
     display: 'standalone',
     background_color: '#000000',

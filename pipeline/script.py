@@ -1,5 +1,5 @@
 """
-Groq-powered story selection and script writing for FinFeed pipeline.
+Groq-powered story selection and script writing for AInews pipeline.
 
 select_and_write(articles, category) performs three steps:
   1. Create today's edition row in Supabase with the given category.
@@ -94,6 +94,7 @@ def _select_stories(articles: list[Article], category: str = "finance") -> list[
         ],
         response_format={"type": "json_object"},
         temperature=0.2,
+        timeout=30.0,
     )
     data = json.loads(response.choices[0].message.content)
     stories = data.get("stories", [])
@@ -149,8 +150,17 @@ def _write_script(article: Article, category: str = "finance") -> str:
         ],
         temperature=0.7,
         max_tokens=300,
+        timeout=30.0,
     )
-    return response.choices[0].message.content.strip()
+    script_text = response.choices[0].message.content.strip()
+    word_count = len(script_text.split())
+    if not (150 <= word_count <= 170):
+        logger.warning(
+            "Script word count out of range: %d words (target 150-170) for '%s'",
+            word_count,
+            article.title[:50],
+        )
+    return script_text
 
 
 def select_and_write(articles: list[Article], category: str = "finance") -> tuple[str, list[Story]]:

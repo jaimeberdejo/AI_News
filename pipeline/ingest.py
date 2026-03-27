@@ -1,5 +1,5 @@
 """
-RSS ingestion module for the FinFeed pipeline.
+RSS ingestion module for the AInews pipeline.
 
 Fetches articles from category-specific RSS feeds, then deduplicates
 against source_urls already processed today in the DB for the same category.
