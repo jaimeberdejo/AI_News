@@ -54,6 +54,7 @@ export async function GET(req: Request) {
     .in('status', ['published', 'partial'])
     .eq('category', category)
     .order('published_at', { ascending: false })
+    .limit(30)
 
   if (error || !edition) {
     return NextResponse.json({ edition: null, all_editions: [] })

@@ -1,4 +1,4 @@
-# AInews
+# AI News
 
 A mobile-first Progressive Web App that delivers a finite set of AI-generated news videos twice a day across two categories: **Finance** and **Tech**. Users swipe vertically through a curated feed — when the last video ends, a "You're up to date" card appears. No infinite scroll, no algorithmic rabbit holes. Just today's briefing.
 
@@ -43,7 +43,7 @@ The **Next.js frontend** on Vercel reads from Supabase and serves the feed. Auth
 ## Project Structure
 
 ```
-AInews/
+AI News/
 ├── pipeline/               # Python batch pipeline
 │   ├── run.py              # entry point — python -m pipeline.run [finance|tech]
 │   ├── ingest.py           # RSS ingestion + deduplication (category-aware feeds)
@@ -122,7 +122,7 @@ AInews/
 ### 1. Clone and configure environment
 
 ```bash
-git clone https://github.com/jaimeberdejo/ainews.git
+git clone https://github.com/jaimeberdejo/AI_News.git
 cd ainews
 cp .env.example .env
 ```

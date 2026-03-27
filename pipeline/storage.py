@@ -1,5 +1,5 @@
 """
-Supabase Storage operations for the AInews pipeline.
+Supabase Storage operations for the AI News pipeline.
 
 Provides:
     upload_video()        — upload MP4 to videos bucket, returns public CDN URL

@@ -30,7 +30,8 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await req.json()
+  let body: { display_name?: unknown; avatar_url?: unknown }
+  try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
 
   // Whitelist only allowed fields
   const updates: { display_name?: string; avatar_url?: string } = {}
@@ -47,7 +48,11 @@ export async function PATCH(req: Request) {
   }
 
   if (body?.avatar_url !== undefined && typeof body.avatar_url === 'string') {
-    updates.avatar_url = body.avatar_url
+    const trimmedUrl = body.avatar_url.trim()
+    if (trimmedUrl && !trimmedUrl.match(/^(https?:\/\/|data:image\/)/)) {
+      return NextResponse.json({ error: 'Invalid avatar_url' }, { status: 400 })
+    }
+    updates.avatar_url = trimmedUrl
   }
 
   const { error } = await supabase

@@ -1,5 +1,5 @@
 """
-RSS ingestion module for the AInews pipeline.
+RSS ingestion module for the AI News pipeline.
 
 Fetches articles from category-specific RSS feeds, then deduplicates
 against source_urls already processed today in the DB for the same category.

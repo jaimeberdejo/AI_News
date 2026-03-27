@@ -1,5 +1,5 @@
 """
-B-roll download (Pexels) and FFmpeg video assembly for AInews pipeline.
+B-roll download (Pexels) and FFmpeg video assembly for AI News pipeline.
 
 Public API:
     download_broll(keyword, tmp_dir) -> Path
