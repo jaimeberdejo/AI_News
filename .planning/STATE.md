@@ -9,11 +9,11 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Current Position
 
-Phase: 13-demo-auth-simplification — Plan 01 complete (1/2 plans done)
-Status: In Progress — Plan 02 remaining (Supabase dashboard email confirmation toggle)
-Last activity: 2026-04-07 — Phase 13 Plan 01 shipped (tabbed login + signUp redirect)
+Phase: 13-demo-auth-simplification — Plan 02 complete (2/2 plans done)
+Status: Complete — Phase 13 finished (frictionless demo registration path shipped)
+Last activity: 2026-04-07 — Phase 13 Plan 02 shipped (AuthBottomSheet Create account link + Supabase email confirmation disabled)
 
-Progress: [█░░░░░░░░░] Phase 13 in progress (1/2 plans)
+Progress: [██████████] Phase 13 complete (2/2 plans)
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [█░░░░░░░░░] Phase 13 in progress (1/2 plans)
 | Phase 12-mobile-ui P02 | 2 | 2 tasks | 2 files |
 | Phase 12-mobile-ui P03 | 3 | 2 tasks (auto) | 9 files |
 | Phase 13-demo-auth-simplification P01 | 1 | 2 tasks | 2 files |
+| Phase 13-demo-auth-simplification P02 | 10 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,8 @@ Recent decisions affecting current work:
 - [Phase 12-03]: ProfilePage paddingBottom updated from 80px to calc(env(safe-area-inset-bottom) + 56px + 16px) for safe-area-correct TabBar clearance on iPhone 14+
 - [Phase 13-demo-auth-simplification]: signUp calls redirect('/') not return { message } — demo users land in app immediately after registration
 - [Phase 13-demo-auth-simplification]: Default /auth/login tab is 'register' for demo UX; no display name field (null display_name uses Anonymous fallback)
+- [Phase 13-02]: Plain <a href='/auth/login'> anchor in AuthBottomSheet (not next/link) — consistent with existing window.location.href pattern; no new import needed
+- [Phase 13-02]: Supabase 'Confirm email' disabled project-wide for demo — re-enabling requires updating signUp to return { message } instead of redirect('/')
 
 ### Roadmap Evolution
 
@@ -138,6 +141,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-26
-Stopped at: 12-03 Task 3 checkpoint — awaiting human verification of Phase 12 mobile UI (19-point checklist); thumbnail pipeline and ProfilePage layout fixes committed
+Last session: 2026-04-07
+Stopped at: Phase 13 complete — frictionless demo registration path shipped; Phase 14 planning ready
 Resume file: None

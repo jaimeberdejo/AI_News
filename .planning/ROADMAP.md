@@ -61,13 +61,13 @@ See full details: [milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md)
 | 10. Comments | v1.2 | 3/3 | Complete | 2026-03-26 |
 | 11. Profile Page | v1.2 | 3/3 | Complete | 2026-03-26 |
 | 12. Mobile UI | v1.2 | 3/3 | Complete | 2026-03-26 |
-| 13. Demo Auth Simplification | 1/2 | In Progress|  | — |
+| 13. Demo Auth Simplification | 2/2 | Complete   | 2026-04-07 | — |
 
 ### Phase 13: Demo Auth Simplification
 
 **Goal:** Replace Google OAuth registration with a simple email + password + confirm-password form so demo users can register without friction, landing immediately in the app with email confirmation disabled
 **Depends on:** Phase 12
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 13-01-PLAN.md — Tabbed login page (Sign In + Register) + signUp action redirects to '/'
