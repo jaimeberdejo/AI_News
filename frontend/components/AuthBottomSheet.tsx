@@ -150,6 +150,20 @@ export function AuthBottomSheet({
           </svg>
           {signing ? 'Signing in\u2026' : 'Continue with Google'}
         </button>
+
+        <a
+          href="/auth/login"
+          style={{
+            color: 'rgba(255,255,255,0.5)',
+            fontSize: '0.8rem',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            marginTop: '-8px',
+          }}
+        >
+          Create account
+        </a>
       </div>
     </>
   )
