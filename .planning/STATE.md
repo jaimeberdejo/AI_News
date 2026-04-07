@@ -9,11 +9,11 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Current Position
 
-Phase: v1.2 milestone complete — all 12 phases shipped
-Status: Ready for next milestone planning
-Last activity: 2026-03-27 — v1.2 Social + Accounts milestone archived
+Phase: 13-demo-auth-simplification — Plan 01 complete (1/2 plans done)
+Status: In Progress — Plan 02 remaining (Supabase dashboard email confirmation toggle)
+Last activity: 2026-04-07 — Phase 13 Plan 01 shipped (tabbed login + signUp redirect)
 
-Progress: [██████████] 100% — v1.2 complete
+Progress: [█░░░░░░░░░] Phase 13 in progress (1/2 plans)
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Progress: [██████████] 100% — v1.2 complete
 | Phase 12-mobile-ui P01 | 2 | 2 tasks | 2 files |
 | Phase 12-mobile-ui P02 | 2 | 2 tasks | 2 files |
 | Phase 12-mobile-ui P03 | 3 | 2 tasks (auto) | 9 files |
+| Phase 13-demo-auth-simplification P01 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,12 @@ Recent decisions affecting current work:
 - [Phase 12-03]: thumbnail upload is non-fatal — pipeline still publishes video even if FFmpeg thumbnail extraction fails
 - [Phase 12-03]: GridVideo.thumbnail_url is optional (?) so existing callers don't need to provide it; VideoGrid shows placeholder for null/undefined
 - [Phase 12-03]: ProfilePage paddingBottom updated from 80px to calc(env(safe-area-inset-bottom) + 56px + 16px) for safe-area-correct TabBar clearance on iPhone 14+
+- [Phase 13-demo-auth-simplification]: signUp calls redirect('/') not return { message } — demo users land in app immediately after registration
+- [Phase 13-demo-auth-simplification]: Default /auth/login tab is 'register' for demo UX; no display name field (null display_name uses Anonymous fallback)
+
+### Roadmap Evolution
+
+- Phase 13 added: Demo Auth Simplification — replace Google OAuth registration with simple email/password/confirm-password form for user testing demos
 
 ### Pending Todos
 
