@@ -14,10 +14,9 @@ export default function LoginPage() {
     e.preventDefault()
     setError(null)
     setPending(true)
-    try {
-      await signIn(new FormData(e.currentTarget))
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+    const result = await signIn(new FormData(e.currentTarget))
+    if (result?.error) {
+      setError(result.error === 'Invalid login credentials' ? 'Incorrect email or password.' : result.error)
       setPending(false)
     }
   }
@@ -39,11 +38,9 @@ export default function LoginPage() {
     }
 
     setPending(true)
-    try {
-      await signUp(formData)
-      // signUp now calls redirect('/') — if we reach here, something unexpected happened
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+    const result = await signUp(formData)
+    if (result?.error) {
+      setError(result.error === 'User already registered' ? 'An account with this email already exists. Try signing in.' : result.error)
       setPending(false)
     }
   }

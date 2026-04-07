@@ -22,10 +22,9 @@ export function AuthBottomSheet({
     e.preventDefault()
     setError(null)
     setPending(true)
-    try {
-      await signIn(new FormData(e.currentTarget))
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+    const result = await signIn(new FormData(e.currentTarget))
+    if (result?.error) {
+      setError(result.error === 'Invalid login credentials' ? 'Incorrect email or password.' : result.error)
       setPending(false)
     }
   }

@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 
 // AUTH-01: Sign up with email and password — email confirmation disabled for demo, redirect to / immediately
-export async function signUp(formData: FormData) {
+export async function signUp(formData: FormData): Promise<{ error: string } | never> {
   const supabase = await createClient()
   const headersList = await headers()
   const origin = headersList.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? ''
@@ -18,12 +18,12 @@ export async function signUp(formData: FormData) {
     },
   })
 
-  if (error) throw new Error(error.message)
+  if (error) return { error: error.message }
   redirect('/')
 }
 
 // AUTH-02: Sign in with email and password
-export async function signIn(formData: FormData) {
+export async function signIn(formData: FormData): Promise<{ error: string } | never> {
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -31,7 +31,7 @@ export async function signIn(formData: FormData) {
     password: formData.get('password') as string,
   })
 
-  if (error) throw new Error(error.message)
+  if (error) return { error: error.message }
   redirect('/')
 }
 
