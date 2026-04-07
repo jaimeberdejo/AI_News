@@ -4,8 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 
-// AUTH-01: Sign up with email and password
-// Sends a confirmation email; user lands on / after clicking the link (via /auth/confirm)
+// AUTH-01: Sign up with email and password — email confirmation disabled for demo, redirect to / immediately
 export async function signUp(formData: FormData) {
   const supabase = await createClient()
   const headersList = await headers()
@@ -20,9 +19,7 @@ export async function signUp(formData: FormData) {
   })
 
   if (error) throw new Error(error.message)
-
-  // Return instead of redirect so the UI can show "check your email" message
-  return { message: 'Check your email to confirm your account.' }
+  redirect('/')
 }
 
 // AUTH-02: Sign in with email and password
