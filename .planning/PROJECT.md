@@ -43,6 +43,7 @@ A finite, curated daily briefing in vertical video format — users always know 
 
 ### Active
 
+- [ ] Re-enable email confirmation for production (currently disabled for demo; requires `signUp` action change + Supabase toggle)
 - [ ] Cross-edition video navigation (tap in profile → navigate to any edition's video)
 - [ ] Android device validation — deferred since v1.1; iOS confirmed, Android untested
 
@@ -67,16 +68,17 @@ A finite, curated daily briefing in vertical video format — users always know 
 
 ## Context
 
-- **Shipped:** v1.2 Social + Accounts (2026-03-27) — live at https://autonews-ai.vercel.app
-- **Codebase:** ~5,767 LOC Python + TypeScript
+- **Shipped:** v1.3 Demo Prep (2026-04-13) — live at https://autonews-ai.vercel.app
+- **Codebase:** ~6,207 LOC Python + TypeScript
 - **Tech stack:** Python pipeline (Groq + OpenAI TTS + faster-whisper + FFmpeg + Pexels), Supabase (Postgres + Storage + Auth), Next.js 16 App Router, Vercel, GitHub Actions
 - **Pipeline runtime:** ~4m40s on GitHub Actions per category (finance + tech run in parallel)
-- **Cost at v1.2:** ~$0.50–2/month (Groq free, OpenAI TTS minimal, Supabase free, Vercel free, GitHub Actions free, Resend 3k emails/mo free)
-- **Auth:** Google OAuth + email/password via Supabase Auth; Resend custom SMTP to bypass free-tier OTP rate limit
+- **Cost at v1.3:** ~$0.50–2/month (Groq free, OpenAI TTS minimal, Supabase free, Vercel free, GitHub Actions free, Resend 3k emails/mo free)
+- **Auth:** Google OAuth + email/password via Supabase Auth; Resend custom SMTP; email confirmation disabled for demo
 - **Known tech debt:**
+  - `signUp redirect('/')` + Supabase "Confirm email" OFF is a demo-only configuration — must revert before targeting real users at scale
   - Pre-existing users (before trigger deploy) needed a one-time profiles backfill SQL
   - Comment count does not update in real-time — requires feed refresh
-  - `?videoId=` cross-edition navigation falls back to top of feed (deferred to v1.3)
+  - `?videoId=` cross-edition navigation falls back to top of feed (deferred to v1.4)
   - VideoGrid uses `preload=metadata` for thumbnails — switch to `poster` attribute if CDN provides them
 
 ## Constraints
@@ -123,6 +125,10 @@ A finite, curated daily briefing in vertical video format — users always know 
 | Comments rate-limit 30s via two-index query | (video_id, created_at) for feed; (user_id, created_at DESC) for rate limit check | ✓ Good — COMM-04 satisfied with O(log n) query |
 | storage.foldername(name)[1] for avatars RLS | User-scoped upload policy without storing user_id separately — path encodes ownership | ✓ Good — upload/read/update/delete all work correctly |
 | Phase 12 grouped into v1.2 milestone | Mobile UI shipped in same sprint as social; natural milestone boundary | ✓ Good — all 6 phases shipped together |
+| `signUp` calls `redirect('/')` (no email confirmation) | Demo UX: users land in app immediately after registration; re-enabling confirmation requires reverting this action | ⚠️ Revisit — demo-only config; must revert before real user scale |
+| Default `/auth/login` tab is `register` | Optimise for demo UX where new participants register first | ✓ Good — reduces friction in user-testing sessions |
+| Plain `<a href>` in AuthBottomSheet (not next/link) | Consistent with existing `window.location.href` pattern in same file; full-page nav preferred for auth routes | ✓ Good — no new import, pattern stays consistent |
+| Supabase "Confirm email" disabled project-wide | Demo trade-off — immediate session on signup; avoids email round-trip friction for demo participants | ⚠️ Revisit — must re-enable for real users; noted in tech debt |
 
 ---
-*Last updated: 2026-03-27 after v1.2 milestone*
+*Last updated: 2026-04-13 after v1.3 milestone*

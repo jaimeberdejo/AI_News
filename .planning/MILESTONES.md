@@ -57,3 +57,22 @@
 
 ---
 
+
+## v1.3 Demo Prep (Shipped: 2026-04-13)
+
+**Phases completed:** 1 phase (13), 2 plans, 4 tasks
+**Timeline:** 2026-04-07 (1 day)
+**Files:** 3 files changed + Supabase dashboard config
+**LOC:** ~6,207 Python/TypeScript (up from ~5,767 at v1.2)
+**Git range:** `e4c5827` → `3439add`
+
+**Key accomplishments:**
+- `/auth/login` converted from single Google-only button to tabbed Sign In + Register UI — Register tab defaults active for demo UX; no display name field required (Anonymous fallback applies)
+- `signUp` Server Action redirects directly to `/` on success — zero email-confirmation gate, demo users land in the app immediately after registration
+- "Create account" link added to `AuthBottomSheet` — guests hitting the social action gate now have an email registration path alongside Google OAuth
+- Supabase "Confirm email" disabled project-wide — registrations produce an immediate session, making the `redirect('/')` flow land users as fully authenticated
+
+**Archive:** [milestones/v1.3-ROADMAP.md](milestones/v1.3-ROADMAP.md)
+
+---
+

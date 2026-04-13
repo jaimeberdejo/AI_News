@@ -2,18 +2,16 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-27)
+See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** A finite, curated daily briefing — users always know when they're done.
-**Current focus:** Planning next milestone (v1.3)
+**Current focus:** v1.3 Demo Prep shipped — planning next milestone (v1.4)
 
 ## Current Position
 
-Phase: 13-demo-auth-simplification — Plan 02 complete (2/2 plans done)
-Status: Complete — Phase 13 finished (frictionless demo registration path shipped)
-Last activity: 2026-04-07 — Phase 13 Plan 02 shipped (AuthBottomSheet Create account link + Supabase email confirmation disabled)
-
-Progress: [██████████] Phase 13 complete (2/2 plans)
+Milestone: v1.3 Demo Prep — SHIPPED 2026-04-13
+Phase: 13-demo-auth-simplification — Complete (2/2 plans)
+Last activity: 2026-04-13 — v1.3 milestone archived; tag v1.3 created
 
 ## Performance Metrics
 

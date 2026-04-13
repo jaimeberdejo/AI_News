@@ -5,7 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-02-26) — [Archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Multi-Category** — Phases 5-6 (shipped 2026-03-10) — [Archive](milestones/v1.1-ROADMAP.md)
 - ✅ **v1.2 Social + Accounts** — Phases 7-12 (shipped 2026-03-27) — [Archive](milestones/v1.2-ROADMAP.md)
-- 📋 **v1.3 Demo Prep** — Phase 13 (in progress)
+- ✅ **v1.3 Demo Prep** — Phase 13 (shipped 2026-04-13) — [Archive](milestones/v1.3-ROADMAP.md)
 
 ## Phases
 
@@ -45,6 +45,15 @@ See full details: [milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md)
 
 </details>
 
+<details>
+<summary>✅ v1.3 Demo Prep (Phase 13) — SHIPPED 2026-04-13</summary>
+
+- [x] Phase 13: Demo Auth Simplification (2/2 plans) — completed 2026-04-07
+
+See full details: [milestones/v1.3-ROADMAP.md](milestones/v1.3-ROADMAP.md)
+
+</details>
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -61,14 +70,4 @@ See full details: [milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md)
 | 10. Comments | v1.2 | 3/3 | Complete | 2026-03-26 |
 | 11. Profile Page | v1.2 | 3/3 | Complete | 2026-03-26 |
 | 12. Mobile UI | v1.2 | 3/3 | Complete | 2026-03-26 |
-| 13. Demo Auth Simplification | 2/2 | Complete    | 2026-04-07 | — |
-
-### Phase 13: Demo Auth Simplification
-
-**Goal:** Replace Google OAuth registration with a simple email + password + confirm-password form so demo users can register without friction, landing immediately in the app with email confirmation disabled
-**Depends on:** Phase 12
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 13-01-PLAN.md — Tabbed login page (Sign In + Register) + signUp action redirects to '/'
-- [ ] 13-02-PLAN.md — AuthBottomSheet "Create account" link + Supabase email confirmation disabled (checkpoint)
+| 13. Demo Auth Simplification | v1.3 | 2/2 | Complete | 2026-04-07 |
