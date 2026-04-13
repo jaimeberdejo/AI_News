@@ -1,5 +1,5 @@
 """
-Groq-powered story selection and script writing for AI News pipeline.
+Groq-powered story selection and script writing for FinFeed pipeline.
 
 select_and_write(articles, category) performs three steps:
   1. Create today's edition row in Supabase with the given category.

@@ -81,7 +81,7 @@ export default function LoginPage() {
             margin: '0 0 8px',
           }}
         >
-          {tab === 'signin' ? 'Sign in to AI News' : 'Create an account'}
+          {tab === 'signin' ? 'Sign in to FinFeed' : 'Create an account'}
         </p>
         <p
           style={{

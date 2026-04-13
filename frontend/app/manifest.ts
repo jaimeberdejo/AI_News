@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'AI News',
-    short_name: 'AI News',
+    name: 'FinFeed',
+    short_name: 'FinFeed',
     description: 'Your daily AI-generated news briefing in 5 videos',
     start_url: '/',
     display: 'standalone',

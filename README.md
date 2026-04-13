@@ -1,4 +1,4 @@
-# AI News
+# FinFeed
 
 A mobile-first Progressive Web App that delivers a finite set of AI-generated news videos twice a day across two categories: **Finance** and **Tech**. Users swipe vertically through a curated feed — when the last video ends, a "You're up to date" card appears. No infinite scroll, no algorithmic rabbit holes. Just today's briefing.
 
@@ -8,7 +8,7 @@ A mobile-first Progressive Web App that delivers a finite set of AI-generated ne
 
 ## How It Works
 
-A GitHub Actions cron job runs at **6am and 6pm UTC** every day for each category. It:
+A GitHub Actions cron job runs daily — **9am EST (Finance)** and **2pm EST (Tech)**. It:
 
 1. Fetches articles from RSS feeds (Finance: Yahoo Finance + CNBC; Tech: TechCrunch + Hacker News + Ars Technica)
 2. Uses **Groq (Llama 3.3 70B)** to select 3–5 most important stories and write a 150–170 word script for each in category-appropriate tone
@@ -31,7 +31,7 @@ The **Next.js frontend** on Vercel reads from Supabase and serves the feed. Auth
 | B-roll | Pexels API |
 | Video assembly | FFmpeg |
 | Database | Supabase (PostgreSQL + Storage) |
-| Auth | Supabase Auth (email magic link + password) |
+| Auth | Supabase Auth (Google OAuth + email/password) |
 | Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS v4 |
 | Automation | GitHub Actions |
 | Deployment | Vercel |
@@ -43,7 +43,7 @@ The **Next.js frontend** on Vercel reads from Supabase and serves the feed. Auth
 ## Project Structure
 
 ```
-AI News/
+FinFeed/
 ├── pipeline/               # Python batch pipeline
 │   ├── run.py              # entry point — python -m pipeline.run [finance|tech]
 │   ├── ingest.py           # RSS ingestion + deduplication (category-aware feeds)
@@ -60,7 +60,7 @@ AI News/
 │   │   ├── layout.tsx      # root layout, PWA metadata
 │   │   ├── globals.css     # scroll-snap feed layout
 │   │   ├── manifest.ts     # PWA web manifest
-│   │   ├── auth/           # magic link + email/password auth flow (Supabase Auth)
+│   │   ├── auth/           # Google OAuth + email/password auth flow (Supabase Auth)
 │   │   ├── profile/        # user profile page (display name, saved/liked videos)
 │   │   └── api/
 │   │       ├── today/      # GET latest edition + all editions metadata
@@ -122,8 +122,8 @@ AI News/
 ### 1. Clone and configure environment
 
 ```bash
-git clone https://github.com/jaimeberdejo/AI_News.git
-cd ainews
+git clone https://github.com/jaimeberdejo/FinFeed.git
+cd finfeed
 cp .env.example .env
 ```
 
@@ -200,11 +200,11 @@ Open http://localhost:3000. If the pipeline ran successfully, you should see tod
    | `OPENAI_API_KEY` | platform.openai.com → API Keys |
    | `PEXELS_API_KEY` | pexels.com/api/new/ |
 
-3. The workflow at `.github/workflows/pipeline.yml` will run automatically at **6am and 6pm UTC** every day for both the `finance` and `tech` categories. You can also trigger it manually from the **Actions** tab.
+3. The workflow at `.github/workflows/pipeline.yml` will run automatically at **9am EST for Finance** and **2pm EST for Tech** every day. You can also trigger it manually from the **Actions** tab.
 
 ### Vercel (frontend)
 
-1. Go to [vercel.com/new](https://vercel.com/new) → Import `ainews`
+1. Go to [vercel.com/new](https://vercel.com/new) → Import `finfeed`
 2. Set **Root Directory** to `frontend`
 3. Set **Framework Preset** to **Next.js**
 4. Add these environment variables under **Project Settings → Environment Variables**:
@@ -272,7 +272,7 @@ Audit log for every pipeline execution. Stores per-stage counts in `steps_log` (
 
 **Two-key Supabase pattern:** Frontend uses the anon key (safe to expose, embedded in JavaScript). Pipeline uses the service key (bypasses RLS, only ever in GitHub Actions secrets or `.env`).
 
-**Auth gate for social actions:** Likes, bookmarks, and comments require authentication. Unauthenticated users who tap these actions see a slide-up `AuthBottomSheet` prompting sign-in via magic link or email/password.
+**Auth gate for social actions:** Likes, bookmarks, and comments require authentication. Unauthenticated users who tap these actions see a slide-up `AuthBottomSheet` prompting sign-in via Google OAuth or email/password registration.
 
 **Static thumbnails for VideoGrid:** FFmpeg extracts a JPEG at 0.5s during pipeline assembly. The profile page's saved/liked tab uses `<img>` with these thumbnail URLs instead of `<video>` elements, which avoids iOS PWA memory pressure when rendering a grid.
 

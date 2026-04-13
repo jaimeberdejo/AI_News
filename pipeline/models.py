@@ -1,5 +1,5 @@
 """
-Shared dataclasses used throughout the AI News pipeline.
+Shared dataclasses used throughout the FinFeed pipeline.
 
 All pipeline modules (ingest, script, tts, video) import from here to ensure
 consistent data contracts between stages.

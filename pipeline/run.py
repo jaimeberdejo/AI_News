@@ -1,5 +1,5 @@
 """
-AI News Pipeline — Entry point
+FinFeed Pipeline — Entry point
 Run with: python -m pipeline.run [category]
 
 Category argument:
@@ -95,7 +95,7 @@ def run() -> None:
         results: list[VideoResult] = []
 
         for story in stories:
-            tmp_dir = Path(tempfile.mkdtemp(prefix=f"ai_news_story{story.position}_"))
+            tmp_dir = Path(tempfile.mkdtemp(prefix=f"finfeed_story{story.position}_"))
             try:
                 logger.info("--- Story %d: %s ---", story.position, story.headline[:50])
 

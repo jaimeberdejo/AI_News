@@ -3,12 +3,12 @@ import './globals.css'
 import { TabBar } from '../components/TabBar'
 
 export const metadata: Metadata = {
-  title: 'AI News',
+  title: 'FinFeed',
   description: 'Your daily AI-generated news briefing',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
-    title: 'AI News',
+    title: 'FinFeed',
     statusBarStyle: 'black-translucent',
   },
 }
