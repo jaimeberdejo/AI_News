@@ -54,7 +54,7 @@ def fetch_and_deduplicate(category: str = "finance") -> list[Article]:
             if not url or url in seen_urls:
                 continue
             seen_urls.add(url)
-            # Truncate summary to 500 chars to keep Groq prompt tokens manageable
+            # Truncate summary to 1000 chars to keep Groq prompt tokens manageable
             article = Article(
                 title=entry.get("title", "").strip(),
                 summary=entry.get("summary", entry.get("description", ""))[:1000].strip(),

@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function AuthErrorPage() {
   return (
     <div
@@ -36,7 +38,7 @@ export default function AuthErrorPage() {
       >
         Something went wrong during sign-in. Please try again.
       </p>
-      <a
+      <Link
         href="/"
         style={{
           display: 'inline-block',
@@ -52,7 +54,7 @@ export default function AuthErrorPage() {
         }}
       >
         Back to feed
-      </a>
+      </Link>
     </div>
   )
 }

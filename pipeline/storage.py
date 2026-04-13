@@ -18,6 +18,10 @@ logger = logging.getLogger(__name__)
 BUCKET = "videos"    # created in Phase 1 as 'videos' bucket
 
 
+def _edition_folder(edition_id: str, edition_date: str, category: str) -> str:
+    return f"editions/{category}-{edition_date}-{edition_id[:8]}"
+
+
 def upload_video(local_path: Path, edition_id: str, position: int, edition_date: str, category: str = "finance") -> str:
     """
     Upload MP4 to Supabase Storage at editions/{category}-{date}-{short_id}/{position}.mp4.
@@ -25,8 +29,7 @@ def upload_video(local_path: Path, edition_id: str, position: int, edition_date:
     Uses upsert=true to handle re-uploads on partial re-runs.
     """
     db = get_db()
-    folder = f"{category}-{edition_date}-{edition_id[:8]}"
-    storage_path = f"editions/{folder}/{position}.mp4"
+    storage_path = f"{_edition_folder(edition_id, edition_date, category)}/{position}.mp4"
     with open(local_path, "rb") as f:
         db.storage.from_(BUCKET).upload(
             storage_path,
@@ -44,8 +47,7 @@ def upload_thumbnail(local_path: Path, edition_id: str, position: int, edition_d
     Returns the public CDN URL.
     """
     db = get_db()
-    folder = f"{category}-{edition_date}-{edition_id[:8]}"
-    storage_path = f"editions/{folder}/{position}_thumb.jpg"
+    storage_path = f"{_edition_folder(edition_id, edition_date, category)}/{position}_thumb.jpg"
     with open(local_path, "rb") as f:
         db.storage.from_(BUCKET).upload(
             storage_path,
@@ -120,25 +122,32 @@ def cleanup_old_editions(days: int = 7) -> None:
         logger.info("Cleanup: no editions older than %d days found.", days)
         return
 
+    # Batch-fetch one video_url per old edition in a single query (avoids N+1)
+    edition_ids = [e["id"] for e in old_editions]
+    url_rows = (
+        db.table("videos")
+        .select("edition_id, video_url")
+        .in_("edition_id", edition_ids)
+        .not_.is_("video_url", "null")
+        .execute()
+        .data
+    )
+    # Keep only the first URL per edition
+    url_by_edition: dict[str, str] = {}
+    for row in url_rows:
+        eid = row["edition_id"]
+        if eid not in url_by_edition and row.get("video_url"):
+            url_by_edition[eid] = row["video_url"]
+
     for edition in old_editions:
         ed_date = edition['edition_date']
 
         # Derive storage folder from the actual video_url stored in the DB.
         # This handles old path format ({date}-{shortid}/) and current format
         # (editions/{category}-{date}-{shortid}/) without hardcoding either.
-        videos = (
-            db.table("videos")
-            .select("video_url")
-            .eq("edition_id", edition["id"])
-            .not_.is_("video_url", "null")
-            .limit(1)
-            .execute()
-            .data
-        )
-
         storage_prefix = None
-        if videos and videos[0].get("video_url"):
-            url = videos[0]["video_url"]
+        url = url_by_edition.get(edition["id"])
+        if url:
             # URL format: .../storage/v1/object/public/{bucket}/{path}/{file}
             # Extract everything after /public/{bucket}/ up to the last slash
             marker = f"/public/{BUCKET}/"
@@ -152,6 +161,7 @@ def cleanup_old_editions(days: int = 7) -> None:
             ed_category = edition.get('category', 'finance')
             storage_prefix = f"editions/{ed_category}-{ed_date}-{edition['id'][:8]}"
 
+        storage_ok = False
         try:
             files = db.storage.from_(BUCKET).list(path=storage_prefix)
             if files:
@@ -162,8 +172,12 @@ def cleanup_old_editions(days: int = 7) -> None:
                 )
             else:
                 logger.info("Cleanup: no files found at %s", storage_prefix)
+            storage_ok = True
         except Exception as e:
             logger.warning("Storage cleanup failed for %s: %s", ed_date, e)
 
-        db.table("editions").update({"status": "deleted"}).eq("id", edition["id"]).execute()
-        logger.info("Marked edition %s as deleted", ed_date)
+        if storage_ok:
+            db.table("editions").update({"status": "deleted"}).eq("id", edition["id"]).execute()
+            logger.info("Marked edition %s as deleted", ed_date)
+        else:
+            logger.warning("Skipping DB deletion for %s — storage cleanup failed", ed_date)

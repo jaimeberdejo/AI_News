@@ -1,10 +1,5 @@
 'use client'
 
-// Module-level muted flag — read synchronously in play() calls.
-// Must NOT be React state: we need to read it inside useEffect callbacks
-// without stale closure issues.
-let globalMuted = true
-
 import { useState, useRef, useEffect, useCallback } from 'react'
 import React from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -16,6 +11,13 @@ import { EndCard } from './EndCard'
 import { useAuth } from '../hooks/useAuth'
 import { AuthBottomSheet } from './AuthBottomSheet'
 import { CommentSheet } from './CommentSheet'
+
+// Module-level muted flag — read synchronously in play() calls.
+// Must NOT be React state: we need to read it inside useEffect callbacks
+// without stale closure issues.
+let globalMuted = true
+
+type SocialState = { likeCount: number; isLiked: boolean; isBookmarked: boolean }
 
 type Category = 'finance' | 'tech'
 
@@ -37,10 +39,10 @@ function formatEditionLabel(meta: EditionMeta): string {
   const yesterday = new Date(now)
   yesterday.setDate(yesterday.getDate() - 1)
   const isYesterday = date.toDateString() === yesterday.toDateString()
-  const time = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-  if (isToday) return `Hoy ${time}`
-  if (isYesterday) return `Ayer ${time}`
-  return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) + ` ${time}`
+  const time = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  if (isToday) return `Today ${time}`
+  if (isYesterday) return `Yesterday ${time}`
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ` ${time}`
 }
 
 export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
@@ -57,7 +59,6 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
   const [commentVideoId, setCommentVideoId] = useState<string | null>(null)
   const [pendingVideoId, setPendingVideoId] = useState<string | null>(null)
 
-  type SocialState = { likeCount: number; isLiked: boolean; isBookmarked: boolean }
   const [socialState, setSocialState] = useState<Record<string, SocialState>>({})
   const [processingLike, setProcessingLike] = useState<Set<string>>(new Set())
   const [processingBookmark, setProcessingBookmark] = useState<Set<string>>(new Set())
@@ -222,16 +223,20 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
     }
     setSocialState(s => ({ ...s, [videoId]: optimistic }))
 
-    const res = await fetch('/api/social/like', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videoId }),
-    })
-    if (!res.ok) {
-      setSocialState(s => ({ ...s, [videoId]: prev })) // roll back on failure
+    try {
+      const res = await fetch('/api/social/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoId }),
+      })
+      if (!res.ok) {
+        setSocialState(s => ({ ...s, [videoId]: prev })) // roll back on failure
+      }
+    } catch {
+      setSocialState(s => ({ ...s, [videoId]: prev })) // roll back on network error
+    } finally {
+      setProcessingLike(s => { const n = new Set(s); n.delete(videoId); return n })
     }
-
-    setProcessingLike(s => { const n = new Set(s); n.delete(videoId); return n })
   }
 
   async function handleBookmark(videoId: string) {
@@ -245,16 +250,20 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
     }
     setSocialState(s => ({ ...s, [videoId]: optimistic }))
 
-    const res = await fetch('/api/social/bookmark', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videoId }),
-    })
-    if (!res.ok) {
-      setSocialState(s => ({ ...s, [videoId]: prev })) // roll back
+    try {
+      const res = await fetch('/api/social/bookmark', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoId }),
+      })
+      if (!res.ok) {
+        setSocialState(s => ({ ...s, [videoId]: prev })) // roll back
+      }
+    } catch {
+      setSocialState(s => ({ ...s, [videoId]: prev })) // roll back on network error
+    } finally {
+      setProcessingBookmark(s => { const n = new Set(s); n.delete(videoId); return n })
     }
-
-    setProcessingBookmark(s => { const n = new Set(s); n.delete(videoId); return n })
   }
 
   function handleSocialAction(action: 'like' | 'bookmark' | 'comment', videoId: string) {
@@ -386,7 +395,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
           WebkitOverflowScrolling: 'touch',
         } as React.CSSProperties}
       >
-        {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(([cat, label]) => (
+        {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(([cat]) => (
           <button
             key={cat}
             onClick={e => { e.stopPropagation(); switchCategory(cat) }}
@@ -447,7 +456,7 @@ export function VideoFeed({ initialEdition, allEditions }: VideoFeedProps) {
           >
             ← Anterior
           </button>
-          <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.78rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          <span suppressHydrationWarning style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.78rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
             {isLoadingEdition ? 'Cargando…' : editionList[editionIndex] ? formatEditionLabel(editionList[editionIndex]) : ''}
           </span>
           <button

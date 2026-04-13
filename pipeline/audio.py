@@ -123,13 +123,20 @@ def generate(story: Story, tmp_dir: Path) -> tuple[Path, Path]:
     voice = VOICES[(story.position - 1) % len(VOICES)]
     logger.info("Generating TTS audio for position %d (voice=%s)", story.position, voice)
     client = _get_openai()
-    with client.audio.speech.with_streaming_response.create(
-        model="tts-1",
-        voice=voice,
-        input=story.script_text,
-        response_format="mp3",
-    ) as response:
-        response.stream_to_file(mp3_path)
+    for attempt in range(3):
+        try:
+            with client.audio.speech.with_streaming_response.create(
+                model="tts-1",
+                voice=voice,
+                input=story.script_text,
+                response_format="mp3",
+            ) as response:
+                response.stream_to_file(mp3_path)
+            break
+        except Exception as e:
+            logger.warning("TTS error (attempt %d/3): %s", attempt + 1, e)
+            if attempt == 2:
+                raise RuntimeError(f"TTS failed after 3 attempts: {e}") from e
     logger.info(
         "TTS audio saved: %s (%.1f KB)", mp3_path.name, mp3_path.stat().st_size / 1024
     )

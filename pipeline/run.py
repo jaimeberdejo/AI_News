@@ -56,8 +56,10 @@ def run() -> None:
     edition_date = str(date.today())
 
     # AUTO-03: Insert pipeline_runs audit record at start
-    run_row = db.table("pipeline_runs").insert({"status": "running"}).execute().data[0]
-    run_id = run_row["id"]
+    run_result = db.table("pipeline_runs").insert({"status": "running"}).execute()
+    if not run_result.data:
+        raise RuntimeError("Failed to create pipeline_runs audit record — DB insert returned no rows.")
+    run_id = run_result.data[0]["id"]
     steps_log: list[dict] = [{"step": "start", "category": category}]
     error_log: list[dict] = []
     edition_id: str | None = None

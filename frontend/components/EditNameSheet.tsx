@@ -17,9 +17,12 @@ export function EditNameSheet({
 }: EditNameSheetProps) {
   const [inputValue, setInputValue] = useState(currentName)
 
-  // Sync input when sheet opens with possibly new currentName
+  // Sync input when sheet opens with possibly new currentName.
+  // setState-in-effect is intentional: we only update when isOpen goes true,
+  // which is a user gesture — not a render-loop concern.
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInputValue(currentName)
     }
   }, [isOpen, currentName])

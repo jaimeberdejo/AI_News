@@ -1,20 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAnonClient } from '@supabase/supabase-js'
+import { isUUID } from '@/lib/validate'
 import { NextResponse } from 'next/server'
+
+// Module-level anon client — like counts are public
+const anonClient = createAnonClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
-  const ids = (searchParams.get('videoIds') ?? '').split(',').filter(Boolean)
+  const ids = (searchParams.get('videoIds') ?? '').split(',').filter(isUUID)
 
   if (!ids.length) {
     return NextResponse.json({ likes: [], bookmarks: [], likeCounts: {} })
   }
 
   // like_count is public — use anon client so guests get counts without auth
-  const anonClient = createAnonClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
   const { data: videos } = await anonClient
     .from('videos')
     .select('id, like_count')

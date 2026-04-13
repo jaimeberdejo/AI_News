@@ -51,7 +51,7 @@ export function useEdition(): EditionState {
       const data = await res.json()
       setEdition(data.edition ?? null)
       setError(null)
-    } catch (e) {
+    } catch {
       setError('Failed to load edition')
     } finally {
       setIsLoading(false)

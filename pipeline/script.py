@@ -86,18 +86,35 @@ def _select_stories(articles: list[Article], category: str = "finance") -> list[
             "where index is the 1-based article number. Select exactly 3 to 5 stories."
         )
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": articles_text},
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.2,
-        timeout=30.0,
-    )
-    data = json.loads(response.choices[0].message.content)
-    stories = data.get("stories", [])
+    last_exc: Exception | None = None
+    for attempt in range(3):
+        try:
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": articles_text},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.2,
+                timeout=30.0,
+            )
+            raw = response.choices[0].message.content
+            data = json.loads(raw)
+            stories = data.get("stories", [])
+            break
+        except (json.JSONDecodeError, KeyError, IndexError) as e:
+            logger.warning("Groq story selection parse error (attempt %d/3): %s", attempt + 1, e)
+            last_exc = e
+            stories = []
+            break
+        except Exception as e:
+            logger.warning("Groq story selection error (attempt %d/3): %s", attempt + 1, e)
+            last_exc = e
+            if attempt == 2:
+                raise RuntimeError(f"Groq story selection failed after 3 attempts: {e}") from e
+    else:
+        stories = []
 
     if len(stories) < 3:
         logger.warning(
@@ -139,19 +156,26 @@ def _write_script(article: Article, category: str = "finance") -> str:
             "No hashtags, no emojis, no calls-to-action. Return ONLY the script text."
         )
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": f"Headline: {article.title}\n\nSummary: {article.summary}",
-            },
-        ],
-        temperature=0.7,
-        max_tokens=300,
-        timeout=30.0,
-    )
+    for attempt in range(3):
+        try:
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user",
+                        "content": f"Headline: {article.title}\n\nSummary: {article.summary}",
+                    },
+                ],
+                temperature=0.7,
+                max_tokens=300,
+                timeout=30.0,
+            )
+            break
+        except Exception as e:
+            logger.warning("Groq script write error (attempt %d/3): %s", attempt + 1, e)
+            if attempt == 2:
+                raise RuntimeError(f"Groq script write failed after 3 attempts: {e}") from e
     script_text = response.choices[0].message.content.strip()
     word_count = len(script_text.split())
     if not (150 <= word_count <= 170):
@@ -189,13 +213,15 @@ def select_and_write(articles: list[Article], category: str = "finance") -> tupl
     if not articles:
         raise RuntimeError("No articles to select from — ingest returned empty list.")
 
-    db = get_db()
-    edition_id = _create_edition(db, category)
-    logger.info("Edition ID: %s (category: %s)", edition_id, category)
-
+    # Select stories BEFORE creating the edition row so a Groq failure doesn't
+    # leave an orphaned 'pending' edition with no videos in the DB.
     selected = _select_stories(articles, category)
     if not selected:
         raise RuntimeError("Groq story selection returned no stories.")
+
+    db = get_db()
+    edition_id = _create_edition(db, category)
+    logger.info("Edition ID: %s (category: %s)", edition_id, category)
 
     stories: list[Story] = []
     for position, sel in enumerate(selected, start=1):

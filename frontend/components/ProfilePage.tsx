@@ -46,7 +46,7 @@ export function ProfilePage() {
   const [isLoadingTab, setIsLoadingTab] = useState(false)
   const [editSheetOpen, setEditSheetOpen] = useState(false)
   const [savedLoaded, setSavedLoaded] = useState(false)
-  const [avatarVersion, setAvatarVersion] = useState(Date.now())
+  const [avatarVersion, setAvatarVersion] = useState(() => Date.now())
   const [cropBlob, setCropBlob] = useState<Blob | null>(null)
   const [cropPreviewUrl, setCropPreviewUrl] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -59,6 +59,7 @@ export function ProfilePage() {
   useEffect(() => {
     if (!user) return
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoadingProfile(true)
     fetch('/api/profile')
       .then(r => r.json())
@@ -94,6 +95,7 @@ export function ProfilePage() {
   useEffect(() => {
     if (activeTab !== 'saved' || savedLoaded || !user) return
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoadingTab(true)
     fetch('/api/profile/saved')
       .then(r => r.json())
